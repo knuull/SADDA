@@ -613,6 +613,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 :root[data-theme="dark"] #b-emote [fill="#fff"] { fill: var(--card); }
 .hud-info.hot.purp { background: #8a2dff; box-shadow: 0 3px 0 #5310b0; }
 .score.nob .sc b { display: none; }
+.hud-info.hot.blk { background: #15151c; color: #fff; box-shadow: 0 3px 0 #000, 0 0 0 2px #fff; }
 </style>
 </head>
 <body>
@@ -730,6 +731,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
           <button type="button" data-v="5"><i class="mi" data-m="5"></i><b data-t="mBomb"></b><small data-t="mBombS"></small></button>
           <button type="button" data-v="6"><i class="mi" data-m="6"></i><b data-t="mGold"></b><small data-t="mGoldS"></small></button>
           <button type="button" data-v="7"><i class="mi" data-m="7"></i><b data-t="mFrenzy"></b><small data-t="mFrenzyS"></small></button>
+          <button type="button" data-v="8"><i class="mi" data-m="8"></i><b data-t="mFort"></b><small data-t="mFortS"></small></button>
         </div>
         <div class="kv" id="kv-ck" hidden><span class="lbl" data-t="crownBy"></span><div id="seg-ck" class="seg"><button type="button" data-v="0" data-t="ckPts"></button><button type="button" data-v="1" data-t="ckTime"></button></div></div>
         <div class="kv"><span id="tgt-lbl" class="lbl"></span><div id="seg-tgt" class="seg"><button type="button"></button><button type="button"></button><button type="button"></button></div></div>
@@ -873,14 +875,28 @@ var BASE_SP = 0.8, CAP_SP = 1.5, SMASH_CAP = 2.05;
 var TELE = 0.75;                // warning time before a pearl comes in
 var LIVE = 0, PEND = 1;
 var STEP = 1 / 120;
-var MODE_LIVES = 0, MODE_POINTS = 1, MODE_TIME = 2, MODE_CROWN = 3, MODE_BULLET = 4, MODE_BOMB = 5, MODE_GOLD = 6, MODE_FRENZY = 7;
-function livesMode(m) { m = m | 0; return m === MODE_LIVES || m === MODE_BULLET || m === MODE_BOMB || m === MODE_FRENZY; }
+var MODE_LIVES = 0, MODE_POINTS = 1, MODE_TIME = 2, MODE_CROWN = 3, MODE_BULLET = 4, MODE_BOMB = 5, MODE_GOLD = 6, MODE_FRENZY = 7, MODE_FORT = 8;
+function livesMode(m) { m = m | 0; return m === MODE_LIVES || m === MODE_BULLET || m === MODE_BOMB || m === MODE_FRENZY || m === MODE_FORT; }
+/* Fortress: every goal is guarded by a low wall of 5 bricks. A pearl that gets past your bumper smashes the brick
+   it hits and bounces back; only through a gap does it score. Lose a life and your wall is rebuilt. */
+var NB = 5, BRICKS = (1 << NB) - 1;
+function brickIdx(S, pl, b) { var sd = S.sides[pl.side], u = -b.x * sd.s + b.y * sd.c, gh = goalHalf(pl); return clamp(Math.floor((u + gh) / (2 * gh) * NB), 0, NB - 1); }
+function brickBlock(S, b, seat, predict) {
+  var pl = S.players[seat]; if (!pl || !pl.alive || (S.cfg.mode | 0) !== MODE_FORT) return false;
+  var i = brickIdx(S, pl, b); if (!((pl.bricks >> i) & 1)) return false;
+  if (!predict) { pl.bricks &= ~(1 << i); ev(S, ['brick', seat, i, r3(b.x), r3(b.y)]); }
+  var sd = S.sides[pl.side]; reflectSide(b, sd, -b.x * sd.s + b.y * sd.c); b.st = LIVE; b.seq++; b.tent = -1;
+  return true;
+}
 function toTarget(m) { m = m | 0; return m === MODE_POINTS || m === MODE_GOLD; }        // first to the points target wins   // modes where a goal costs a life
-/* Bullet: one pearl that speeds up on every touch. White, then orange after 3 touches, yellow after 6, red after 11,
-   and purple after 16: the fastest of all. */
-var TIERS = [0, 3, 6, 11, 16];
-function tierOf(n) { return n >= TIERS[4] ? 4 : n >= TIERS[3] ? 3 : n >= TIERS[2] ? 2 : n >= TIERS[1] ? 1 : 0; }
-function bulletSp(S, n) { return BASE_SP * (S.cfg.speed || 1) * (n >= TIERS[4] ? Math.min(4.1, 3.35 + 0.05 * (n - TIERS[4])) : Math.min(2.95, 1 + 0.13 * n)); }
+/* Bullet: one pearl that speeds up on every touch. White 0-2 touches, orange 3-5, yellow 6-9, red 10-14,
+   purple 15-19, and black ("Unreal") from 20: far faster than anything before it. */
+var TIERS = [0, 3, 6, 10, 15, 20];
+function tierOf(n) { for (var i = TIERS.length - 1; i > 0; i--) if (n >= TIERS[i]) return i; return 0; }
+function bulletSp(S, n) {
+  var m = n >= 20 ? Math.min(5, 4.2 + 0.05 * (n - 20)) : n >= 15 ? 3.3 + 0.06 * (n - 15) : 1 + 0.13 * n;   // purple and black jump up so you feel them
+  return BASE_SP * (S.cfg.speed || 1) * m;
+}
 function bulletHit(S, b) { var t0 = tierOf(b.hits | 0); b.hits = (b.hits | 0) + 1; var t1 = tierOf(b.hits); if (t1 > t0) ev(S, ['tier', b.id, t1]); }
 var BOMB_FUSE = 10;
 var MAXP = 10;                   // players in one room
@@ -950,7 +966,7 @@ function newMatch(roster, cfg) {
     var sd = sides[ss[i]]; sd.seat = i;
     S.players.push({
       seat: i, id: r.id, name: r.name, ch: r.ch, col: r.col, bot: !!r.bot, remote: !!r.remote, conn: true,
-      side: sd.i, a0: sd.a, L: sd.L, alive: true, lives: cfg.lives, pts: 0, conc: 0,
+      side: sd.i, a0: sd.a, L: sd.L, alive: true, lives: cfg.lives, pts: 0, conc: 0, bricks: BRICKS,
       p: 0, pt: 0, pn: 0, pv: 0, pvel: 0, smashUntil: -1, smashCd: 0, smashN: 0, smashOn: false,
       wideUntil: -1, wide: false, shield: false, shieldUntil: -1, guardUntil: -1, guard: false,
       score: 0, saves: 0, place: 0, lat: 0, lastIn: 0, botT: Math.random() * 0.1, lastAimed: -9, cr: 0, steals: 0
@@ -1054,6 +1070,7 @@ function leaders(S) {
 }
 
 function goal(S, b, seat) {
+  if (S.phase === 'play' && brickBlock(S, b, seat, false)) return;             // Fortress: a brick takes the hit
   var pl = S.players[seat]; b.dead = true;
   if (!pl || !pl.alive || S.phase !== 'play') return;
   var mode = S.cfg.mode | 0;
@@ -1068,6 +1085,7 @@ function goal(S, b, seat) {
   else if (scp) scp.pts += b.gold ? 3 : 1;                                  // points: a pearl you sent into someone else's goal (a golden one is worth 3)
   ev(S, ['goal', seat, sc, r3(b.x), r3(b.y), lm ? pl.lives : pl.pts, scp ? scp.pts : 0, b.gold ? 1 : 0]);
   if (mode === MODE_FRENZY && S.phase === 'play' && maxBalls(S) > normalBalls(S)) ev(S, ['more', maxBalls(S)]);
+  if (mode === MODE_FORT && pl.lives > 0) { pl.bricks = BRICKS; ev(S, ['walls', seat]); }   // a fresh wall after every life lost
   if (lm) {
     if (pl.lives <= 0) {
       pl.alive = false; pl.place = S.places--; pl.shield = false;
@@ -1158,7 +1176,7 @@ function cross(S, b, si, M) {
         if (M.onLocalHit) M.onLocalHit(b, sm);
       } else {
         v = { b: b.id, s: b.seq, hit: 0, tl: M.now() };
-        if (safe) { reflectSide(b, sd, u); b.seq++; } else { b.st = PEND; b.pendSeat = seat; b.pendUntil = t + 2; }
+        if (safe) { reflectSide(b, sd, u); b.seq++; } else if (!brickBlock(S, b, seat, true)) { b.st = PEND; b.pendSeat = seat; b.pendUntil = t + 2; }
       }
       M.verdicts.set(key, v); M.flush = true;
     } else if (v.hit) {
@@ -1166,12 +1184,12 @@ function cross(S, b, si, M) {
       b.x = v.x + v.vx * age; b.y = v.y + v.vy * age; b.vx = v.vx; b.vy = v.vy;
       b.seq = v.s + 1; b.owner = seat; b.st = LIVE;
     } else if (safe) { reflectSide(b, sd, u); b.seq++; }
-    else { b.st = PEND; b.pendSeat = seat; b.pendUntil = t + 2; }
+    else if (!brickBlock(S, b, seat, true)) { b.st = PEND; b.pendSeat = seat; b.pendUntil = t + 2; }
     return;
   }
   if (covers || Math.abs(u - padU(pl)) <= padHalf(pl) + 0.075) doHit(S, b, pl, sd, u);   // a near miss on someone else's side is drawn as a save until the host says otherwise
   else if (safe) { reflectSide(b, sd, u); b.seq++; }
-  else { b.st = PEND; b.pendSeat = seat; b.pendUntil = t + 2; }
+  else if (!brickBlock(S, b, seat, true)) { b.st = PEND; b.pendSeat = seat; b.pendUntil = t + 2; }
 }
 
 function stepBall(S, b, dt, M) {
@@ -1443,7 +1461,7 @@ function advance(S, dt, M, mode) {
   if (M.host) { while (S.ev.length && S.t - S.ev[0][1] > 0.7) S.ev.shift(); }
 }
 
-if (typeof module !== 'undefined') module.exports = { MODE_GOLD: MODE_GOLD, MODE_FRENZY: MODE_FRENZY, MODE_BULLET: MODE_BULLET, MODE_BOMB: MODE_BOMB, tierOf: tierOf, livesMode: livesMode, MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
+if (typeof module !== 'undefined') module.exports = { MODE_FORT: MODE_FORT, MODE_GOLD: MODE_GOLD, MODE_FRENZY: MODE_FRENZY, MODE_BULLET: MODE_BULLET, MODE_BOMB: MODE_BOMB, tierOf: tierOf, livesMode: livesMode, MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
 
 /* ================= CHARACTERS & COLOURS =================
    Eight original goofy creatures built in code. The body takes
@@ -1691,6 +1709,7 @@ var SFX = {
   click: function () { play(BANK.tick(), { v: 0.18, jit: 0.05 }); },
   tier: function (k) { play(BANK.zing(), { v: 0.14 + k * 0.04, r: 0.8 + k * 0.15, w: 0.2 }); play(BANK.whoosh(), { v: 0.16, r: 1 + k * 0.2, w: 0.15 }); },
   boom: function () { play(BANK.boom(), { v: 0.42, r: 0.9, w: 0.25 }); play(BANK.thump(), { v: 0.35, r: 0.6, w: 0.15 }); },
+  brick: function () { play(BANK.wood(), { v: 0.32, r: 0.75, w: 0.08, jit: 0.12 }); play(BANK.pop(), { v: 0.16, r: 0.6, w: 0.05 }); },
   fuse: function () { play(BANK.tek(), { v: 0.22, r: 1.4, w: 0.1 }); },
   join: function () { play(BANK.pop(), { v: 0.3, w: 0.15 }); play(BANK.pop(), { v: 0.22, r: 1.3, t: 0.09, w: 0.15 }); }
 };
@@ -1774,19 +1793,20 @@ var STR = {
     h2t: 'Block', h2: 'Bounce the pearls away from your goal with your bumper.',
     h3t: 'Smash', h3: 'Tap SMASH just as a pearl reaches you to fire it back twice as hard.',
     h4t: 'Superpowers', h4: 'Roll a pearl you touched through a gold orb: Wide bumper, Shield, or Split pearl.',
-    h5t: 'Modes', h5: 'Lives: lose one per goal, last one standing wins. Points: score in other goals to reach the target. Time: most points when the clock runs out. Crown: score on the king to steal the crown. On Points, wearing it earns a point every second and the first to the target wins. On Time, whoever wears the crown when the clock runs out wins. The crown is heavy: the king\'s bumper shrinks the longer they keep it. Bullet: one pearl that gets faster with every touch, white, orange, yellow, red, then purple. Bomb: a ticking bomb rolls in with the pearls; when the fuse runs out it blows up on whoever\'s side it is on. Gold Rush: a golden pearl is worth 3 points. Frenzy: every goal adds one more pearl.',
+    h5t: 'Modes', h5: 'Lives: lose one per goal, last one standing wins. Points: score in other goals to reach the target. Time: most points when the clock runs out. Crown: score on the king to steal the crown. On Points, wearing it earns a point every second and the first to the target wins. On Time, whoever wears the crown when the clock runs out wins. The crown is heavy: the king\'s bumper shrinks the longer they keep it. Bullet: one pearl that gets faster with every touch, white, orange, yellow, red, purple, then black: Unreal. Fortress: a wall of 5 bricks guards your goal; pearls that get past you smash a brick, and only score through a gap. Lose a life and your wall is rebuilt. Bomb: a ticking bomb rolls in with the pearls; when the fuse runs out it blows up on whoever\'s side it is on. Gold Rush: a golden pearl is worth 3 points. Frenzy: every goal adds one more pearl.',
     taunt: 'Taunt',
     play: 'PLAY', howPlay: 'How do you want to play?', joinT: 'Join with a code', soloSub: 'Warm up against the bots, no internet needed',
     profile: 'Your player', colour: 'Colour', done: 'Done', editMe: 'Tap to edit', moreSet: 'More settings', loading: 'Loading',
     mCrown: 'Crown', mCrownS: 'Steal it, keep it', tgtCrown: 'Crown points to win', sec: 's', secS: 's', pts: 'pts', crownCol: 'Crown pts',
     crownBy: 'Win by', ckPts: 'Points', ckTime: 'Time', auto: 'Auto', balls: 'Pearls',
     mBullet: 'Bullet', mBulletS: 'One pearl, faster every hit', mBomb: 'Bomb', mBombS: "Don't let it blow on you",
-    fast1: 'FAST!', fast2: 'FASTER!', fast3: 'FASTEST!', fast4: 'INSANE!', fastS: 'Keep it out of your goal',
-    spd0: 'Speed: normal', spd1: 'Speed: fast', spd2: 'Speed: faster', spd3: 'Speed: FASTEST', spd4: 'Speed: INSANE',
+    fast1: 'FAST!', fast2: 'FASTER!', fast3: 'FASTEST!', fast4: 'INSANE!', fast5: 'UNREAL!', fastS: 'Keep it out of your goal',
+    spd0: 'Speed: normal', spd1: 'Speed: fast', spd2: 'Speed: faster', spd3: 'Speed: FASTEST', spd4: 'Speed: INSANE', spd5: 'Speed: UNREAL',
     bombIn: 'BOMB!', bombInS: 'Keep it away from your side', boomSafe: 'Shield!',
     koLog: 'Knockouts', hitLog: 'Who scored on who', koBy: 'knocked out', scoredOn: 'scored {n} on', wild: 'Wild pearl',
     crownTo: 'Crown: first to {n} points', crownT: 'CROWN STOLEN!', crownGot2: 'THE KING!', crownGot: '{n} has the crown', youCrown: 'YOUR CROWN!',
     crownDrop: 'CROWN DROPPED!', crownDropS: 'Score to grab it', cwarnT: '5 POINTS TO WIN!', cwarnS: 'Stop {n}!', cwarnMe: '5 MORE POINTS!', cwarnMeS: 'Hold on!',
+    mFort: 'Fortress', mFortS: 'Break walls, guard yours', wallN: 'Your wall: {n}/5', wallDown: 'WALL DOWN!', wallDownS: 'Your goal is open', wallUp: 'Wall rebuilt',
     mGold: 'Gold Rush', mGoldS: 'Golden pearl = 3 points', mFrenzy: 'Frenzy', mFrenzyS: 'Every goal adds a pearl',
     goldIn: 'GOLDEN PEARL!', goldInS: 'Worth 3 points', goldGot: '{n} scored gold!', moreT: '{n} PEARLS!', frenzyN: 'Pearls: {n}',
     otCrown: 'Grab the crown!', otCrownS: 'Whoever grabs the crown wins', heldCol: 'Held',
@@ -1828,19 +1848,20 @@ var STR = {
     h2t: 'صدّ', h2: 'ردّ اللؤلؤ بعيد عن مرماك بالصدّام.',
     h3t: 'اضرب', h3: 'اضغط «اضرب» لحظة وصول اللؤلؤة عشان ترجعها بقوة مضاعفة.',
     h4t: 'القوى الخارقة', h4: 'وجّه لؤلؤة لمستها على كرة ذهبية: صدّام عريض، درع، أو لؤلؤة تنقسم.',
-    h5t: 'أنواع اللعب', h5: 'أرواح: كل هدف عليك يخسرك روح، وآخر واحد يبقى يفوز. نقاط: سجّل في مرمى غيرك لين توصل للهدف. وقت: الأكثر نقاط لما يخلص الوقت. التاج: سجّل على الملك عشان تسرق التاج. بالنقاط: كل ثانية والتاج معك تاخذ نقطة، وأول من يوصل للهدف يفوز. بالوقت: اللي التاج معه لما يخلص الوقت هو الفايز. التاج ثقيل: صدّام الملك يصغر كل ما طوّل فيه. رصاصة: لؤلؤة وحدة تسرع مع كل ضربة، بيضا ثم برتقالية ثم صفرا ثم حمرا ثم بنفسجية. قنبلة: قنبلة تدخل مع اللؤلؤ، ولما يخلص الفتيل تنفجر على اللي هي في جهته. حمّى الذهب: اللؤلؤة الذهبية تسوى ٣ نقاط. فوضى: كل هدف يزيد لؤلؤة.',
+    h5t: 'أنواع اللعب', h5: 'أرواح: كل هدف عليك يخسرك روح، وآخر واحد يبقى يفوز. نقاط: سجّل في مرمى غيرك لين توصل للهدف. وقت: الأكثر نقاط لما يخلص الوقت. التاج: سجّل على الملك عشان تسرق التاج. بالنقاط: كل ثانية والتاج معك تاخذ نقطة، وأول من يوصل للهدف يفوز. بالوقت: اللي التاج معه لما يخلص الوقت هو الفايز. التاج ثقيل: صدّام الملك يصغر كل ما طوّل فيه. رصاصة: لؤلؤة وحدة تسرع مع كل ضربة، بيضا ثم برتقالية ثم صفرا ثم حمرا ثم بنفسجية ثم سودا: خيالية. القلعة: جدار من ٥ طوب يحمي مرماك، اللؤلؤة اللي تعدّيك تكسر طوبة وترجع، وما تسجّل إلا من الفتحات. إذا خسرت روح يرجع جدارك كامل. قنبلة: قنبلة تدخل مع اللؤلؤ، ولما يخلص الفتيل تنفجر على اللي هي في جهته. حمّى الذهب: اللؤلؤة الذهبية تسوى ٣ نقاط. فوضى: كل هدف يزيد لؤلؤة.',
     taunt: 'استفزاز',
     play: 'العب', howPlay: 'كيف تبي تلعب؟', joinT: 'ادخل بالرمز', soloSub: 'سخّن ضد البوتات، بدون إنترنت',
     profile: 'لاعبك', colour: 'اللون', done: 'تم', editMe: 'اضغط للتعديل', moreSet: 'إعدادات أكثر', loading: 'جاري التحميل',
     mCrown: 'التاج', mCrownS: 'اسرقه واثبت فيه', tgtCrown: 'نقاط التاج للفوز', sec: 'ث', secS: 'ث', pts: 'نقطة', crownCol: 'نقاط التاج',
     crownBy: 'الفوز بـ', ckPts: 'النقاط', ckTime: 'الوقت', auto: 'تلقائي', balls: 'عدد اللؤلؤ',
     mBullet: 'رصاصة', mBulletS: 'لؤلؤة وحدة، تسرع مع كل ضربة', mBomb: 'قنبلة', mBombS: 'لا تخليها تنفجر عندك',
-    fast1: 'سريعة!', fast2: 'أسرع!', fast3: 'صاروخ!', fast4: 'جنون!', fastS: 'لا تخليها تدخل عليك',
-    spd0: 'السرعة: عادية', spd1: 'السرعة: سريعة', spd2: 'السرعة: أسرع', spd3: 'السرعة: صاروخ', spd4: 'السرعة: جنون',
+    fast1: 'سريعة!', fast2: 'أسرع!', fast3: 'صاروخ!', fast4: 'جنون!', fast5: 'خيالي!', fastS: 'لا تخليها تدخل عليك',
+    spd0: 'السرعة: عادية', spd1: 'السرعة: سريعة', spd2: 'السرعة: أسرع', spd3: 'السرعة: صاروخ', spd4: 'السرعة: جنون', spd5: 'السرعة: خيالية',
     bombIn: 'قنبلة!', bombInS: 'بعّدها عن جهتك', boomSafe: 'درع!',
     koLog: 'مين طلّع مين', hitLog: 'مين سجّل على مين', koBy: 'طلّع', scoredOn: 'سجّل {n} على', wild: 'لؤلؤة طايشة',
     crownTo: 'التاج: أول من يوصل {n} نقطة', crownT: 'انسرق التاج!', crownGot2: 'الملك!', crownGot: 'التاج مع {n}', youCrown: 'التاج معك!',
     crownDrop: 'طاح التاج!', crownDropS: 'سجّل وخذه', cwarnT: 'باقي له ٥ نقاط!', cwarnS: 'وقّفوا {n}!', cwarnMe: 'باقي لك ٥ نقاط!', cwarnMeS: 'اثبت!',
+    mFort: 'القلعة', mFortS: 'كسّر جدرانهم واحمِ جدارك', wallN: 'جدارك: {n}/5', wallDown: 'طاح الجدار!', wallDownS: 'مرماك مفتوح', wallUp: 'رجع الجدار',
     mGold: 'حمّى الذهب', mGoldS: 'اللؤلؤة الذهبية = ٣ نقاط', mFrenzy: 'فوضى', mFrenzyS: 'كل هدف يزيد لؤلؤة',
     goldIn: 'لؤلؤة ذهبية!', goldInS: 'تسوى ٣ نقاط', goldGot: '{n} سجّل الذهبية!', moreT: '{n} لؤلؤات!', frenzyN: 'اللؤلؤ: {n}',
     otCrown: 'خذ التاج!', otCrownS: 'اللي ياخذ التاج يفوز', heldCol: 'مدة التاج',
@@ -2478,7 +2499,7 @@ function hostVerdict(pl, v) {
 function flagsOf(p) { return (p.alive ? 1 : 0) | (p.smashOn ? 2 : 0) | (p.wide ? 4 : 0) | (p.shield ? 8 : 0) | (p.guard ? 16 : 0) | ((p.conn || !p.remote) ? 32 : 0) | (p.king ? 64 : 0); }
 function packSnap(S, hc) {
   return JSON.stringify(['s', G.mid, S.tick, r3(S.t), hc, S.phase === 'cd' ? 0 : S.phase === 'play' ? 1 : 2,
-    S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1]; }),
+    S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1, p.bricks]; }),
     S.balls.map(function (b) { return [b.id, r3(b.x), r3(b.y), r3(b.vx), r3(b.vy), b.owner, b.seq, b.st, b.tent, b.hotUntil > S.t ? 1 : 0, b.hits | 0, b.bomb ? Math.max(0.01, r3(b.fuseAt - S.t)) : 0, b.gold ? 1 : 0]; }),
     S.orbs.map(function (o) { return [o.id, r3(o.x), r3(o.y), o.ty]; }),
     [S.core.tele === null ? null : r3(S.core.tele), S.core.next < 0 ? -1 : r3(S.core.next - S.t)],
@@ -2532,7 +2553,7 @@ function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
   ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
-  ROOM.cfg = { mode: ci(q[0], 0, 7), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
+  ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000; ROOM.seats.forEach(function (x) { was[x.id] = x.joinedAt; });
   ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
@@ -2585,7 +2606,7 @@ function applySnap(m, nowMs) {
   for (i = 0; i < ps.length && i < S.players.length; i++) {
     var a = ps[i], pl = S.players[i], f = a[2];
     pl.lives = a[1]; pl.alive = !!(f & 1); pl.wide = !!(f & 4); pl.shield = !!(f & 8); pl.guard = !!(f & 16); pl.conn = !!(f & 32); pl.king = !!(f & 64);
-    pl.pts = a[3]; pl.score = a[4]; pl.conc = a[5]; pl.saves = a[6]; pl.place = a[7]; pl.lat = a[8] / 1000; pl.kw = a[9] || 1;
+    pl.pts = a[3]; pl.score = a[4]; pl.conc = a[5]; pl.saves = a[6]; pl.place = a[7]; pl.lat = a[8] / 1000; pl.kw = a[9] || 1; if (a[10] != null) pl.bricks = a[10];
     if (i !== G.me) { pl.pn = a[0]; pl.p = a[0]; rpush(pl, a[0], G.synced ? m[4] - G.offset : nowMs, nowMs); pl.smashOn = !!(f & 2); pl.smashUntil = pl.smashOn ? S.t + 0.15 : -1; }
   }
   S.balls = m[7].map(function (q) { return { id: q[0], x: q[1], y: q[2], vx: q[3], vy: q[4], owner: q[5], seq: q[6], st: q[7], tent: q[8],
@@ -4308,7 +4329,7 @@ function pearlInk() {
 }
 /* the ball's paint: equirectangular, so the equator band wraps the ball */
 var _btex = {};
-var TIER_COL = [null, '#ff8a1f', '#ffd21f', '#ff2d3a', '#a24bff'];     // Bullet: white, orange, yellow, red, purple
+var TIER_COL = [null, '#ff8a1f', '#ffd21f', '#ff2d3a', '#a24bff', '#17171f'];   // Bullet: white, orange, yellow, red, purple, black
 function ballTex(hex) {
   var key = hex || 'pearl'; if (_btex[key]) return _btex[key];
   var t = canvasTex(512, 256, function (g, w, h) {
@@ -4430,7 +4451,7 @@ function ballsUpdate(S, now, dt) {
       B.m.quaternion.premultiply(_bq.setFromAxisAngle(_NZ, sp * R3 * dt / r0)).normalize();
     }
     B.st.scale.set(sx * r, sy * r * (1 + sq * 0.4), sy * r);
-    B.mat.emissive.set(hot ? (b.gold ? 0xffb000 : bul && tier === 4 ? 0x9a3bff : 0xff3a00) : 0x000000); B.mat.emissiveIntensity = hot ? 0.18 + 0.12 * Math.sin(now * 30) : 0;
+    B.mat.emissive.set(hot && !(bul && tier === 5) ? (b.gold ? 0xffb000 : bul && tier === 4 ? 0x9a3bff : 0xff3a00) : 0x000000); B.mat.emissiveIntensity = hot ? 0.18 + 0.12 * Math.sin(now * 30) : 0;
     if (bul && tier && !hot) { B.mat.emissive.copy(CC(TIER_COL[tier])); B.mat.emissiveIntensity = 0.1 * tier; }
     var fz = b.bomb ? Math.max(0, b.fuseAt - S.t) : 99;
     if (b.bomb) {                                                     // the bomb blinks faster as its fuse runs down
@@ -4459,10 +4480,10 @@ function ballsUpdate(S, now, dt) {
       B.tr.geometry.attributes.position.needsUpdate = true; B.tr.geometry.attributes.a.needsUpdate = true;
       B.tm.uniforms.op.value = hot ? 0.9 : owner ? 0.55 + tier * 0.12 : 0.35; var tc = hot && !bul ? '#ffb347' : owner || '#cfc6ff'; if (B.tcol !== tc) { B.tcol = tc; B.tm.uniforms.col.value.copy(CC(tc)); }
     }
-    B.h.visible = (hot || !!b.bomb) && B.grp.visible;
+    B.h.visible = (hot || !!b.bomb) && B.grp.visible && !(bul && tier === 5);
     if (B.h.visible && b.bomb) { B.h.position.set(bx, r * 2.25, bz); B.h.material.opacity = 0.85 * f; B.h.scale.setScalar(r * (1.3 + Math.random() * 0.6)); }   // the lit fuse
     else if (B.h.visible) { B.h.position.set(bx, r, bz); B.h.material.opacity = 0.45 * f; B.h.scale.setScalar(r * 3.6 + Math.sin(now * 40) * r * 0.3); }
-    if (hot && f > 0.5 && !REDUCE && Math.random() < 0.7) trailDot(bx - b.vx * R3 * 0.02 + (Math.random() - 0.5) * r, r, bz - b.vy * R3 * 0.02 + (Math.random() - 0.5) * r, b.gold ? (Math.random() < 0.5 ? '#fff3b0' : '#ffd23f') : bul && tier === 4 ? (Math.random() < 0.5 ? '#e0a8ff' : '#8a2dff') : Math.random() < 0.5 ? '#ffd23f' : '#ff6a1a', 0.7);
+    if (hot && f > 0.5 && !REDUCE && Math.random() < 0.7) trailDot(bx - b.vx * R3 * 0.02 + (Math.random() - 0.5) * r, r, bz - b.vy * R3 * 0.02 + (Math.random() - 0.5) * r, b.gold ? (Math.random() < 0.5 ? '#fff3b0' : '#ffd23f') : bul && tier === 5 ? (Math.random() < 0.5 ? '#ffffff' : '#8f96ff') : bul && tier === 4 ? (Math.random() < 0.5 ? '#e0a8ff' : '#8a2dff') : Math.random() < 0.5 ? '#ffd23f' : '#ff6a1a', 0.7);
   }
   for (i = 0; i < GFX.balls.length; i++) if (!GFX.balls[i].seen && GFX.balls[i].id >= 0) hideBall(GFX.balls[i]);
   if (!list.some(function (q) { return q.bomb; })) bombTag();
@@ -4477,6 +4498,7 @@ function bombTag(x, r, z, n, hot) {
   el.classList.toggle('hot', !!hot); placeEl(el, p.x, p.y, false);
 }
 function by0(z) { return z / R3; }
+var _m4 = new THREE.Matrix4(), _q0 = new THREE.Quaternion(), _s3 = new THREE.Vector3();
 function gfxInit() {
   var r;
   try { r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, powerPreference: 'default' }); } catch (e) { return false; }
@@ -4609,6 +4631,8 @@ function makeSlot(i) {
   S.stripe = mesh(new THREE.BoxGeometry(1, 1, 1), S.pod.CM.em); S.bumper.add(S.stripe);
   [S.glow, S.line, S.curtain, S.barrier, S.sealW, S.sealT, S.bumper, S.pod.grp].forEach(function (m) { S.grp.add(m); });
   S.pod.grp.rotation.y = -Math.PI / 2;
+  S.brickM = new THREE.MeshLambertMaterial({ color: LC(hex), emissive: LC(hex), emissiveIntensity: 0.35 }); tint(S.brickM); S.tints.push({ color: S.brickM.emissive });         // Fortress: the wall of bricks in front of the goal
+  S.bricks = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), S.brickM, 5); S.bricks.visible = false; S.bricks.frustumCulled = false; S.grp.add(S.bricks); S.bmask = -1;
   S.grp.visible = false; sc.add(S.grp);
   return S;
 }
@@ -4724,6 +4748,20 @@ function syncSlot(S, sl, now, dt) {
     S.hwKey = sl.hw; var bk = 1 / SZ, len = Math.max(0.1, sl.hw * 2 * R3 - 0.6 * bk);
     S.bCyl.scale.set(bk, len, bk); S.bCap[0].position.z = -len / 2; S.bCap[1].position.z = len / 2; S.bCap.forEach(function (c) { c.scale.setScalar(bk); });
     S.stripe.scale.set(0.08, 0.1, len + 0.3); S.stripe.position.set(-0.24, 0.12, 0);
+  }
+  var fort = !!(sl.pl && G.S && (G.S.cfg.mode | 0) === MODE_FORT && live);
+  S.bricks.visible = fort;
+  if (fort) {
+    var mk = (sl.pl.bricks | 0) + ':' + S.hwKey + ':' + sl.gh.toFixed(3);
+    if (S.bmask !== mk) {
+      S.bmask = mk; var gw = sl.gh * R3, bw = gw * 2 / 5;
+      for (var bi = 0; bi < 5; bi++) {
+        var on = (sl.pl.bricks >> bi) & 1;
+        _m4.compose(_v.set(R3 + 0.04, 0.26, -gw + bw * (bi + 0.5)), _q0, _s3.set(on ? 0.46 : 0.0001, on ? 0.52 : 0.0001, on ? bw * 0.88 : 0.0001));
+        S.bricks.setMatrixAt(bi, _m4);
+      }
+      S.bricks.instanceMatrix.needsUpdate = true;
+    }
   }
   if (!S.bumper.visible) return;
   S.recoil *= Math.exp(-dt * 9);
@@ -4919,6 +4957,13 @@ function fxEvent(a) {
     sfx('win'); musicStop(); if (pl) setTimeout(function () { if (AU.on) voice(pl.ch, 'happy', 0.2); }, 1100);
     onMatchOver();
   } else if (k === 'ot') { showTitle(T('otT'), mode === MODE_CROWN ? T('otCrownS') : T('otS'), 'final', 1900); sfx('go'); }
+  else if (k === 'brick') {                                                     // a brick smashed: chunks in that player's colour
+    pl = S.players[a[1]]; if (pl) {
+      col = COLORS[pl.col]; spark(a[3] * R3, 0.4, a[4] * R3, col, 16, 5, 0.42, 0.55, 3); spark(a[3] * R3, 0.4, a[4] * R3, '#ffffff', 6, 3, 0.3, 0.4, 3); shock(a[3], a[4], col, 1.6, 0.3);
+      sfx('brick'); if (a[1] === me) { buzz(35); FX.shake = Math.max(FX.shake, 0.15); if (!(pl.bricks | 0)) showTitle(T('wallDown'), T('wallDownS'), 'last', 1300, col); }
+    }
+  }
+  else if (k === 'walls') { pl = S.players[a[1]]; if (pl && a[1] === me) { var wp = padSimXY(pl); floatText(wp.x * 1.05, wp.y * 1.05, T('wallUp'), COLORS[pl.col], false); } sfx('orbnew'); }
   else if (k === 'goldnew') { GFX.pulse = now; shock(0, 0, GOLD, 3.4, 0.45); sfx('orb'); showTitle(T('goldIn'), T('goldInS'), 'last', 1200, GOLD); }
   else if (k === 'more') { GFX.pulse = now; showTitle(T('moreT', { n: a[1] }), '', 'last', 900, '#ff5d8f'); }
   else if (k === 'orb') {
@@ -5384,7 +5429,7 @@ var UI = { screen: 'home', full: false, drag: null, exitArmed: 0, toastT: null, 
 function $(id) { return document.getElementById(id); }
 var ICON_ON = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/></svg>';
 var ICON_OFF = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9l5 6M21 9l-5 6"/></svg>';
-var TARGETS = [[3, 5, 10], [5, 10, 15], [2, 3, 5], [45, 65, 75], [3, 5, 10], [3, 5, 10], [15, 25, 35], [3, 5, 10]], CROWN_SECS = [60, 90, 120], MODE_NAMES = ['mLives', 'mPoints', 'mTime', 'mCrown', 'mBullet', 'mBomb', 'mGold', 'mFrenzy'];
+var TARGETS = [[3, 5, 10], [5, 10, 15], [2, 3, 5], [45, 65, 75], [3, 5, 10], [3, 5, 10], [15, 25, 35], [3, 5, 10], [2, 3, 5]], CROWN_SECS = [60, 90, 120], MODE_NAMES = ['mLives', 'mPoints', 'mTime', 'mCrown', 'mBullet', 'mBomb', 'mGold', 'mFrenzy', 'mFort'];
 function targetsFor(c) { return (c.mode | 0) === 3 && c.ck ? CROWN_SECS : TARGETS[c.mode | 0]; }
 
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} return null; }
@@ -5563,7 +5608,8 @@ var MODE_SVG = [
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="15.5" cy="12" r="6" fill="currentColor"/><path d="M2.5 8h6M1.5 12h5.5M2.5 16h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="11" cy="14" r="7.5" fill="currentColor"/><path d="M15.5 7.5l2-2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M18.5 2.5v2M21.5 5.5h-2M20.6 3.4l-1.3 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.5" cy="11.5" r="1.8" fill="#fff" opacity=".55"/></svg>',
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="13" r="7.5" fill="currentColor"/><path d="M12 2.2l1.1 2.3 2.5.3-1.8 1.7.5 2.5L12 7.8 9.7 9l.5-2.5-1.8-1.7 2.5-.3z" fill="currentColor"/><path d="M9 13h6M12 10v6" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg>',
-  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="7" cy="8" r="4" fill="currentColor"/><circle cx="17" cy="7" r="3.2" fill="currentColor"/><circle cx="12.5" cy="16" r="5" fill="currentColor"/><circle cx="4.5" cy="18" r="2.4" fill="currentColor"/></svg>'
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="7" cy="8" r="4" fill="currentColor"/><circle cx="17" cy="7" r="3.2" fill="currentColor"/><circle cx="12.5" cy="16" r="5" fill="currentColor"/><circle cx="4.5" cy="18" r="2.4" fill="currentColor"/></svg>',
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M3 9h3V6h3v3h2V6h2v3h2V6h3v3h3v12H3z"/><path d="M3 14h18M8 14v7M16 14v7M12 9v5" stroke="#fff" stroke-width="1.4" opacity=".55"/></svg>'
 ];
 function buildMaps() {
   var box = $('maps'); box.textContent = '';
@@ -5575,7 +5621,7 @@ function buildMaps() {
     b.appendChild(ic); b.appendChild(nm); b.appendChild(sb); box.appendChild(b);
   });
 }
-function tgtKey(c) { return ['lives', 'pts', 'mins', c.ck ? 'crs' : 'crn', 'lives', 'lives', 'gpts', 'lives'][c.mode | 0]; }
+function tgtKey(c) { return ['lives', 'pts', 'mins', c.ck ? 'crs' : 'crn', 'lives', 'lives', 'gpts', 'lives', 'lives'][c.mode | 0]; }
 function cfgTarget(c) { return c[tgtKey(c)] || targetsFor(c)[1]; }
 function targetText(mode, v, ck) { return mode === 2 ? v + ' ' + T('min') : mode === 3 ? v + ' ' + T(ck ? 'sec' : 'pts') : String(v); }
 function renderLobby() {
@@ -5616,7 +5662,7 @@ function renderLobby() {
   if (host) {
     $('bots-n').textContent = String(ROOM.seats.filter(function (x) { return x.bot; }).length);
     seg('modes', mode);
-    $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', c.ck ? 'tgtTime' : 'tgtCrown', 'tgtLives', 'tgtLives', 'tgtPoints', 'tgtLives'][mode]);
+    $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', c.ck ? 'tgtTime' : 'tgtCrown', 'tgtLives', 'tgtLives', 'tgtPoints', 'tgtLives', 'tgtLives'][mode]);
     var tb = $('seg-tgt').querySelectorAll('button');
     targetsFor(c).forEach(function (v, k) { tb[k].setAttribute('data-v', v); tb[k].textContent = targetText(mode, v, c.ck); });
     $('kv-ck').hidden = mode !== 3; seg('seg-ck', c.ck ? 1 : 0);
@@ -5738,12 +5784,14 @@ function hudInfo(S) {
   if (mode === MODE_TIME) { if (S.ot) { txt = T('otT'); hot = true; } else { var left = S.endT ? S.endT - S.t : 60 * (S.cfg.mins || 3); txt = fmtClock(left); hot = S.endT && left < 10.5; } }
   else if (toTarget(mode)) txt = T('firstTo', { n: S.cfg.target || 10 });
   else if (mode === MODE_FRENZY) txt = T('frenzyN', { n: S.balls.length });
+  else if (mode === MODE_FORT && S.players[G.me]) { var bw = S.players[G.me].bricks | 0, nb = 0; for (var q = 0; q < 5; q++) nb += (bw >> q) & 1; txt = T('wallN', { n: nb }); hot = nb === 0; }
   else if (mode === MODE_CROWN && S.cfg.crownBy) { if (S.ot) { txt = T('otCrown'); hot = true; } else { var lc = S.endT ? S.endT - S.t : (S.cfg.crownS || 90); txt = fmtClock(lc); hot = S.endT && lc < 10.5; } }
   else if (mode === MODE_CROWN) txt = T('crownTo', { n: S.cfg.crownT || 45 });
   else if (mode === MODE_BULLET) { var bb = S.balls[0], ti = bb ? tierOf(bb.hits | 0) : 0; txt = T('spd' + ti); hot = ti >= 3; }
   if (UI.infoTxt !== txt) { UI.infoTxt = txt; info.textContent = txt; info.hidden = !txt; }
   info.classList.toggle('hot', !!hot);
-  var purp = mode === MODE_BULLET && S.balls[0] && tierOf(S.balls[0].hits | 0) === 4; if (UI.purp !== purp) { UI.purp = purp; info.classList.toggle('purp', purp); }
+  var tq = mode === MODE_BULLET && S.balls[0] ? tierOf(S.balls[0].hits | 0) : 0, purp = tq === 4, blk = tq === 5;
+  if (UI.purp !== purp) { UI.purp = purp; info.classList.toggle('purp', purp); } if (UI.blk !== blk) { UI.blk = blk; info.classList.toggle('blk', blk); }
 }
 function hudFlash(seat) { var h = UI.hud[seat]; if (!h) return; h.el.classList.remove('hit'); void h.el.offsetWidth; h.el.classList.add('hit'); }
 function fmtClock(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
@@ -5849,7 +5897,7 @@ function initUI() {
   });
   $('bots-minus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.max(0, ROOM.seats.filter(function (x) { return x.bot; }).length - 1); syncBots(); sendLobby(); renderLobby(); });
   $('bots-plus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.min(MAXP - humans().length, ROOM.seats.filter(function (x) { return x.bot; }).length + 1); syncBots(); sendLobby(); renderLobby(); });
-  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 7); }));
+  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 8); }));
   $('seg-tgt').addEventListener('click', hostSet(function (v) { var c = ROOM.cfg; c[tgtKey(c)] = +v; }));
   $('seg-ck').addEventListener('click', hostSet(function (v) { ROOM.cfg.ck = +v ? 1 : 0; }));
   $('balls-minus').addEventListener('click', function () { if (!(ROOM.role === 'host' || ROOM.role === 'solo')) return; sfx('click'); ROOM.cfg.balls = Math.max(0, (ROOM.cfg.balls | 0) - 1); sendLobby(); renderLobby(); });
