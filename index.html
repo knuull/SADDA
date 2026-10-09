@@ -54,7 +54,7 @@ body {
 button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 img { -webkit-user-drag: none; }
 .defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-.app { position: fixed; inset: 0; bottom: calc(-1 * var(--gap, 0px)); overflow: hidden; overflow: clip; background: var(--b2); }
+.app { position: fixed; inset: 0; overflow: hidden; overflow: clip; background: var(--b2); }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 .fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
@@ -5031,31 +5031,29 @@ function camFit(pts, el, az, rect, slack, tgtOff, bottom) {
   if (bottom) oy = (1 - bb.y0) / 2 * H - (rect.y + rect.h);            // rest the arena on the bottom of the space so your side sits low, like Crash
   return { d: hi, ox: cxp - (rect.x + rect.w / 2), oy: oy, tgt: tgt };
 }
-/* iPhone Home Screen app bug: iOS can lay the page out shorter than the screen (by about the status bar's
-   height), so a strip of blue shows at the bottom. window.innerHeight cannot be trusted there, so measure what
-   iOS really gave the page (a hidden full-height probe) against the size of the screen, and stretch the app by
-   exactly the difference. The buttons stay measured from the real bottom of the screen. */
+/* iPhone Home Screen app bug (iOS 26): iOS does not give the page the strip at the bottom of the screen at all,
+   so nothing can be drawn there; anything stretched into it is simply cut off. What iOS paints in that strip is the
+   page's background colour, so keep that colour the same as whatever sits at the bottom of the screen right now:
+   the white sheet, the blue home page, or the ground under the arena (read from the picture itself). */
 function typing() { var a = document.activeElement; return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
-function pageH() {
-  var p = fixGap.probe;
-  if (!p) { p = fixGap.probe = document.createElement('div'); p.style.cssText = 'position:fixed;top:0;bottom:0;left:0;width:1px;visibility:hidden;pointer-events:none;'; document.body.appendChild(p); }
-  return p.getBoundingClientRect().height;
+function fixGap() { document.documentElement.classList.toggle('sa', navigator.standalone === true); bandPaint(); return 0; }
+function remeasure() { gfxResize(); }
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function setBand(col) {
+  if (!col || bandPaint.col === col) return; bandPaint.col = col;
+  document.documentElement.style.backgroundColor = col; document.body.style.backgroundColor = col;
 }
-function fixGap() {
-  var sa = navigator.standalone === true, gap = 0;
-  document.documentElement.classList.toggle('sa', sa);
-  if (sa && !typing() && window.screen && screen.height) {
-    var s0 = Math.min(screen.width, screen.height), s1 = Math.max(screen.width, screen.height), w = innerWidth;
-    var full = Math.abs(w - s0) <= Math.abs(w - s1) ? s1 : s0;                 // portrait: the long side is the height
-    gap = Math.round(full - pageH()); if (gap < 4 || gap > 100) gap = 0;
-  }
-  if (fixGap.v !== gap) { fixGap.v = gap; document.documentElement.style.setProperty('--gap', gap + 'px'); }
-  return gap;
+function bandPaint() {
+  var sc = UI.screen, sheet = UI.sheet && $(UI.sheet) && !$(UI.sheet).hidden, wide = innerWidth > innerHeight * 1.2;
+  if (sc === 'game') { GFX.bandAt = performance.now() + 900; return; }            // read the ground colour from the next frames
+  if (sc === 'home') setBand(sheet && !wide ? cssVar('--card') : cssVar('--b3'));
+  else if ((sc === 'lobby' || sc === 'results') && !wide) setBand(cssVar('--card'));
+  else GFX.bandAt = performance.now() + 300;
 }
-function remeasure() {
-  if (typing() || !fixGap.v) return;
-  var app = $('app'); app.style.display = 'none'; void app.offsetHeight; app.style.display = '';   // asks iOS to work out the page height again
-  setTimeout(gfxResize, 30); setTimeout(gfxResize, 400);
+var _px = new Uint8Array(4);
+function bandSample() {                                                          // one pixel from the bottom middle of the picture, just after it is drawn
+  try { var gl = GFX.r.getContext(); gl.readPixels(Math.floor(gl.drawingBufferWidth / 2), 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, _px); } catch (e) { return; }
+  setBand('rgb(' + _px[0] + ',' + _px[1] + ',' + _px[2] + ')');
 }
 function gfxResize() {
   fixGap();
@@ -5294,6 +5292,7 @@ function gfxFrame(now, dt) {
   tagsUpdate(now, slices);
   GFX.r.setClearColor(LC(GFX.clear || NIGHT), UI.screen === 'home' ? 0 : 1);
   var rr0 = performance.now(); GFX.r.render(GFX.scene, GFX.cam);
+  if (GFX.bandAt && performance.now() > GFX.bandAt) { GFX.bandAt = 0; bandSample(); }
   if (DBG && DBG.prof) { DBG.prof.ren += performance.now() - rr0; DBG.prof.calls = GFX.r.info.render.calls; DBG.prof.tris = GFX.r.info.render.triangles; }
   // keep it smooth on slower phones. Every 2 seconds of play: if more than 1 frame in 10 came late (or the
   // phone is busy drawing), step down one notch: no shadows, then a little less resolution, then less again. A steady 30 fps (iPhone Low Power Mode) is a cap, not a slow phone, so it changes nothing.
@@ -5409,6 +5408,7 @@ function applyTheme() {
   if (th === 'auto') { try { dark = window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) {} }
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
   var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#142067' : '#2f68ff');
+  if (typeof bandPaint === 'function' && GFX.ok) { bandPaint.col = ''; bandPaint(); }
 }
 function toast(msg, ms) {
   var t = $('toast'); t.textContent = msg; t.hidden = false;
