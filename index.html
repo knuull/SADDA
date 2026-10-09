@@ -1506,6 +1506,19 @@ var BANK = {
     }
     for (var j = 0; j < n; j++) d[j] *= Math.pow(1 - j / n, 1.2);
   }); },
+  /* the smash: a tight rubber "thwack" (a quick drop in pitch with a crisp crack on top), no boom */
+  smack: function () { return render('smack', 0.26, function (d, sr, n) {
+    var ph = 0, y1 = 0, y2 = 0, w = 2 * Math.sin(Math.PI * 1900 / sr);
+    for (var i = 0; i < n; i++) {
+      var t = i / sr, f = 150 + 260 * Math.exp(-t / 0.011); ph += 6.2832 * f / sr;
+      var x = Math.random() * 2 - 1; y1 += w * (x - y1 - y2 / 1.3); y2 += w * y1;
+      d[i] = Math.sin(ph) * Math.exp(-t / 0.045) * 0.9 + y1 * 1.3 * Math.exp(-t / 0.007);
+    }
+  }); },
+  /* a short bright sparkle that rides on top of a smash */
+  zing: function () { return render('zing', 0.4, function (d, sr, n) { modal(d, sr, n, [[2349, 1, 0.09], [3136, 0.55, 0.07], [4699, 0.25, 0.04]], [0.1, 0.9, 0.002]); }); },
+  /* the wind-up when you press SMASH: a soft, short swish */
+  swish: function () { return render('swish', 0.16, function (d, sr, n) { filtNoise(d, sr, n, function (t) { return Math.sin(Math.PI * t) * (1 - t * 0.5); }, 900, 3600, 1.1); }); },
   oud: function (k) { var f = nfreq(k, -1); return render('oud' + k, 1.6, function (d, sr, n) { pluck(d, sr, n, f, 0.6); }); }
 };
 /* play a sample: v volume, r playback rate (pitch), p pan, t delay, w reverb send, bus */
@@ -1527,14 +1540,16 @@ function voice(ch, kind) { if (kind === 'pick') play(BANK.pop(), { v: 0.25, r: 0
 
 var SFX = {
   hit: function (ch, smash) {                                        // ceramic pearl off a rubber bumper
-    play(BANK.pearl(), { v: smash ? 0.55 : 0.4, r: smash ? 0.85 : 1, w: 0.12 }); play(BANK.thump(), { v: smash ? 0.6 : 0.35, w: 0.05 });
-    if (smash) { play(BANK.boom(), { v: 0.4, r: 1.2, w: 0.2 }); }
+    if (!smash) { play(BANK.pearl(), { v: 0.4, w: 0.12 }); play(BANK.thump(), { v: 0.35, w: 0.05 }); return; }
+    play(BANK.smack(), { v: 0.5, w: 0.08, jit: 0.06 });               // the smash: a punchy thwack and a little sparkle, not a bang
+    play(BANK.pearl(), { v: 0.3, r: 0.9, w: 0.1 });
+    play(BANK.zing(), { v: 0.12, t: 0.02, w: 0.3, jit: 0.04 });
   },
   wall: function (soft) { play(soft ? BANK.wood() : BANK.pearl(), { v: soft ? 0.25 : 0.18, r: soft ? 1 : 0.8, w: 0.1, jit: 0.15 }); },
   ward: function () { play(BANK.bell(), { v: 0.25, r: 1.5, w: 0.3 }); play(BANK.pearl(), { v: 0.3, w: 0.1 }); },
   tele: function () { play(BANK.whoosh(), { v: 0.12, r: 0.7, w: 0.2 }); },
   launch: function () { play(BANK.thump(), { v: 0.5, r: 0.8, w: 0.15 }); play(BANK.whoosh(), { v: 0.15, w: 0.1 }); },
-  smash: function () { play(BANK.whoosh(), { v: 0.35, r: 1.1, w: 0.1 }); },
+  smash: function () { play(BANK.swish(), { v: 0.13, w: 0.05, jit: 0.1 }); },
   goal: function (mine) {
     play(BANK.boom(), { v: mine ? 0.55 : 0.3, w: 0.25 });
     if (mine) play(BANK.aww(), { v: 0.32, t: 0.08, w: 0.3 }); else play(BANK.crowd(), { v: 0.3, t: 0.05, w: 0.3 });
@@ -1591,7 +1606,7 @@ function buzz(p) { if (AU.vib === false) return; try { if (navigator.vibrate) na
 /* render the most used samples ahead of time, a few per frame, so the first goal never stutters */
 function auWarm() {
   if (!AU.ctx || AU.warm) return; AU.warm = true;
-  var jobs = ['pearl', 'thump', 'wood', 'whoosh', 'boom', 'tick', 'pop', 'doum', 'tek', 'riq', 'whistle', 'chime', 'bell', 'crowd', 'aww', 'clap'];
+  var jobs = ['pearl', 'thump', 'smack', 'zing', 'swish', 'wood', 'whoosh', 'boom', 'tick', 'pop', 'doum', 'tek', 'riq', 'whistle', 'chime', 'bell', 'crowd', 'aww', 'clap'];
   for (var k = 6; k <= 14; k++) jobs.push('oud' + k);
   (function next() { var j = jobs.shift(); if (!j) return; if (j.indexOf('oud') === 0) BANK.oud(+j.slice(3)); else BANK[j](); setTimeout(next, 30); })();
 }
@@ -3142,14 +3157,13 @@ MAPGEN.disco = function () {                          // a dance club: a mirror 
   var ballGlow = sprite('#ffffff', 0.5, 16); ball.add(ballGlow);
   var beamTex = canvasTex(64, 256, function (g) { var gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, 'rgba(255,255,255,0.95)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 256); var g2 = g.createLinearGradient(0, 0, 64, 0); g2.addColorStop(0, 'rgba(0,0,0,1)'); g2.addColorStop(0.5, 'rgba(0,0,0,0)'); g2.addColorStop(1, 'rgba(0,0,0,1)'); g.globalCompositeOperation = 'destination-out'; g.fillStyle = g2; g.fillRect(0, 0, 64, 256); });
   var beams = [], bc = ['#ff4fd8', '#33e1ff', '#ffd23f', '#7b5cff', '#5ee08a', '#ff7a45'];
-  for (i = 0; i < 6; i++) {                                                      // spotlights sweeping from the ceiling
-    var pv = new THREE.Group(), ba = i / 6 * TAU; pv.position.set(Math.cos(ba) * 40, 50, Math.sin(ba) * 40); grp.add(pv);
-    var bm = mesh(new THREE.PlaneGeometry(9, 60), mAdd(bc[i], 0.28, beamTex), 0, -30, 0); bm.material.side = THREE.DoubleSide; pv.add(bm);
-    var bm2 = bm.clone(); bm2.rotation.y = Math.PI / 2; pv.add(bm2);
+  for (i = 0; i < 4; i++) {                                                      // spotlights sweeping from the ceiling (few and slim: big see-through planes are slow on phones)
+    var pv = new THREE.Group(), ba = i / 4 * TAU + 0.4; pv.position.set(Math.cos(ba) * 46, 50, Math.sin(ba) * 46); grp.add(pv);
+    var bm = mesh(new THREE.PlaneGeometry(6, 48), mAdd(bc[i], 0.3, beamTex), 0, -24, 0); bm.material.side = THREE.DoubleSide; pv.add(bm);
     pv.userData = { a: ba, ph: rnd(0, 6) }; beams.push(pv);
   }
   var pools = [];
-  for (i = 0; i < 8; i++) { var pm = mesh(new THREE.PlaneGeometry(14, 14), mAdd(bc[i % 6], 0.4, glowTex()), 0, -2.6, 0); pm.rotation.x = -Math.PI / 2; pm.userData.ph = i * 0.8; grp.add(pm); pools.push(pm); }
+  for (i = 0; i < 5; i++) { var pm = mesh(new THREE.PlaneGeometry(14, 14), mAdd(bc[i % 6], 0.4, glowTex()), 0, -2.6, 0); pm.rotation.x = -Math.PI / 2; pm.userData.ph = i * 0.8; grp.add(pm); pools.push(pm); }
   grp.add(b.build(sceneMat('lit'), true)); grp.add(gb.build(sceneMat('glow')));
   return { grp: grp,
     L: { hemi: ['#b8a6ff', '#2a1050', 0.6], amb: ['#e0d6ff', 0.3], sun: ['#ffffff', 1.25, [6, 24, 8]], rim: ['#ff4fd8', 0.8, [-12, 6, -12]], fog: ['#120624', 90, 260], exp: 1.08, clear: '#05020c' },
@@ -3173,6 +3187,25 @@ function buildEnv(renderer) {
   function card(col, x, y, z, w, h) { var m = mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: LC(col), side: THREE.DoubleSide }), x, y, z); m.lookAt(0, 0, 0); s.add(m); }
   card(0xfff4e8, 0, 44, 0, 40, 40); card(0xffd9a8, -42, 20, 14, 26, 16); card(0xd86a9a, 40, 14, -24, 20, 12); card(0x9fc8e8, 8, 12, 46, 22, 9);
   var pm = new THREE.PMREMGenerator(renderer), tex = pm.fromScene(s, 0.035).texture; pm.dispose();
+  return tex;
+}
+
+/* the characters' own reflections: a clean photo studio. Bright soft boxes above and in front, a cool
+   light behind for the rim, a soft grey floor. Neutral, so every colour stays true. */
+function buildStudioEnv(renderer) {
+  var s = new THREE.Scene();
+  var grad = canvasTex(16, 256, function (g) {
+    var gr = g.createLinearGradient(0, 0, 0, 256);
+    gr.addColorStop(0, '#f4f7ff'); gr.addColorStop(0.4, '#c9d3ea'); gr.addColorStop(0.5, '#9aa6c4'); gr.addColorStop(0.56, '#5d6784'); gr.addColorStop(1, '#2c3146');
+    g.fillStyle = gr; g.fillRect(0, 0, 16, 256);
+  });
+  s.add(new THREE.Mesh(new THREE.SphereGeometry(60, 24, 12), new THREE.MeshBasicMaterial({ map: grad, side: THREE.BackSide })));
+  function card(col, x, y, z, w, h) { var m = mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: LC(col), side: THREE.DoubleSide }), x, y, z); m.lookAt(0, 0, 0); s.add(m); }
+  card(0xffffff, 0, 48, 6, 46, 30);                                       // the big light above
+  card(0xffffff, -30, 22, 40, 26, 22);                                   // key light, front left
+  card(0xdde8ff, 34, 14, 34, 16, 18);                                    // fill, front right
+  card(0xbfe6ff, 20, 18, -46, 30, 14);                                   // rim, behind
+  var pm = new THREE.PMREMGenerator(renderer), tex = pm.fromScene(s, 0.02).texture; pm.dispose();
   return tex;
 }
 
@@ -3332,19 +3365,21 @@ function buildWhirl() {
 }
 
 /* ================= CHARACTERS =================
-   Goofy googly-eyed creatures standing on hover discs. Every model
-   is made of simple solids, then merged into a few meshes with per-vertex colours
-   (so a player's colour can be repainted instantly), cel-shaded, and given a
-   dark outline for a console-cartoon look. Models face +Z. */
-var GEO = {};
-function gSph() { return GEO.s || (GEO.s = new THREE.SphereGeometry(1, 22, 16)); }
-function gSphH() { return GEO.h || (GEO.h = new THREE.SphereGeometry(1, 36, 26)); }
-function gCone() { return GEO.c || (GEO.c = new THREE.ConeGeometry(1, 1, 12)); }
-function gCyl() { return GEO.y || (GEO.y = new THREE.CylinderGeometry(1, 1, 1, 20)); }
+   Goofy googly-eyed creatures standing on hover discs. Every model is made of smooth solids,
+   merged into a few meshes with per-vertex colours (so a player's colour can be repainted
+   instantly) and shaded like soft vinyl toys, with glossy eyeballs. Two levels of detail:
+   the close-ups (home stage, portraits) are extra smooth, the arena ones lighter. Models face +Z. */
+var GEO = {}, CLOD = 0;
+function gk(k) { return k + CLOD; }
+function gSph() { var k = gk('s'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 32, 22) : new THREE.SphereGeometry(1, 20, 14)); }
+function gSphH() { var k = gk('h'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 48, 34) : new THREE.SphereGeometry(1, 30, 22)); }
+function gSphL() { var k = gk('sl'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 16, 12) : new THREE.SphereGeometry(1, 12, 8)); }   // tiny bits: pearls, patches, sparkles
+function gCone() { var k = gk('c'); return GEO[k] || (GEO[k] = new THREE.ConeGeometry(1, 1, CLOD ? 20 : 12)); }
+function gCyl() { var k = gk('y'); return GEO[k] || (GEO[k] = new THREE.CylinderGeometry(1, 1, 1, CLOD ? 32 : 20)); }
 function gBox() { return GEO.b || (GEO.b = new THREE.BoxGeometry(1, 1, 1)); }
-function gHemi() { return GEO.hm || (GEO.hm = new THREE.SphereGeometry(1, 24, 10, 0, TAU, 0, Math.PI / 2)); }
-function gSmile() { return GEO.sm || (GEO.sm = new THREE.TorusGeometry(1, 0.15, 6, 14, Math.PI)); }
-function gTor(r, t) { var k = 't' + r + t; return GEO[k] || (GEO[k] = new THREE.TorusGeometry(r, t, 8, 26)); }
+function gHemi() { var k = gk('hm'); return GEO[k] || (GEO[k] = new THREE.SphereGeometry(1, CLOD ? 40 : 26, CLOD ? 14 : 10, 0, TAU, 0, Math.PI / 2)); }
+function gSmile() { var k = gk('sm'); return GEO[k] || (GEO[k] = new THREE.TorusGeometry(1, 0.15, CLOD ? 12 : 8, CLOD ? 28 : 18, Math.PI)); }
+function gTor(r, t) { var k = gk('t' + r + t); return GEO[k] || (GEO[k] = new THREE.TorusGeometry(r, t, CLOD ? 14 : 9, CLOD ? 48 : 30)); }
 
 var ROLES = ['c', 'd', 'dd', 'l', 'w', 'k', 'cr', 'y', 'pk', 'ch', 'r', 'g', 'm', 'tg', 's1', 's2', 's3', 's4', 'hb', 'hd', 'gl', 'sv', 'bl', 'rd', 'x', 'yb'];
 var ROLE_HEX = { w: '#fffaf2', k: '#1d0c18', cr: '#fff0d8', y: '#ffc23a', pk: '#ff7d9c', ch: '#e9e3e0', r: '#2c1626', g: '#f5c451', m: '#5a0f2a', tg: '#ff5d86', s1: '#f6cfab', s2: '#dba57c', s3: '#b47a54', s4: '#7d4e34', hb: '#22161a', hd: '#5a3422', gl: '#a8ecff', sv: '#cdd4e4', bl: '#f2a08f', rd: '#ef3a48' };
@@ -3363,23 +3398,27 @@ function pt(g, geo, role, x, y, z, sx, sy, sz, rx, ry, rz) {
   m.scale.set(sx, sy == null ? sx : sy, sz == null ? sx : sz); if (rx || ry || rz) m.rotation.set(rx || 0, ry || 0, rz || 0);
   g.add(m); return m;
 }
-var TOON = null, OUTL = null;
+var TOON = null, OUTL = null, EYE = null, CHAR_LOOK = { tint: 0.54, eye: 0.54, env: 0.5 };
+/* soft vinyl: smooth light, gentle gloss and a faint rim of light round the edge; no hard bands, no outline */
 function toonMat() {
   if (TOON) return TOON;
-  var tex = new THREE.DataTexture(new Uint8Array([118, 118, 118, 255, 172, 172, 172, 255, 222, 222, 222, 255, 255, 255, 255, 255]), 4, 1, THREE.RGBAFormat);
-  tex.minFilter = tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = false; tex.needsUpdate = true;
-  var m = new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: tex, color: new THREE.Color(0.56, 0.56, 0.56), toneMapped: false });
-  // vinyl-toy finish: a soft light rim and one glossy highlight from the key light
+  var m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, envMapIntensity: CHAR_LOOK.env, toneMapped: false });
+  m.color.setScalar(CHAR_LOOK.tint);                                    // the scene's lights add up to about 2: keep the paint at its own bright colour
   m.onBeforeCompile = function (sh) {
-    sh.fragmentShader = sh.fragmentShader.replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );',
-      'vec3 sdV = normalize( vViewPosition ); float sdR = 1.0 - clamp( dot( normal, sdV ), 0.0, 1.0 );\n' +
-      'outgoingLight += diffuseColor.rgb * smoothstep( 0.5, 1.0, sdR ) * 0.4;\n' +
-      '#if NUM_DIR_LIGHTS > 0\n vec3 sdH = normalize( directionalLights[ 0 ].direction + sdV ); float sdS = pow( max( dot( normal, sdH ), 0.0 ), 48.0 );\n outgoingLight += vec3( smoothstep( 0.3, 0.55, sdS ) * 0.2 );\n#endif\n' +
-      'gl_FragColor = vec4( outgoingLight, diffuseColor.a );');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>',
+      '#include <dithering_fragment>\n float vRim = 1.0 - clamp( dot( normalize( vNormal ), normalize( vViewPosition ) ), 0.0, 1.0 );\n gl_FragColor.rgb += diffuseColor.rgb * smoothstep( 0.55, 1.0, vRim ) * 0.22;');
   };
-  m.customProgramCacheKey = function () { return 'sadda-vinyl'; };
+  m.customProgramCacheKey = function () { return 'sadda-vinyl2'; };
   return (TOON = m);
 }
+/* the eyeballs and pupils: wet and glossy, so they catch the light */
+function eyeMat() {
+  if (EYE) return EYE;
+  EYE = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.14, metalness: 0, envMapIntensity: CHAR_LOOK.env * 1.4, toneMapped: false });
+  EYE.color.setScalar(CHAR_LOOK.eye); return EYE;
+}
+/* the characters reflect their own little photo studio (soft white light boxes), wherever they are */
+function charEnv(tex) { toonMat().envMap = tex; eyeMat().envMap = tex; TOON.needsUpdate = EYE.needsUpdate = true; }
 /* inverted-hull outline, pushed out in view space so it stays about 2-3 px thick at any zoom */
 function outlineMat() {
   if (OUTL) return OUTL;
@@ -3392,7 +3431,8 @@ function outlineMat() {
   return (OUTL = m);
 }
 /* Merge the parts of a group into one vertex-coloured mesh (+ outline). Parts inside child groups are left alone. */
-function bakeVC(group, hex, outline, shadow) {
+var CHAR_OUTLINE = false;                                              // smooth toys: no dark outline
+function bakeVC(group, hex, outline, shadow, mat) {
   group.updateMatrixWorld(true);
   var inv = new THREE.Matrix4().copy(group.matrixWorld).invert(), pos = [], nor = [], roles = [], gone = [], n = 0;
   group.children.forEach(function (o) {
@@ -3408,8 +3448,8 @@ function bakeVC(group, hex, outline, shadow) {
   for (i = 0; i < pos.length; i++) { P.set(pos[i], off * 3); N.set(nor[i], off * 3); R.fill(Math.max(0, roles[i][0]), off, off + roles[i][1]); off += roles[i][1]; }
   var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(P, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(N, 3)); geo.setAttribute('color', new THREE.BufferAttribute(C, 3));
   geo.userData.roles = R; paintGeo(geo, hex);
-  var m = new THREE.Mesh(geo, toonMat()); m.castShadow = !!shadow; group.add(m);
-  if (outline) { var o = new THREE.Mesh(geo, outlineMat()); group.add(o); }
+  var m = new THREE.Mesh(geo, mat || toonMat()); m.castShadow = !!shadow; group.add(m);
+  if (outline && CHAR_OUTLINE) { var o = new THREE.Mesh(geo, outlineMat()); group.add(o); }
   return m;
 }
 function paintGeo(geo, hex) {
@@ -3417,7 +3457,7 @@ function paintGeo(geo, hex) {
   for (var i = 0; i < R.length; i++) { var c = pal[R[i]]; C[i * 3] = c.r; C[i * 3 + 1] = c.g; C[i * 3 + 2] = c.b; }
   geo.attributes.color.needsUpdate = true;
 }
-function paintAll(root, hex) { root.traverse(function (o) { if (o.isMesh && o.geometry.userData.roles && o.material === TOON) paintGeo(o.geometry, hex); }); }
+function paintAll(root, hex) { root.traverse(function (o) { if (o.isMesh && o.geometry.userData.roles && (o.material === TOON || o.material === EYE)) paintGeo(o.geometry, hex); }); }
 
 function gLimb() { return GEO.lb || (GEO.lb = new THREE.CylinderGeometry(1, 0.8, 1, 16)); }
 /* ---------- the cast: eight goofy creatures ----------
@@ -3453,10 +3493,10 @@ function creR(S, y) {                                          // bean radius at
   return S.W * base * (1 + S.pear * (0.5 - t));
 }
 function creLathe(S, y0, y1, key) {
-  if (GEO[key]) return GEO[key];
-  var p = [], N = 34;
+  key += CLOD; if (GEO[key]) return GEO[key];
+  var p = [], N = CLOD ? 48 : 32;
   for (var i = 0; i <= N; i++) { var t = (1 - Math.cos(Math.PI * i / N)) / 2, y = y0 + (y1 - y0) * t; p.push(new THREE.Vector2(Math.max(0.0005, creR(S, y)), y)); }
-  return (GEO[key] = new THREE.LatheGeometry(p, 40));
+  return (GEO[key] = new THREE.LatheGeometry(p, CLOD ? 64 : 40));
 }
 /* the front surface of the bean: depth at (x, y), and the outward normal there */
 function creZ(S, x, y) { var r = creR(S, y); return S.D * Math.sqrt(Math.max(0, r * r - x * x)); }
@@ -3516,7 +3556,7 @@ var CRE_ACC = [
     var sx = creR(S, f + 0.35) * 0.98;
     pt(b, gCyl(), 'y', sx + 0.02, f + 0.42, 0.05, 0.04, 0.6, 0.04, 0, 0, -0.08);
     pt(b, gSph(), 'r', sx + 0.05, f + 0.74, 0.05, 0.05, 0.03, 0.05);
-    for (var i = 0; i < 26; i++) { var a = i / 26 * TAU, ny = f - 0.32 - Math.cos(a) * 0.05, rn = creR(S, ny) * 1.0; pt(b, gSph(), 'cr', Math.sin(a) * rn, ny, Math.cos(a) * rn * S.D, 0.05); }
+    for (var i = 0; i < 26; i++) { var a = i / 26 * TAU, ny = f - 0.32 - Math.cos(a) * 0.05, rn = creR(S, ny) * 1.0; pt(b, gSphL(), 'cr', Math.sin(a) * rn, ny, Math.cos(a) * rn * S.D, 0.05); }
   },
   function (S, b, f, R) {                                      // Turbo: racing helmet with a stripe and a tinted visor, exhaust pipes
     var hy = f + 0.53, hr = creR(S, hy) * 1.06, ry = S.H - hy + 0.07;
@@ -3544,8 +3584,8 @@ var CRE_ACC = [
     var Hh = S.H - f;
     [[0, 0.98], [-0.3, 0.78], [0.3, 0.78], [-0.5, 0.36], [0.5, 0.36], [0, 0.62]].forEach(function (q, i) {
       var y = f + Hh * q[1] * 0.97, x = q[0];
-      if (i === 5) { var z0 = -creZ(S, 0, y); var mb = pt(b, gSph(), 'k', 0, y, z0 - 0.0, 0.1, 0.1, 0.03); mb.quaternion.setFromUnitVectors(_zAxis, new THREE.Vector3(0, creN(S, 0, y).y, -creN(S, 0, y).z)); return; }
-      if (Math.abs(x) < creR(S, y) * 0.95) ptOn(b, gSph(), 'k', S, x, y, 0.0, 0.1, 0.1, 0.03);
+      if (i === 5) { var z0 = -creZ(S, 0, y); var mb = pt(b, gSphL(), 'k', 0, y, z0 - 0.0, 0.1, 0.1, 0.03); mb.quaternion.setFromUnitVectors(_zAxis, new THREE.Vector3(0, creN(S, 0, y).y, -creN(S, 0, y).z)); return; }
+      if (Math.abs(x) < creR(S, y) * 0.95) ptOn(b, gSphL(), 'k', S, x, y, 0.0, 0.1, 0.1, 0.03);
     });
     var yb = f + Hh * 0.6, r = creR(S, yb) * 1.02; pt(b, gTor(1, 0.1), 'c', 0, yb, 0, r, r * S.D, r, Math.PI / 2);
     var rn = creR(S, f - 0.04) * 1.01; pt(b, gTor(1, 0.1), 'w', 0, f - 0.04, 0, rn, rn * S.D, rn, Math.PI / 2);
@@ -3605,22 +3645,28 @@ var CRE_ACC = [
 function buildLegC(S) {
   var g = new THREE.Group(), t = S.legT, L = S.legL;
   pt(g, gLimb(), S.leg || 'c', 0, -L * 0.45, 0, t, L * 0.9, t);
-  pt(g, gSph(), 'dd', 0, -L + 0.06, 0.07, t * 1.4, 0.085, t * 2.15);
-  pt(g, gSph(), 'dd', 0, -L + 0.1, 0.0, t * 1.2);
+  pt(g, gSphL(), 'dd', 0, -L + 0.06, 0.07, t * 1.4, 0.085, t * 2.15);
+  pt(g, gSphL(), 'dd', 0, -L + 0.1, 0.0, t * 1.2);
   bakeVC(g, NEUTRAL, 1, true);
   return g;
 }
 function buildArmC(S, side) {
   var g = new THREE.Group(), t = S.armT, L = S.armL, hr = S.hand || 'c';
-  pt(g, gSph(), 'c', 0, 0, 0, t * 1.15);
+  pt(g, gSphL(), 'c', 0, 0, 0, t * 1.15);
   pt(g, gLimb(), 'c', 0, -L * 0.42, 0, t, L * 0.84, t);
-  pt(g, gSph(), hr, 0, -L - 0.02, 0.01, t * 1.7, t * 1.9, t * 1.45);                  // mitten
-  pt(g, gSph(), hr, side * t * 1.15, -L + 0.05, t * 0.62, t * 0.66, t * 0.95, t * 0.66, 0, 0, side * 0.6);   // thumb
+  pt(g, gSph(), hr, 0, -L - 0.01, 0, t * 1.3, t * 1.5, t * 1.5);                          // palm
+  for (var k = -1; k <= 1; k++)                                                          // three chunky cartoon fingers, fanned out
+    pt(g, gSph(), hr, 0, -L - t * 1.3, k * t * 0.8, t * 0.52, t * 0.98, t * 0.52, -k * 0.32, 0, 0);
+  pt(g, gSph(), hr, side * t * 0.55, -L + t * 0.1, t * 1.1, t * 0.5, t * 0.85, t * 0.5, -0.95, 0, side * 0.35);   // thumb
   bakeVC(g, NEUTRAL, 1, false);
   return g;
 }
 /* Build a creature. Returns the rig the animator drives. */
-function buildRider(ch, hex) {
+function buildRider(ch, hex, lod) {
+  var was = CLOD; CLOD = lod ? 1 : 0;
+  try { return buildRider1(ch, hex); } finally { CLOD = was; }
+}
+function buildRider1(ch, hex) {
   var S = CRE[ch] || CRE[0], R = { ch: ch, grp: new THREE.Group(), eyes: [], brows: [], sway: [], step: 0, vel: 0, wob: 0, wv: 0, hk: 0, sk: 0, S: S };
   var f = S.H * S.nk, B0 = -0.15;                                    // the bean starts a little below the hips
   R.hipY = S.legL; R.B0 = B0;
@@ -3634,16 +3680,18 @@ function buildRider(ch, hex) {
   segs.forEach(function (q, i) { var y1 = i + 1 < segs.length ? segs[i + 1][0] : S.H; if (y1 > q[0]) pt(bean, creLathe(S, q[0], y1, 'cb' + ch + '_' + i), q[1], 0, 0, 0, 1, 1, S.D); });
   CRE_ACC[ch](S, bean, f, R);
   bakeVC(bean, hex, 1, true);
+  var whites = new THREE.Group(); bean.add(whites);                    // the eyeballs never move on the body: one glossy mesh for all of them
+  S.eyes.forEach(function (e) { var x = e[0], y = f + e[1], r = e[2]; pt(whites, gSphH(), 'w', x, y, creZ(S, x, y) - r * 0.3, r, r * 1.08, r * 0.92); });
+  bakeVC(whites, hex, 0, true, eyeMat());
   if (R.glass) bean.add(R.glass);
   var skin = S.head || 'c';
   // googly eyes, brows and mouth
   S.eyes.forEach(function (e, i) {
     var x = e[0], y = f + e[1], r = e[2], z = creZ(S, x, y) - r * 0.3;
     var eg = new THREE.Group(); eg.position.set(x, y, z); eg.scale.set(r, r * 1.08, r * 0.92); bean.add(eg);
-    var wb = new THREE.Group(); eg.add(wb); pt(wb, gSphH(), 'w', 0, 0, 0, 1); bakeVC(wb, hex, 1, false);
     var lid = new THREE.Group(); eg.add(lid); pt(lid, gHemi(), skin, 0, 0, 0, 1.07); bakeVC(lid, hex, 1, false);
     var pu = new THREE.Group(); eg.add(pu);
-    pt(pu, gSph(), 'k', 0, 0, 0, 0.4, 0.42, 0.07); pt(pu, gSph(), 'w', -0.13, 0.15, 0.05, 0.1, 0.1, 0.03); bakeVC(pu, hex, 0, false);
+    pt(pu, gSph(), 'k', 0, 0, 0, 0.4, 0.42, 0.07); pt(pu, gSphL(), 'w', -0.13, 0.15, 0.05, 0.1, 0.1, 0.03); bakeVC(pu, hex, 0, false, eyeMat());
     var br = new THREE.Group(), by = y + r * 1.25 + 0.03; br.position.set(x, by, creZ(S, x, by) - 0.01); bean.add(br);
     if (S.uni) { if (i === 0) pt(br, gSph(), 'hb', -x, 0, 0, Math.abs(x) * 2 + r * 1.3, r * 0.36, r * 0.4); }
     else if (i < 2) pt(br, gSph(), 'k', 0, 0, 0, r * 0.8, r * 0.16, r * 0.2);
@@ -3774,7 +3822,7 @@ function mergeSame(group, mat) {
   var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(P, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(N, 3));
   group.add(new THREE.Mesh(geo, mat));
 }
-function buildPod(ch, hex) {
+function buildPod(ch, hex, lod) {
   var g = new THREE.Group(), tilt = new THREE.Group(); g.add(tilt);
   var shell = new THREE.Group(); tilt.add(shell);
   pt(shell, gCyl(), 'r', 0, -0.09, 0, 0.66, 0.16, 0.66);
@@ -3790,15 +3838,15 @@ function buildPod(ch, hex) {
     var f = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.85, toneMapped: false }));
     f.position.set(0, -0.32, 0); f.scale.set(1.2, 0.7, 1); f.material.color = CM.em.color; tilt.add(f); return f;
   });
-  var rider = buildRider(ch, hex); tilt.add(rider.grp);
+  var rider = buildRider(ch, hex, lod); tilt.add(rider.grp);
   var glow = mesh(new THREE.PlaneGeometry(3.2, 3.2), CM.add, 0, 0.04, 0); glow.rotation.x = -Math.PI / 2; g.add(glow);
-  return { grp: g, tilt: tilt, shell: shell, em: em, rider: rider, flames: flames, flame: flames[0], glow: glow, CM: CM, ch: ch, hex: hex, ph: Math.random() * 6 };
+  return { grp: g, tilt: tilt, shell: shell, em: em, rider: rider, flames: flames, flame: flames[0], glow: glow, CM: CM, ch: ch, hex: hex, ph: Math.random() * 6, lod: lod };
 }
 function setPodLook(P, ch, hex) {
   if (P.hex !== hex) { paintAll(P.shell, hex); paintRider(P.rider, hex); P.CM.em.color.copy(LC(hex)); P.CM.add.color.copy(LC(hex)); P.hex = hex; }
   if (P.ch !== ch) {
     var old = P.rider; P.tilt.remove(old.grp);
-    P.rider = buildRider(ch, hex); P.rider.grp.position.copy(old.grp.position); P.rider.grp.scale.copy(old.grp.scale); P.tilt.add(P.rider.grp); P.ch = ch;
+    P.rider = buildRider(ch, hex, P.lod); P.rider.grp.position.copy(old.grp.position); P.rider.grp.scale.copy(old.grp.scale); P.tilt.add(P.rider.grp); P.ch = ch;
   }
 }
 function podFlames(P, now, boost) {
@@ -3806,7 +3854,7 @@ function podFlames(P, now, boost) {
 }
 /* the character on its own, for portraits: framed from the chest up */
 function buildHead(ch, hex) {
-  var R = buildRider(ch, hex);
+  var R = buildRider(ch, hex, 1);
   animRider(R, { mood: '', ph: 0 }, 0, 1);
   R.eyes.forEach(function (E) { E.lid.rotation.x = R.rest; });
   R.grp.updateMatrixWorld(true);
@@ -3890,9 +3938,9 @@ function warnRingTex() {
 }
 function ballPaint(B, hex) {
   if (B.own === hex) return; B.own = hex;
-  B.mat.map = ballTex(hex); B.mat.needsUpdate = true;
+  B.mat.map = ballTex(hex);                                          // always textured: swapping the picture needs no new shader
   B.xm.color.copy(LC(hex || '#ffffff'));
-  B.tm.uniforms.col.value.set(hex || '#cfc6ff');
+  B.tcol = null;
 }
 function hideBall(B) { B.grp.visible = B.sh.visible = B.ring.visible = B.h.visible = B.tr.visible = false; B.id = -1; B.hist.length = 0; }
 /* when (and where) a pearl will first reach a side, flying straight: the same sums as the rules */
@@ -3957,7 +4005,7 @@ function ballsUpdate(S, now, dt) {
         var a = 1 - t; A[j * 2] = A[j * 2 + 1] = j < n ? a * a : 0;
       }
       B.tr.geometry.attributes.position.needsUpdate = true; B.tr.geometry.attributes.a.needsUpdate = true;
-      B.tm.uniforms.op.value = hot ? 0.9 : owner ? 0.55 : 0.35; if (hot) B.tm.uniforms.col.value.set('#ffb347'); else B.tm.uniforms.col.value.set(owner || '#cfc6ff');
+      B.tm.uniforms.op.value = hot ? 0.9 : owner ? 0.55 : 0.35; var tc = hot ? '#ffb347' : owner || '#cfc6ff'; if (B.tcol !== tc) { B.tcol = tc; B.tm.uniforms.col.value.copy(CC(tc)); }
     }
     B.h.visible = hot && B.grp.visible; if (B.h.visible) { B.h.position.set(bx, r, bz); B.h.material.opacity = 0.45 * f; B.h.scale.setScalar(r * 3.6 + Math.sin(now * 40) * r * 0.3); }
     if (hot && f > 0.5 && !REDUCE && Math.random() < 0.7) trailDot(bx - b.vx * R3 * 0.02 + (Math.random() - 0.5) * r, r, bz - b.vy * R3 * 0.02 + (Math.random() - 0.5) * r, Math.random() < 0.5 ? '#ffd23f' : '#ff6a1a', 0.7);
@@ -3970,12 +4018,12 @@ function gfxInit() {
   try { r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, powerPreference: 'default' }); } catch (e) { return false; }
   _v = new THREE.Vector3(); _v2 = new THREE.Vector3();
   GFX.r = r; GFX.aniso = Math.min(8, r.capabilities.getMaxAnisotropy() || 4); r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.2;
-  r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+  r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFShadowMap;      // filtered shadows at about half the cost of the soft kind
   var sc = GFX.scene = new THREE.Scene(); sc.fog = new THREE.Fog(0x2a0a22, 120, 430);
   GFX.pr = Math.min(window.devicePixelRatio || 1, 2.5);
   GFX.cam = new THREE.PerspectiveCamera(50, 1, 0.5, 1000);
   GFX.camPos = new THREE.Vector3(0, 30, 30); GFX.camTgt = new THREE.Vector3(); GFX.camOff = { x: 0, y: 0 }; GFX.fit = {}; GFX.mode = '';
-  sc.environment = buildEnv(r);
+  sc.environment = buildEnv(r); charEnv(buildStudioEnv(r));
   GFX.hemi = new THREE.HemisphereLight(0xc4a8e0, 0x4a1c36, 0.62); sc.add(GFX.hemi);
   GFX.amb = new THREE.AmbientLight(0xfff0f4, 0.3); sc.add(GFX.amb);
   var sun = GFX.sun = new THREE.DirectionalLight(0xffe8d0, 1.3); sun.position.set(-9, 22, 7); sun.castShadow = true;
@@ -4029,16 +4077,18 @@ function gfxInit() {
   var show = GFX.show = new THREE.Group(), tb = new Batch();
   tb.add(sgCyl(56), '#2a58e0', 0, 0.06, 0, 2.05, 0.12, 2.05);
   tb.add(sgCyl(56), '#4d7fff', 0, 0.4, 0, 1.86, 0.58, 1.86);
-  tb.add(sgCyl(56), '#ffffff', 0, 0.71, 0, 1.76, 0.04, 1.76);
+  tb.add(sgCyl(56), '#3b6cf5', 0, 0.71, 0, 1.76, 0.04, 1.76);
   show.add(tb.build(sceneMat('lit'), true));
   var ring = mesh(new THREE.TorusGeometry(1.82, 0.075, 10, 72), mGlow('#63f2ff'), 0, 0.71, 0); ring.rotation.x = Math.PI / 2; show.add(ring);
   var ring2 = mesh(new THREE.TorusGeometry(2.05, 0.05, 8, 72), mGlow('#9df6ff'), 0, 0.12, 0); ring2.rotation.x = Math.PI / 2; show.add(ring2);
   GFX.showHalo = mesh(new THREE.PlaneGeometry(8, 8), mAdd('#63f2ff', 0.5, glowTex()), 0, 0.01, 0); GFX.showHalo.rotation.x = -Math.PI / 2; show.add(GFX.showHalo);
-  GFX.showPod = buildPod(0, COLORS[0]); showroomPod(GFX.showPod); show.add(GFX.showPod.grp);
+  GFX.showPod = buildPod(0, COLORS[0], 1); showroomPod(GFX.showPod); show.add(GFX.showPod.grp);
   sc.add(show);
   // portrait studio
   var ps = GFX.pScene = new THREE.Scene(); ps.environment = sc.environment;
-  ps.add(new THREE.HemisphereLight(0xfff4ea, 0x6a4a66, 0.85)); var pl = new THREE.DirectionalLight(0xffffff, 0.85); pl.position.set(-3, 5, 7); ps.add(pl);
+  ps.add(new THREE.HemisphereLight(0xffffff, 0x4f63b8, 0.6)); ps.add(new THREE.AmbientLight(0xffffff, 0.18));
+  var pl = new THREE.DirectionalLight(0xfff4e6, 1.55); pl.position.set(-3, 5, 7); ps.add(pl);
+  var pr2 = new THREE.DirectionalLight(0xa8e4ff, 0.9); pr2.position.set(4, 3, -5); ps.add(pr2);
   GFX.pCam = new THREE.PerspectiveCamera(30, 1, 0.5, 40); GFX.pCam.position.set(0.5, 1.95, 3.5); GFX.pCam.lookAt(0, 1.76, 0);
   GFX.pCache = {}; GFX.p2d = document.createElement('canvas'); GFX.p2d.width = GFX.p2d.height = 256;
   GFX.ok = true; return true;
@@ -4065,7 +4115,7 @@ function showPts(bust) {
   p.k = k; return (GFX.ptsShow = p);
 }
 /* the lights for the home stage: a bright, even studio */
-var STUDIO = { hemi: ['#ffffff', '#9db4ff', 0.85], amb: ['#ffffff', 0.32], sun: ['#fff6ea', 1.2, [-7, 15, 11]], rim: ['#a8e4ff', 0.75, [9, 7, -10]], fog: ['#2253e8', 200, 600], exp: 1.08, clear: '#2253e8' };
+var STUDIO = { hemi: ['#ffffff', '#4f63b8', 0.55], amb: ['#ffffff', 0.16], sun: ['#fff4e6', 1.7, [-7, 15, 11]], rim: ['#a8e4ff', 0.95, [9, 7, -10]], fog: ['#2253e8', 200, 600], exp: 1.08, clear: '#2253e8' };
 function applyLights(L, key) {
   if (GFX.lightKey === key) return; GFX.lightKey = key;
   GFX.hemi.color.copy(LC(L.hemi[0])); GFX.hemi.groundColor.copy(LC(L.hemi[1])); GFX.hemi.intensity = L.hemi[2];
@@ -4133,6 +4183,8 @@ function setStage(st) {
   GFX.stageCore = st.core;
   var home = UI.screen === 'home';
   if (home) applyLights(STUDIO, 'studio'); else applyLights(GFX.mapNow.L, mk);
+  var shc = GFX.sun.shadow.camera, ext = home ? 5 : 19;                  // on the home stage the shadow only needs to cover the podium: much finer
+  if (shc.right !== ext) { shc.left = shc.bottom = -ext; shc.right = shc.top = ext; shc.updateProjectionMatrix(); }
   GFX.mapNow.grp.visible = !home; GFX.arena.visible = !home;
   var lay = (st.haz && LAYOUTS[(MAPS[st.map] || MAPS[0]).layout]) || LAYOUTS[0];
   GFX.whirl.visible = !!lay.whirl && UI.screen !== 'home';
@@ -4241,8 +4293,10 @@ function syncSlot(S, sl, now, dt) {
 
 /* ---------- particles, rings, DOM floaters ---------- */
 function w3(x, y, h) { return _v.set(x * R3, h == null ? 0.5 : h, y * R3); }
+var _cc = {};
+function CC(hex) { return _cc[hex] || (_cc[hex] = new THREE.Color(hex)); }      // colours made once, not every frame (no garbage, no hiccups)
 function spark(x, y, z, hex, n, sp, size, life, grav) {
-  var c = new THREE.Color(hex), i;
+  var c = CC(hex), i;
   for (i = 0; i < n; i++) {
     var k = PT.next; PT.next = (PT.next + 1) % PN;
     var a = Math.random() * TAU, e = Math.random() * 1.3, v = (0.3 + Math.random()) * sp;
@@ -4254,7 +4308,7 @@ function spark(x, y, z, hex, n, sp, size, life, grav) {
 }
 function burst(x, y, hex, n, sp) { spark(x * R3, 0.5, y * R3, hex, n, (sp || 1) * 5, 0.34, 0.6); }
 function trailDot(x, y, z, hex, size) {
-  var k = PT.next, c = new THREE.Color(hex); PT.next = (PT.next + 1) % PN;
+  var k = PT.next, c = CC(hex); PT.next = (PT.next + 1) % PN;
   PT.pos[k * 3] = x; PT.pos[k * 3 + 1] = y; PT.pos[k * 3 + 2] = z; PT.vel[k * 3] = PT.vel[k * 3 + 1] = PT.vel[k * 3 + 2] = 0;
   PT.base[k * 4] = c.r * 0.6; PT.base[k * 4 + 1] = c.g * 0.6; PT.base[k * 4 + 2] = c.b * 0.6; PT.base[k * 4 + 3] = size; PT.age[k] = 0; PT.life[k] = 0.38; PT.g[k] = 0;
 }
@@ -4322,7 +4376,7 @@ function padSimXY(pl) { return padXY(G.S, pl); }
 function buildCrown() {
   var grp = new THREE.Group(), body = new THREE.Group(), gold = mStd(0xffc93c, 0.85, 0.28, { envMapIntensity: 1.6, emissive: 0x7a4a00, emissiveIntensity: 0.25 }), i;
   var band = mesh(new THREE.CylinderGeometry(0.62, 0.56, 0.42, 28, 1, true), gold, 0, 0.21, 0); band.material.side = THREE.DoubleSide; body.add(band);
-  body.add(mesh(new THREE.TorusGeometry(0.6, 0.07, 8, 28), gold, 0, 0.02, 0)).rotation.x = Math.PI / 2;
+  var rim = mesh(new THREE.TorusGeometry(0.6, 0.07, 8, 28), gold, 0, 0.02, 0); rim.rotation.x = Math.PI / 2; body.add(rim);   // the rim lies flat (rotating the whole crown here had tipped it on its side)
   for (i = 0; i < 5; i++) {
     var a = i / 5 * TAU, sp = mesh(new THREE.ConeGeometry(0.15, 0.48, 8), gold, Math.cos(a) * 0.58, 0.62, Math.sin(a) * 0.58); body.add(sp);
     body.add(mesh(new THREE.SphereGeometry(0.085, 10, 8), gold, Math.cos(a) * 0.58, 0.88, Math.sin(a) * 0.58));
@@ -4354,7 +4408,7 @@ function crownUpdate(now, dt) {
   C.grp.position.copy(C.pos);
   var sl = S.crown >= 0 ? GFX.slots[S.crown] : null, s = sl ? sl.s * 0.78 : 1.6;
   C.grp.scale.setScalar(s * (1 + (k < 1 ? Math.sin(k * Math.PI) * 0.4 : 0)));
-  C.body.rotation.y = now * (S.crown >= 0 ? 1.2 : 0.7); C.body.rotation.z = Math.sin(now * 2.1) * 0.08;
+  C.body.rotation.y = now * (S.crown >= 0 ? 1.2 : 0.7); C.body.rotation.z = Math.sin(now * 2.1) * 0.06; C.body.rotation.x = 0;
   C.glow.material.opacity = 0.55 + Math.sin(now * 4) * 0.15;
   if (Math.random() < dt * 6) spark(C.pos.x + (Math.random() - 0.5) * 0.8, C.pos.y + 0.4, C.pos.z + (Math.random() - 0.5) * 0.8, '#ffd36a', 1, 0.6, 0.22, 0.6, -0.5);
 }
@@ -4527,7 +4581,10 @@ function gfxResize() {
   VIEW.rect = rect; VIEW.wide = wide;
   if (!GFX.ok) return;
   GFX.cam.fov = wide ? 42 : 50;
-  GFX.r.setPixelRatio(GFX.pr); GFX.r.setSize(VIEW.W, VIEW.H, false); GFX.fit = {}; PT.mat.uniforms.sc.value = VIEW.H * GFX.pr * 0.9;
+  var pr = GFX.pr;                                              // the home stage is a close-up at 30 fps: draw it extra sharp
+  if (UI.screen === 'home' && GFX.quality !== 'low') pr = Math.max(pr, Math.min(window.devicePixelRatio || 1, 2.5));
+  if (GFX.r.getPixelRatio() !== pr) GFX.r.setPixelRatio(pr);
+  GFX.r.setSize(VIEW.W, VIEW.H, false); GFX.fit = {}; PT.mat.uniforms.sc.value = VIEW.H * pr * 0.9;
 }
 function arenaPts() {
   var K = GFX.stageK || 4;
@@ -4662,6 +4719,10 @@ function gfxFrame(now, dt) {
   GFX.t0 = performance.now();
   var S = (UI.full && G.S) ? G.S : null, i;
   setStage(stageFor());
+  if (S && GFX.warmFor !== G.mid + ':' + GFX.stageKey) {               // build every shader for this match now, in the countdown, not at the first smash or crown
+    GFX.warmFor = G.mid + ':' + GFX.stageKey; GFX.crown.grp.visible = (S.cfg.mode | 0) === MODE_CROWN;
+    try { GFX.r.compile(GFX.scene, GFX.cam); } catch (e) {}
+  }
   var slices = gfxSlices();
   for (i = 0; i < MAXP; i++) syncSlot(GFX.slots[i], slices[i], now, dt);
   crownUpdate(now, dt);
@@ -4728,28 +4789,31 @@ function gfxFrame(now, dt) {
   tagsUpdate(now, slices);
   GFX.r.setClearColor(LC(GFX.clear || NIGHT), UI.screen === 'home' ? 0 : 1);
   GFX.r.render(GFX.scene, GFX.cam);
-  // keep it smooth on slower phones: shadows go first, then outlines, and only then a little resolution.
-  // A steady 30 fps is a battery-saver cap (iPhone Low Power Mode), not a slow phone, so that alone changes nothing.
+  // keep it smooth on slower phones. Every 2 seconds of play: if more than 1 frame in 10 came late (or the
+  // phone is busy drawing), step down one notch: no shadows, then a little less resolution, then less again. A steady 30 fps (iPhone Low Power Mode) is a cap, not a slow phone, so it changes nothing.
   var work = (performance.now() - GFX.t0) / 1000;
-  if (UI.screen === 'game' && dt > 0 && dt < 0.2 && GFX.quality === 'auto' && !UI.paused && !document.hidden) {
-    GFX.slow = GFX.slow * 0.97 + dt * 0.03; GFX.work = (GFX.work || 0) * 0.97 + work * 0.03; GFX.fr = (GFX.fr || 0) + 1;
-    if (GFX.fr > 240 && (GFX.slow > 0.038 || GFX.work > 0.024)) {
-      GFX.fr = 0;
-      if (!GFX.lowShadows) { GFX.lowShadows = true; GFX.sun.castShadow = false; }
-      else if (outlineMat().visible) outlineMat().visible = false;
-      else if (GFX.pr > GFX.prMin + 0.01) { GFX.pr = Math.max(GFX.prMin, GFX.pr - 0.25); gfxResize(); }
+  if (UI.screen === 'game' && S && S.t > 3 && dt > 0 && dt < 0.25 && GFX.quality === 'auto' && !UI.paused && !document.hidden) {
+    var want = Math.max(1 / fpsCap(), (frame.vs || 16.7) / 1000);
+    GFX.fr = (GFX.fr || 0) + 1; if (dt > want * 1.5) GFX.late = (GFX.late || 0) + 1;
+    GFX.work = (GFX.work || 0) * 0.95 + work * 0.05;
+    if (GFX.fr >= 120) {
+      if ((GFX.late || 0) / GFX.fr > 0.1 || GFX.work > 0.02) gfxStepDown();
+      GFX.fr = GFX.late = 0;
     }
   }
 }
-
-/* Auto: 2x resolution (a third fewer pixels than before, still sharp on phones), soft shadows.
-   High: the phone's full resolution and finer shadows. Battery saver: 1.5x, no shadows or outlines, 30 fps. */
+function gfxStepDown() {                                        // shadows go first: the picture stays sharp as long as it can
+  var d = GFX.deg = (GFX.deg || 0) + 1;
+  if (d === 1 && !GFX.lowShadows) { GFX.lowShadows = true; GFX.sun.castShadow = false; }
+  else if (d <= 2 && GFX.pr > GFX.prMin + 0.01) { GFX.deg = 2; GFX.pr = Math.max(GFX.prMin, GFX.pr - 0.25); gfxResize(); }
+  else if (d <= 3 && GFX.pr > GFX.prMin + 0.01) { GFX.deg = 3; GFX.pr = GFX.prMin; gfxResize(); }
+}
 function gfxQuality(q) {
   GFX.quality = q || 'auto'; var dpr = window.devicePixelRatio || 1;
   GFX.pr = q === 'low' ? Math.min(dpr, 1.5) : q === 'high' ? Math.min(dpr, 3) : Math.min(dpr, 2);
   GFX.prMin = Math.min(GFX.pr, dpr >= 2 ? 1.5 : 1);
   GFX.lowShadows = q === 'low'; if (GFX.sun) { GFX.sun.castShadow = q !== 'low'; shadowSize(q === 'high' ? 2048 : 1024); }
-  outlineMat().visible = q !== 'low'; GFX.slow = 0; GFX.fr = 0;
+  outlineMat().visible = q !== 'low'; GFX.slow = 0; GFX.fr = 0; GFX.late = 0; GFX.deg = 0;
   gfxResize();
 }
 function shadowSize(n) { var s = GFX.sun.shadow; if (s.mapSize.x === n) return; s.mapSize.set(n, n); if (s.map) { s.map.dispose(); s.map = null; } }
