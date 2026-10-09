@@ -35,6 +35,7 @@
 [hidden] { display: none !important; }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
+html { height: calc(100% + var(--gap, 0px)); }
 body {
   margin: 0; background: var(--b2); color: var(--navy); font-family: var(--font); font-size: 15px; line-height: 1.3;
   overflow: hidden; overscroll-behavior: none; -webkit-tap-highlight-color: transparent;
@@ -43,7 +44,7 @@ body {
 button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 img { -webkit-user-drag: none; }
 .defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-.app { position: fixed; inset: 0; overflow: hidden; overflow: clip; background: var(--b2); }
+.app { position: fixed; inset: 0; bottom: calc(-1 * var(--gap, 0px)); overflow: hidden; overflow: clip; background: var(--b2); }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 .fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
@@ -258,7 +259,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 .seat.empty b { font-weight: 700; font-size: 0.72rem; color: #9aa6d6; }
 .summary { display: flex; flex-wrap: wrap; gap: 6px; }
 .setup { display: flex; flex-direction: column; gap: 10px; }
-.modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
 .modes button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 9px 4px 8px; border: 0; border-radius: 18px; color: var(--navy); background: var(--soft); box-shadow: 0 4px 0 var(--soft-2); transition: transform 0.08s; }
 .modes button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--soft-2); }
 .modes i.mi { display: grid; place-items: center; height: 28px; color: var(--muted); }
@@ -286,6 +287,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 .step { display: flex; align-items: center; gap: 14px; }
 .step button { width: 44px; height: 40px; border: 0; border-radius: 14px; display: grid; place-items: center; color: var(--navy); background: var(--soft); box-shadow: 0 4px 0 var(--soft-2); }
 .step button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--soft-2); }
+.step b.wide { min-width: 3.2em; font-size: 1.1rem; }
 .step b { min-width: 1.4em; text-align: center; font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .fold { border-radius: 18px; background: var(--soft); }
 .fold summary { list-style: none; padding: 12px 14px; font-size: 0.95rem; font-weight: 800; color: var(--navy-2); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -297,7 +299,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 .foldbody .note.info { background: #fff; }
 
 /* ---- results ---- */
-.reshead { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.reshead { position: sticky; top: -18px; z-index: 2; margin: -18px -16px 0; padding: 18px 16px 8px; background: rgba(255, 255, 255, 0.97); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .res-title { margin: 0; font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
 .podium { display: grid; grid-template-columns: 1fr 1.2fr 1fr; align-items: end; gap: 8px; padding: 4px 4px 0; }
 .pod { display: flex; flex-direction: column; align-items: center; min-width: 0; }
@@ -322,6 +324,17 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 [dir="rtl"] .rrow.head { box-shadow: none; }
 .rrow.me { background: #fff; box-shadow: inset 0 0 0 2.5px var(--b1); }
 .rrow.out .nm { opacity: 0.6; }
+.klog { display: flex; flex-direction: column; gap: 5px; }
+.kl { display: grid; grid-template-columns: 30px minmax(0, 1fr) 16px 2.3em 30px minmax(0, 1fr); align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 14px; background: var(--soft); }
+.kl.me { background: #fff; box-shadow: inset 0 0 0 2px var(--soft-3); }
+.kl img { width: 30px; height: 30px; border-radius: 10px; background: #fff; box-shadow: inset 0 -3px 0 var(--c, var(--soft-3)); }
+.kl img.wild { background: radial-gradient(circle at 40% 35%, #fff 0 30%, #e9e3ff 31% 60%, #c9bff2 61%); }
+.kl b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.86rem; font-weight: 800; }
+.kl .ar { display: grid; place-items: center; color: var(--muted); }
+[dir="rtl"] .kl .ar svg { transform: scaleX(-1); }
+.kl i { font-style: normal; text-align: center; font-size: 0.74rem; font-weight: 800; color: #fff; background: var(--pink-2); border-radius: 8px; padding: 2px 0; }
+.bombtag { position: absolute; left: 0; top: 0; z-index: 2; min-width: 30px; height: 30px; padding: 0 7px; display: grid; place-items: center; border-radius: 15px; font-size: 1.05rem; font-weight: 800; line-height: 1; color: #fff; background: #1c2140; box-shadow: 0 0 0 2.5px #ff4a4a, 0 3px 8px rgba(0, 0, 0, 0.35); font-variant-numeric: tabular-nums; pointer-events: none; }
+.bombtag.hot { background: #ff3a3a; box-shadow: 0 0 0 2.5px #fff, 0 0 14px rgba(255, 60, 60, 0.8); }
 .awards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .awards:empty { display: none; }
 .award { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 10px 6px 6px; border-radius: 16px; background: var(--soft); box-shadow: inset 0 0 0 2px var(--c); }
@@ -601,6 +614,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
   <div id="flash" class="flash"></div>
   <div id="fx" class="fx">
     <div id="gates"><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div><div class="gb" hidden><img alt=""><b></b><i></i></div></div>
+    <div id="bombtag" class="bombtag" hidden></div>
     <div id="tags"><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div><div class="tag" hidden></div></div>
     <div id="emos"><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div><div class="emo" hidden></div></div>
   </div>
@@ -689,11 +703,15 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
           <button type="button" data-v="1"><i class="mi" data-m="1"></i><b data-t="mPoints"></b><small data-t="mPointsS"></small></button>
           <button type="button" data-v="2"><i class="mi" data-m="2"></i><b data-t="mTime"></b><small data-t="mTimeS"></small></button>
           <button type="button" data-v="3"><i class="mi" data-m="3"></i><b data-t="mCrown"></b><small data-t="mCrownS"></small></button>
+          <button type="button" data-v="4"><i class="mi" data-m="4"></i><b data-t="mBullet"></b><small data-t="mBulletS"></small></button>
+          <button type="button" data-v="5"><i class="mi" data-m="5"></i><b data-t="mBomb"></b><small data-t="mBombS"></small></button>
         </div>
+        <div class="kv" id="kv-ck" hidden><span class="lbl" data-t="crownBy"></span><div id="seg-ck" class="seg"><button type="button" data-v="0" data-t="ckPts"></button><button type="button" data-v="1" data-t="ckTime"></button></div></div>
         <div class="kv"><span id="tgt-lbl" class="lbl"></span><div id="seg-tgt" class="seg"><button type="button"></button><button type="button"></button><button type="button"></button></div></div>
         <div class="lbl" data-t="map"></div>
         <div id="maps" class="maps"></div>
         <div class="kv"><span class="lbl" data-t="size"></span><div id="seg-size" class="seg"><button type="button" data-v="0" data-t="sz0"></button><button type="button" data-v="1" data-t="sz1"></button><button type="button" data-v="2" data-t="sz2"></button></div></div>
+        <div class="kv" id="kv-balls"><span class="lbl" data-t="balls"></span><div class="step"><button id="balls-minus" type="button" aria-label="Fewer pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="balls-n" class="wide">0</b><button id="balls-plus" type="button" aria-label="More pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
         <div class="kv"><span class="lbl" data-t="bots"></span><div class="step"><button id="bots-minus" type="button" aria-label="Fewer bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="bots-n">0</b><button id="bots-plus" type="button" aria-label="More bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
         <details class="fold" id="fold-more"><summary data-t="moreSet"></summary>
           <div class="foldbody kvs">
@@ -783,6 +801,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
     <div class="panel">
       <div class="reshead"><h2 class="res-title" data-t="results"></h2><span id="res-mode" class="pill"></span></div>
       <div id="podium" class="podium"></div>
+      <div id="res-log" class="klog" hidden></div>
       <div id="res-list" class="reslist"></div>
       <div id="res-awards" class="awards"></div>
       <p id="res-note" class="note"></p>
@@ -825,7 +844,14 @@ var BASE_SP = 0.8, CAP_SP = 1.5, SMASH_CAP = 2.05;
 var TELE = 0.75;                // warning time before a pearl comes in
 var LIVE = 0, PEND = 1;
 var STEP = 1 / 120;
-var MODE_LIVES = 0, MODE_POINTS = 1, MODE_TIME = 2, MODE_CROWN = 3;
+var MODE_LIVES = 0, MODE_POINTS = 1, MODE_TIME = 2, MODE_CROWN = 3, MODE_BULLET = 4, MODE_BOMB = 5;
+function livesMode(m) { m = m | 0; return m === MODE_LIVES || m === MODE_BULLET || m === MODE_BOMB; }   // modes where a goal costs a life
+/* Bullet: one pearl that speeds up on every touch. White, then orange after 3 touches, yellow after 6, red after 11. */
+var TIERS = [0, 3, 6, 11];
+function tierOf(n) { return n >= TIERS[3] ? 3 : n >= TIERS[2] ? 2 : n >= TIERS[1] ? 1 : 0; }
+function bulletSp(S, n) { return BASE_SP * (S.cfg.speed || 1) * Math.min(3.6, 1 + 0.13 * n); }
+function bulletHit(S, b) { var t0 = tierOf(b.hits | 0); b.hits = (b.hits | 0) + 1; var t1 = tierOf(b.hits); if (t1 > t0) ev(S, ['tier', b.id, t1]); }
+var BOMB_FUSE = 10;
 var MAXP = 10;                   // players in one room
 var POINTS_CAP = 600;
 /* Arena size: Small is the original; Medium and Large make the arena bigger next to the
@@ -887,7 +913,7 @@ function newMatch(roster, cfg) {
     K: K, sides: sides, corners: cornerPosts(K), lay: lay, whirl: lay.whirl || 0,
     players: [], balls: [], orbs: [], posts: [], ev: [], eid: 0, noEv: false,
     core: { next: -1, tele: null, spin: 0 }, endT: 0, ot: false, crown: -1, crownAt: 0, cwarn: -1,
-    nextBall: 1, nextOrb: 1, orbAt: 7, ballsWanted: Math.max(1, Math.round(n / 2.5)), moreAt: 12, places: n, winner: -1, overAt: 0
+    nextBall: 1, nextOrb: 1, orbAt: 7, ballsWanted: cfg.mode === MODE_BULLET ? 1 : cfg.balls > 0 ? cfg.balls : Math.max(1, Math.round(n / 2.5)), moreAt: 12, places: n, winner: -1, overAt: 0, bombAt: -1
   };
   roster.forEach(function (r, i) {
     var sd = sides[ss[i]]; sd.seat = i;
@@ -948,9 +974,14 @@ function doHit(S, b, pl, sd, u) {
   var sp = Math.hypot(b.vx, b.vy);
   var refl = Math.atan2(vt, Math.max(1e-6, vr));
   var ang = clamp(0.4 * refl + 0.62 * off + clamp(pl.pv, -3, 3) * 0.06, -1.12, 1.12);
-  var k = speedK(S), smash = t < pl.smashUntil;
-  var ns = Math.max(BASE_SP * k * 0.92, Math.min(CAP_SP * k, sp * 1.04 + 0.012));
-  if (smash) { ns = Math.min(SMASH_CAP * k, Math.max(sp * 1.4, BASE_SP * k * 1.55)); b.hotUntil = t + 1.3; pl.smashUntil = -1; }
+  var k = speedK(S), smash = t < pl.smashUntil, ns;
+  if (S.cfg.mode === MODE_BULLET) {                                       // Bullet: every touch makes it faster, a smash a little more
+    bulletHit(S, b); ns = bulletSp(S, b.hits);
+    if (smash) { ns *= 1.22; b.hotUntil = t + 0.9; pl.smashUntil = -1; }
+  } else {
+    ns = Math.max(BASE_SP * k * 0.92, Math.min(CAP_SP * k, sp * 1.04 + 0.012));
+    if (smash) { ns = Math.min(SMASH_CAP * k, Math.max(sp * 1.4, BASE_SP * k * 1.55)); b.hotUntil = t + 1.3; pl.smashUntil = -1; }
+  }
   b.vx = ns * (-nx * Math.cos(ang) + tx * Math.sin(ang));
   b.vy = ns * (-ny * Math.cos(ang) + ty * Math.sin(ang));
   var p = sidePt(sd, u, RC - 0.004); b.x = p.x; b.y = p.y;
@@ -967,7 +998,7 @@ function useShield(S, pl) {
 
 function finish(S, winner) {
   if (S.phase === 'over') return;
-  if (S.cfg.mode !== MODE_LIVES) {
+  if (!livesMode(S.cfg.mode)) {
     var crown = S.cfg.mode === MODE_CROWN;
     var order = S.players.slice().sort(function (a, b) { return (crown ? b.cr - a.cr : 0) || (b.pts - a.pts) || (b.score - a.score) || (b.saves - a.saves) || (a.seat - b.seat); });
     order.forEach(function (p, i) { p.place = i + 1; });
@@ -979,7 +1010,7 @@ function finish(S, winner) {
 /* everyone still playing is a bot: rank them as they stand now and end the match */
 function skipToEnd(S) {
   if (S.phase === 'over') return;
-  if (S.cfg.mode === MODE_LIVES) {
+  if (livesMode(S.cfg.mode)) {
     var al = aliveList(S).sort(function (a, b) { return (b.lives - a.lives) || (b.score - a.score) || (b.saves - a.saves) || (a.seat - b.seat); });
     al.forEach(function (p, i) { p.place = i + 1; });
     finish(S, al[0] ? al[0].seat : -1);
@@ -998,11 +1029,13 @@ function goal(S, b, seat) {
   pl.guardUntil = S.t + 1.1; pl.guard = true; pl.conc++;
   var sc = (b.owner >= 0 && b.owner !== seat && S.players[b.owner]) ? b.owner : -1, scp = sc >= 0 ? S.players[sc] : null;
   if (scp) { scp.score++; if (scp.bot && Math.random() < 0.08) ev(S, ['emo', sc, (Math.random() * 4) | 0]); }
-  if (mode === MODE_LIVES) pl.lives--;
+  var lm = livesMode(mode);
+  if (b.bomb) ev(S, ['boom', r3(b.x), r3(b.y), seat]);
+  if (lm) pl.lives--;
   else if (mode === MODE_CROWN) crownGoal(S, seat, sc);
   else if (scp) scp.pts++;                                                 // points: a pearl you sent into someone else's goal
-  ev(S, ['goal', seat, sc, r3(b.x), r3(b.y), mode === MODE_LIVES ? pl.lives : pl.pts, scp ? scp.pts : 0]);
-  if (mode === MODE_LIVES) {
+  ev(S, ['goal', seat, sc, r3(b.x), r3(b.y), lm ? pl.lives : pl.pts, scp ? scp.pts : 0]);
+  if (lm) {
     if (pl.lives <= 0) {
       pl.alive = false; pl.place = S.places--; pl.shield = false;
       ev(S, ['out', seat, pl.place]);
@@ -1041,8 +1074,9 @@ function keepInside(S, b, m) {
   }
 }
 function applyClientBounce(S, b, pl, v, extraAge, quiet) {
-  var k = speedK(S), sp = Math.hypot(v.vx, v.vy), mx = SMASH_CAP * k * 1.08;
+  var k = speedK(S), sp = Math.hypot(v.vx, v.vy), bul = S.cfg.mode === MODE_BULLET, mx = bul ? bulletSp(S, (b.hits | 0) + 1) * 1.22 * 1.08 : SMASH_CAP * k * 1.08;
   if (!(sp > 0.05)) return false;
+  if (bul && !quiet) bulletHit(S, b);
   var f = sp > mx ? mx / sp : 1;
   var age = clamp((v.age || 0) + (extraAge || 0), 0, 0.4);
   b.vx = v.vx * f; b.vy = v.vy * f;
@@ -1115,7 +1149,7 @@ function stepBall(S, b, dt, M) {
     return;
   }
   if (M.host && b.tent >= 0 && t >= b.tentUntil) b.tent = -1;
-  var sp = Math.hypot(b.vx, b.vy), cap = CAP_SP * speedK(S);
+  var sp = Math.hypot(b.vx, b.vy), cap = S.cfg.mode === MODE_BULLET ? bulletSp(S, b.hits | 0) : CAP_SP * speedK(S);
   if (sp > cap && t > b.hotUntil) { var ns = Math.max(cap, sp - 0.6 * dt); b.vx *= ns / sp; b.vy *= ns / sp; }
   var d = Math.hypot(b.x, b.y);
   if (S.whirl && d < WHIRL_R) {                                              // the whirlpool turns the pearl's heading
@@ -1152,7 +1186,7 @@ function grant(S, pl, o, b) {
   ev(S, ['orb', pl.seat, o.ty, r3(o.x), r3(o.y)]);
   if (o.ty === 0) pl.wideUntil = S.t + 9;
   else if (o.ty === 1) { pl.shield = true; pl.shieldUntil = S.t + 14; }
-  else if (S.balls.length < 7) {
+  else if (S.balls.length < 7 && S.cfg.mode !== MODE_BULLET && !b.bomb) {
     var c = Math.cos(0.38), s = Math.sin(0.38), vx = b.vx, vy = b.vy;
     b.vx = vx * c - vy * s; b.vy = vx * s + vy * c;
     S.balls.push({ id: S.nextBall++, x: b.x, y: b.y, vx: vx * c + vy * s, vy: -vx * s + vy * c, owner: b.owner,
@@ -1160,7 +1194,31 @@ function grant(S, pl, o, b) {
   }
 }
 
-function maxBalls(S) { return clamp(Math.ceil(aliveList(S).length / 2) + 2, 3, 6); }
+function maxBalls(S) {
+  if (S.cfg.mode === MODE_BULLET) return 1;
+  if (S.cfg.balls > 0) return S.cfg.balls;                                  // the host picked how many
+  return clamp(Math.ceil(aliveList(S).length / 2) + 2, 3, 6) - (S.cfg.mode === MODE_BOMB ? 1 : 0);
+}
+function normalBalls(S) { var n = 0; for (var i = 0; i < S.balls.length; i++) if (!S.balls[i].bomb) n++; return n; }
+/* Bomb: a ticking bomb rolls in with the pearls. Score with it like any pearl; when the fuse runs out it blows up
+   on whoever's side it is on (a shield saves you). */
+function spawnBomb(S) {
+  var al = aliveList(S); if (!al.length) return;
+  var pick = al[(Math.random() * al.length) | 0], tp = sidePt(S.sides[pick.side], (Math.random() * 1.4 - 0.7) * goalHalf(pick), AP);
+  var a = Math.atan2(tp.y, tp.x), sp = BASE_SP * speedK(S) * 0.85, r0 = S.cfg.core ? CORE_R + BR + 0.01 : 0.02;
+  S.balls.push({ id: S.nextBall++, x: Math.cos(a) * r0, y: Math.sin(a) * r0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, owner: -1, seq: 0, st: LIVE, tent: -1, tentUntil: 0,
+    hotUntil: -1, born: S.t, pendSeat: -1, pendUntil: 0, bomb: 1, fuseAt: S.t + BOMB_FUSE + Math.random() * 3 });
+  ev(S, ['bombnew', r3(a)]);
+}
+function boomBomb(S, b) {
+  var seat = sideOwner(S, sideOf(S, b.x, b.y)), pl = seat >= 0 ? S.players[seat] : null;
+  if (!pl || !pl.alive) {                                                    // a wall side: the nearest player takes it
+    pl = null; var bd = 9;
+    aliveList(S).forEach(function (p) { var q = padXY(S, p), d = Math.hypot(q.x - b.x, q.y - b.y); if (d < bd) { bd = d; pl = p; } });
+  }
+  if (!pl || pl.shield) { if (pl) { pl.shield = false; ev(S, ['shieldoff', pl.seat]); } b.dead = true; ev(S, ['boom', r3(b.x), r3(b.y), -1]); return; }
+  goal(S, b, pl.seat);
+}
 
 /* where (and when) a pearl will first reach a side, flying straight */
 function firstSide(S, b) {
@@ -1185,6 +1243,7 @@ function botThink(S, pl, dt) {
   if (!best) { pl.pt *= 0.85; return; }
   var lvl = S.cfg.bot, mul = [1.8, 1.22, 0.78][lvl] || 1.22, hw = padHalf(pl);
   var e = (hash3(best.b.id, best.b.seq, pl.seat + S.seed) - 0.5) * 2 * Math.min(PAD_MAX, pl.L * PAD_F) * mul, off = 0;   // a bot's aim is as good as anyone's: a shrunken bumper really is harder to play
+  if (S.cfg.mode === MODE_BULLET) e *= 1 + 0.13 * (best.b.hits | 0);           // Bullet: even a bot struggles once it flies
   var king = S.cfg.mode === MODE_CROWN && S.crown >= 0 && S.crown !== pl.seat ? S.players[S.crown] : null;
   if (king) {                                                                // in Crown, aim the return at the king's goal
     var tp = sidePt(S.sides[king.side], 0, AP), hp = sidePt(sd, best.u, RC), dx = tp.x - hp.x, dy = tp.y - hp.y;
@@ -1209,12 +1268,14 @@ function hostRules(S, dt) {
     if (t >= 3) {
       S.phase = 'play'; ev(S, ['go']); S.core.next = t + 1.0; S.orbAt = t + 7; S.moreAt = t + 12;
       if (mode === MODE_TIME) S.endT = t + 60 * (S.cfg.mins || 3);
-      if (mode === MODE_CROWN) S.crownStart = t + 1.3;                          // the crown lands on someone at random just after GO
+      if (mode === MODE_CROWN) { S.crownStart = t + 1.3; if (S.cfg.crownBy) S.endT = t + (S.cfg.crownS || 90); }   // the crown lands on someone at random just after GO
+      if (mode === MODE_BOMB) S.bombAt = t + 5;
     }
     return;
   }
   if (S.phase !== 'play') return;
-  if (mode === MODE_TIME && !S.ot && t >= S.endT) {
+  var timed = mode === MODE_TIME || (mode === MODE_CROWN && S.cfg.crownBy);
+  if (timed && !S.ot && S.endT && t >= S.endT) {
     if (leaders(S).n === 1) { finish(S, -1); return; }
     S.ot = true; ev(S, ['ot']);
   }
@@ -1228,18 +1289,27 @@ function hostRules(S, dt) {
     kp.cr += dt; var whole = Math.floor(kp.cr + 1e-6);
     if (whole !== kp.pts) {
       kp.pts = whole;
-      if (kp.pts >= goalS) { finish(S, kp.seat); return; }
-      if (goalS - kp.pts === 5 && S.cwarn !== kp.seat) { S.cwarn = kp.seat; ev(S, ['cwarn', kp.seat]); }
+      if (S.cfg.crownBy) { if (S.ot && leaders(S).n === 1) { finish(S, -1); return; } }      // timed Crown: the clock decides, overtime until someone leads
+      else {
+        if (kp.pts >= goalS) { finish(S, kp.seat); return; }
+        if (goalS - kp.pts === 5 && S.cwarn !== kp.seat) { S.cwarn = kp.seat; ev(S, ['cwarn', kp.seat]); }
+      }
     }
   }
-  var mb = maxBalls(S) + (mode === MODE_CROWN && S.crown >= 0 ? 1 : 0);              // one more pearl in play while somebody wears the crown
+  var extra = mode === MODE_CROWN && S.crown >= 0 && !(S.cfg.balls > 0) ? 1 : 0;      // one more pearl in play while somebody wears the crown
+  var mb = maxBalls(S) + extra;
   if (t >= S.moreAt) { S.ballsWanted++; S.moreAt = t + 10; }
   if (S.ballsWanted > mb) S.ballsWanted = mb;
-  var live = S.balls.length, c = S.core, want = S.ballsWanted + (mode === MODE_CROWN && S.crown >= 0 ? 1 : 0);
+  var live = normalBalls(S), c = S.core, want = S.ballsWanted + extra;
+  if (mode === MODE_BOMB) {
+    var bomb = null; for (i = 0; i < S.balls.length; i++) if (S.balls[i].bomb && !S.balls[i].dead) bomb = S.balls[i];
+    if (!bomb) { if (S.bombAt < 0) S.bombAt = t + 3.5; else if (t >= S.bombAt) { S.bombAt = -1; spawnBomb(S); } }
+    else if (t >= bomb.fuseAt && bomb.st === LIVE) { boomBomb(S, bomb); if (S.phase !== 'play') return; }
+  }
   if (mode === MODE_CROWN && S.crown >= 0 && t - S.crownAt > 6 && t >= (S.huntAt || 0) && c.next < 0 && live < mb + 2) {   // every few seconds the launcher fires one straight at the king
     S.hunt = true; S.huntAt = t + 7; c.next = t + 0.9;
   }
-  if (c.next < 0 && live < Math.min(want, mb)) c.next = t + 1.0;
+  if (c.next < 0 && live < Math.min(want, mb)) c.next = t + (mode === MODE_BULLET ? 1.8 : 1.0);   // Bullet: a breath between rallies
   if (c.next >= 0) {
     if (c.tele === null && t >= c.next - TELE) {
       var al = aliveList(S), pick = null;                                       // fair: each new pearl goes to whoever has been sent the fewest, ties at random
@@ -1254,12 +1324,12 @@ function hostRules(S, dt) {
       }
     }
     if (t >= c.next) {
-      var a = c.tele === null ? Math.random() * TAU : c.tele, sp = BASE_SP * speedK(S), r0 = S.cfg.core ? CORE_R + BR + 0.01 : 0.02;
+      var a = c.tele === null ? Math.random() * TAU : c.tele, sp = mode === MODE_BULLET ? bulletSp(S, 0) : BASE_SP * speedK(S), r0 = S.cfg.core ? CORE_R + BR + 0.01 : 0.02;
       S.balls.push({ id: S.nextBall++, x: Math.cos(a) * r0, y: Math.sin(a) * r0,
         vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, owner: -1, seq: 0, st: LIVE, tent: -1, tentUntil: 0,
         hotUntil: -1, born: t, pendSeat: -1, pendUntil: 0 });
       ev(S, ['launch', r3(a)]);
-      c.tele = null; c.next = (S.balls.length < Math.min(want, mb)) ? t + 1.5 : -1;
+      c.tele = null; c.next = (normalBalls(S) < Math.min(want, mb)) ? t + 1.5 : -1;
     }
   }
   if (S.cfg.pw) {
@@ -1271,7 +1341,7 @@ function hostRules(S, dt) {
           for (var q = 0; q < S.posts.length; q++) if (Math.hypot(ox - S.posts[q].x, oy - S.posts[q].y) < S.posts[q].r + 0.14) ok = false;
           if (!ok) continue;
           var r = Math.random();
-          S.orbs.push({ id: S.nextOrb++, x: ox, y: oy, ty: r < 0.4 ? 0 : r < 0.7 ? 1 : 2, born: t });
+          S.orbs.push({ id: S.nextOrb++, x: ox, y: oy, ty: mode === MODE_BULLET ? (r < 0.55 ? 0 : 1) : r < 0.4 ? 0 : r < 0.7 ? 1 : 2, born: t });
           ev(S, ['orbnew']); break;
         }
       }
@@ -1323,7 +1393,7 @@ function advance(S, dt, M, mode) {
   if (M.host) { while (S.ev.length && S.t - S.ev[0][1] > 0.7) S.ev.shift(); }
 }
 
-if (typeof module !== 'undefined') module.exports = { MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
+if (typeof module !== 'undefined') module.exports = { MODE_BULLET: MODE_BULLET, MODE_BOMB: MODE_BOMB, tierOf: tierOf, livesMode: livesMode, MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
 
 /* ================= CHARACTERS & COLOURS =================
    Eight original goofy creatures built in code. The body takes
@@ -1565,6 +1635,9 @@ var SFX = {
     play(BANK.chime(), { v: mine ? 0.4 : 0.25, t: 0.28, w: 0.4 }); play(BANK.crowd(), { v: mine ? 0.35 : 0.2, t: 0.1, w: 0.3 });
   },
   click: function () { play(BANK.tick(), { v: 0.18, jit: 0.05 }); },
+  tier: function (k) { play(BANK.zing(), { v: 0.14 + k * 0.04, r: 0.8 + k * 0.15, w: 0.2 }); play(BANK.whoosh(), { v: 0.16, r: 1 + k * 0.2, w: 0.15 }); },
+  boom: function () { play(BANK.boom(), { v: 0.75, r: 0.9, w: 0.3 }); play(BANK.thump(), { v: 0.5, r: 0.6, w: 0.2 }); },
+  fuse: function () { play(BANK.tek(), { v: 0.22, r: 1.4, w: 0.1 }); },
   join: function () { play(BANK.pop(), { v: 0.3, w: 0.15 }); play(BANK.pop(), { v: 0.22, r: 1.3, t: 0.09, w: 0.15 }); }
 };
 function sfx(name, a, b) { if (AU.ctx && AU.on && SFX[name]) { try { SFX[name](a, b); } catch (e) {} } }
@@ -1647,13 +1720,19 @@ var STR = {
     h2t: 'Block', h2: 'Bounce the pearls away from your goal with your bumper.',
     h3t: 'Smash', h3: 'Tap SMASH just as a pearl reaches you to fire it back twice as hard.',
     h4t: 'Superpowers', h4: 'Roll a pearl you touched through a gold orb: Wide bumper, Shield, or Split pearl.',
-    h5t: 'Modes', h5: 'Lives: lose one per goal, last one standing wins. Points: score in other goals to reach the target. Time: most points when the clock runs out. Crown: score on the king to steal the crown and keep it long enough to win. The crown is heavy: the king\'s bumper shrinks the longer they keep it.',
+    h5t: 'Modes', h5: 'Lives: lose one per goal, last one standing wins. Points: score in other goals to reach the target. Time: most points when the clock runs out. Crown: score on the king to steal the crown. Wearing it earns a point every second: first to the target wins, or most points when the clock runs out. The crown is heavy: the king\'s bumper shrinks the longer they keep it. Bullet: one pearl that gets faster with every touch, white, orange, yellow, then red. Bomb: a ticking bomb rolls in with the pearls; when the fuse runs out it blows up on whoever\'s side it is on.',
     taunt: 'Taunt',
     play: 'PLAY', howPlay: 'How do you want to play?', joinT: 'Join with a code', soloSub: 'Warm up against the bots, no internet needed',
     profile: 'Your player', colour: 'Colour', done: 'Done', editMe: 'Tap to edit', moreSet: 'More settings', loading: 'Loading',
-    mCrown: 'Crown', mCrownS: 'Steal it, keep it', tgtCrown: 'Seconds to win', sec: 's', secS: 's', crownCol: 'Crown',
-    crownTo: 'Keep the crown {n}s', crownT: 'CROWN STOLEN!', crownGot2: 'THE KING!', crownGot: '{n} has the crown', youCrown: 'YOUR CROWN!',
-    crownDrop: 'CROWN DROPPED!', crownDropS: 'Score to grab it', cwarnT: '5 SECONDS LEFT!', cwarnS: 'Stop {n}!', cwarnMe: '5 MORE SECONDS!', cwarnMeS: 'Hold on!',
+    mCrown: 'Crown', mCrownS: 'Steal it, keep it', tgtCrown: 'Crown points to win', sec: 's', secS: 's', pts: 'pts', crownCol: 'Crown pts',
+    crownBy: 'Win by', ckPts: 'Points', ckTime: 'Time', auto: 'Auto', balls: 'Pearls',
+    mBullet: 'Bullet', mBulletS: 'One pearl, faster every hit', mBomb: 'Bomb', mBombS: "Don't let it blow on you",
+    fast1: 'FAST!', fast2: 'FASTER!', fast3: 'FASTEST!', fastS: 'Keep it out of your goal',
+    spd0: 'Speed: normal', spd1: 'Speed: fast', spd2: 'Speed: faster', spd3: 'Speed: FASTEST',
+    bombIn: 'BOMB!', bombInS: 'Keep it away from your side', boomSafe: 'Shield!',
+    koLog: 'Knockouts', hitLog: 'Who scored on who', koBy: 'knocked out', scoredOn: 'scored {n} on', wild: 'Wild pearl',
+    crownTo: 'Crown: first to {n} points', crownT: 'CROWN STOLEN!', crownGot2: 'THE KING!', crownGot: '{n} has the crown', youCrown: 'YOUR CROWN!',
+    crownDrop: 'CROWN DROPPED!', crownDropS: 'Score to grab it', cwarnT: '5 POINTS TO WIN!', cwarnS: 'Stop {n}!', cwarnMe: '5 MORE POINTS!', cwarnMeS: 'Hold on!',
     crownFirst: 'Steal the crown and keep it!'
   },
   ar: {
@@ -1690,13 +1769,19 @@ var STR = {
     h2t: 'صدّ', h2: 'ردّ اللؤلؤ بعيد عن مرماك بالصدّام.',
     h3t: 'اضرب', h3: 'اضغط «اضرب» لحظة وصول اللؤلؤة عشان ترجعها بقوة مضاعفة.',
     h4t: 'القوى الخارقة', h4: 'وجّه لؤلؤة لمستها على كرة ذهبية: صدّام عريض، درع، أو لؤلؤة تنقسم.',
-    h5t: 'أنواع اللعب', h5: 'أرواح: كل هدف عليك يخسرك روح، وآخر واحد يبقى يفوز. نقاط: سجّل في مرمى غيرك لين توصل للهدف. وقت: الأكثر نقاط لما يخلص الوقت. التاج: سجّل على الملك عشان تسرق التاج، وخلّه معك لين تفوز. التاج ثقيل: صدّام الملك يصغر كل ما طوّل فيه.',
+    h5t: 'أنواع اللعب', h5: 'أرواح: كل هدف عليك يخسرك روح، وآخر واحد يبقى يفوز. نقاط: سجّل في مرمى غيرك لين توصل للهدف. وقت: الأكثر نقاط لما يخلص الوقت. التاج: سجّل على الملك عشان تسرق التاج. كل ثانية والتاج معك تاخذ نقطة: أول من يوصل للهدف يفوز، أو الأكثر نقاط لما يخلص الوقت. التاج ثقيل: صدّام الملك يصغر كل ما طوّل فيه. رصاصة: لؤلؤة وحدة تسرع مع كل ضربة، بيضا ثم برتقالية ثم صفرا ثم حمرا. قنبلة: قنبلة تدخل مع اللؤلؤ، ولما يخلص الفتيل تنفجر على اللي هي في جهته.',
     taunt: 'استفزاز',
     play: 'العب', howPlay: 'كيف تبي تلعب؟', joinT: 'ادخل بالرمز', soloSub: 'سخّن ضد البوتات، بدون إنترنت',
     profile: 'لاعبك', colour: 'اللون', done: 'تم', editMe: 'اضغط للتعديل', moreSet: 'إعدادات أكثر', loading: 'جاري التحميل',
-    mCrown: 'التاج', mCrownS: 'اسرقه واثبت فيه', tgtCrown: 'ثواني الفوز', sec: 'ث', secS: 'ث', crownCol: 'التاج',
-    crownTo: 'خلّ التاج معك {n} ث', crownT: 'انسرق التاج!', crownGot2: 'الملك!', crownGot: 'التاج مع {n}', youCrown: 'التاج معك!',
-    crownDrop: 'طاح التاج!', crownDropS: 'سجّل وخذه', cwarnT: 'باقي ٥ ثواني!', cwarnS: 'وقّفوا {n}!', cwarnMe: 'باقي ٥ ثواني!', cwarnMeS: 'اثبت!',
+    mCrown: 'التاج', mCrownS: 'اسرقه واثبت فيه', tgtCrown: 'نقاط التاج للفوز', sec: 'ث', secS: 'ث', pts: 'نقطة', crownCol: 'نقاط التاج',
+    crownBy: 'الفوز بـ', ckPts: 'النقاط', ckTime: 'الوقت', auto: 'تلقائي', balls: 'عدد اللؤلؤ',
+    mBullet: 'رصاصة', mBulletS: 'لؤلؤة وحدة، تسرع مع كل ضربة', mBomb: 'قنبلة', mBombS: 'لا تخليها تنفجر عندك',
+    fast1: 'سريعة!', fast2: 'أسرع!', fast3: 'صاروخ!', fastS: 'لا تخليها تدخل عليك',
+    spd0: 'السرعة: عادية', spd1: 'السرعة: سريعة', spd2: 'السرعة: أسرع', spd3: 'السرعة: صاروخ',
+    bombIn: 'قنبلة!', bombInS: 'بعّدها عن جهتك', boomSafe: 'درع!',
+    koLog: 'مين طلّع مين', hitLog: 'مين سجّل على مين', koBy: 'طلّع', scoredOn: 'سجّل {n} على', wild: 'لؤلؤة طايشة',
+    crownTo: 'التاج: أول من يوصل {n} نقطة', crownT: 'انسرق التاج!', crownGot2: 'الملك!', crownGot: 'التاج مع {n}', youCrown: 'التاج معك!',
+    crownDrop: 'طاح التاج!', crownDropS: 'سجّل وخذه', cwarnT: 'باقي له ٥ نقاط!', cwarnS: 'وقّفوا {n}!', cwarnMe: 'باقي لك ٥ نقاط!', cwarnMeS: 'اثبت!',
     crownFirst: 'اسرق التاج وخلّه معك!'
   }
 };
@@ -2099,14 +2184,14 @@ function commsStrings() {
    and receives the state about 20-30 times a second, then predicts in between. */
 var SPEEDS = [0.85, 1, 1.22];
 var ME = { id: '', name: '', ch: 0, col: 0 };
-var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, sp: 1, pw: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1 }, mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
+var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, crs: 90, ck: 0, balls: 0, sp: 1, pw: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1 }, mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
 var G = { S: null, role: 'none', me: -1, mid: 0, acc: 0, quiet: false, verdicts: new Map(), seenV: new Map(), early: new Map(), lastEid: 0, vis: {},
   offset: 0, lat: 0, synced: false, pings: [], lastTick: -1, lastHost: 0, stale: false, smashN: 0, inT: 0, snapT: 0, relT: 0, overTimer: null };
 var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
 
 function cfgObj() {
   var c = ROOM.cfg, m = MAPS[ROOM.mapNow] || MAPS[0];
-  return { mode: c.mode | 0, lives: c.lives, target: c.pts, mins: c.mins, crownT: c.crn || 45, speed: SPEEDS[c.sp] || 1, pw: !!c.pw, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, map: ROOM.mapNow, layout: m.layout };
+  return { mode: c.mode | 0, lives: c.lives, target: c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: SPEEDS[c.sp] || 1, pw: !!c.pw, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, map: ROOM.mapNow, layout: m.layout };
 }
 /* the map on show in the lobby: the chosen one, or the last one played when it is random */
 function lobbyMap() { return ROOM.cfg.map >= 0 ? ROOM.cfg.map : ROOM.mapNow; }
@@ -2151,7 +2236,7 @@ function beginMatch(role) {
       remote: !s.bot && (role === 'client' ? s.id !== ROOM.hostId : s.id !== ME.id) };
   });
   var S = newMatch(roster, cfgObj()), nowMs = performance.now();
-  G.S = S; G.role = role; G.quiet = false; G.acc = 0; G.lastEid = 0; G.vis = {}; G.lastTick = -1; G.smashN = 0; G.stale = false;
+  G.S = S; G.log = []; G.role = role; G.quiet = false; G.acc = 0; G.lastEid = 0; G.vis = {}; G.lastTick = -1; G.smashN = 0; G.stale = false;
   G.me = -1; roster.forEach(function (r, i) { if (r.id === ME.id) G.me = i; });
   G.verdicts.clear(); G.seenV.clear(); G.early.clear();
   clearTimeout(G.overTimer);
@@ -2230,7 +2315,7 @@ function wallFx(b, soft) {
 }
 function lobbyMsg() {
   var c = ROOM.cfg, now = performance.now();
-  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn], map: ROOM.mapNow, bots: ROOM.bots,
+  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90], map: ROOM.mapNow, bots: ROOM.bots,
     seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0]; }),
     wait: ROOM.waiting.map(function (w) { return [w.id, w.name, w.ch, w.col]; }) }];
 }
@@ -2330,7 +2415,7 @@ function flagsOf(p) { return (p.alive ? 1 : 0) | (p.smashOn ? 2 : 0) | (p.wide ?
 function packSnap(S, hc) {
   return JSON.stringify(['s', G.mid, S.tick, r3(S.t), hc, S.phase === 'cd' ? 0 : S.phase === 'play' ? 1 : 2,
     S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1]; }),
-    S.balls.map(function (b) { return [b.id, r3(b.x), r3(b.y), r3(b.vx), r3(b.vy), b.owner, b.seq, b.st, b.tent, b.hotUntil > S.t ? 1 : 0]; }),
+    S.balls.map(function (b) { return [b.id, r3(b.x), r3(b.y), r3(b.vx), r3(b.vy), b.owner, b.seq, b.st, b.tent, b.hotUntil > S.t ? 1 : 0, b.hits | 0, b.bomb ? Math.max(0.01, r3(b.fuseAt - S.t)) : 0]; }),
     S.orbs.map(function (o) { return [o.id, r3(o.x), r3(o.y), o.ty]; }),
     [S.core.tele === null ? null : r3(S.core.tele), S.core.next < 0 ? -1 : r3(S.core.next - S.t)],
     S.ev.map(function (e) { return [e[0]].concat(e.slice(2)); }),
@@ -2383,7 +2468,7 @@ function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
   ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
-  ROOM.cfg = { mode: ci(q[0], 0, 3), lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
+  ROOM.cfg = { mode: ci(q[0], 0, 5), lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000; ROOM.seats.forEach(function (x) { was[x.id] = x.joinedAt; });
   ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
@@ -2440,7 +2525,7 @@ function applySnap(m, nowMs) {
     if (i !== G.me) { pl.pn = a[0]; pl.p = a[0]; rpush(pl, a[0], G.synced ? m[4] - G.offset : nowMs, nowMs); pl.smashOn = !!(f & 2); pl.smashUntil = pl.smashOn ? S.t + 0.15 : -1; }
   }
   S.balls = m[7].map(function (q) { return { id: q[0], x: q[1], y: q[2], vx: q[3], vy: q[4], owner: q[5], seq: q[6], st: q[7], tent: q[8],
-    hotUntil: q[9] ? S.t + 0.5 : -1, born: -9, pendSeat: -1, pendUntil: S.t + 2, tentUntil: 0 }; });
+    hotUntil: q[9] ? S.t + 0.5 : -1, born: -9, pendSeat: -1, pendUntil: S.t + 2, tentUntil: 0, hits: q[10] | 0, bomb: q[11] > 0 ? 1 : 0, fuseAt: S.t + (+q[11] || 0) }; });
   S.orbs = m[8].map(function (q) { return { id: q[0], x: q[1], y: q[2], ty: q[3], born: 0 }; });
   S.core.tele = m[9][0]; S.core.next = m[9][1] < 0 ? -1 : S.t + m[9][1];
   S.winner = -1;
@@ -3888,9 +3973,16 @@ function pearlInk() {
 }
 /* the ball's paint: equirectangular, so the equator band wraps the ball */
 var _btex = {};
+var TIER_COL = [null, '#ff8a1f', '#ffd21f', '#ff2d3a'];                // Bullet: white, orange, yellow, red
 function ballTex(hex) {
   var key = hex || 'pearl'; if (_btex[key]) return _btex[key];
   var t = canvasTex(512, 256, function (g, w, h) {
+    if (hex === 'bomb') {                                           // a round cartoon bomb: glossy navy with a red danger band
+      var bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#3a4270'); bg.addColorStop(0.5, '#1c2140'); bg.addColorStop(1, '#0d1028'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#ff3a3a'; g.fillRect(0, h * 0.4, w, h * 0.2);
+      g.fillStyle = '#ffd23f'; for (var k = 0; k < 8; k++) { g.beginPath(); g.moveTo(k * w / 8, h * 0.6); g.lineTo(k * w / 8 + w / 32, h * 0.4); g.lineTo(k * w / 8 + w / 16, h * 0.4); g.lineTo(k * w / 8 + w / 32, h * 0.6); g.fill(); }
+      return;
+    }
     if (!hex) {                                                      // a pearl: creamy white with a soft rainbow sheen
       var gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#fffdf8'); gr.addColorStop(0.5, '#f7f0ff'); gr.addColorStop(1, '#fff6ec'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
       var sh = g.createLinearGradient(0, 0, w, 0); ['rgba(255,190,220,0.22)', 'rgba(180,230,255,0.22)', 'rgba(255,240,180,0.22)', 'rgba(200,190,255,0.22)', 'rgba(255,190,220,0.22)'].forEach(function (c, i) { sh.addColorStop(i / 4, c); });
@@ -3959,13 +4051,23 @@ function ballsUpdate(S, now, dt) {
     if (!B) {
       for (j = 0; j < GFX.balls.length; j++) if (GFX.balls[j].id < 0 && !GFX.balls[j].seen) { B = GFX.balls[j]; break; }
       if (!B) continue;
-      B.id = b.id; B.hist.length = 0; B.sq = 0; B.vx = b.vx; B.vy = b.vy; B.m.quaternion.setFromAxisAngle(_Y, Math.random() * TAU); B.ang = 0; B.st.rotation.y = 0;
+      B.id = b.id; B.hits = 0; B.tier = 0; B.fz = 99; B.hist.length = 0; B.sq = 0; B.vx = b.vx; B.vy = b.vy; B.m.quaternion.setFromAxisAngle(_Y, Math.random() * TAU); B.ang = 0; B.st.rotation.y = 0;
       B.pop = Math.hypot(b.x, b.y) < (S.cfg.core ? CORE_R : 0) + 0.12 ? 0 : 1;           // fresh from the launcher: pop in
     }
     B.seen = true;
     var vo = G.vis[b.id], bx = (b.x + (vo ? vo.x : 0)) * R3, bz = (b.y + (vo ? vo.y : 0)) * R3, sdb = S.sides[sideOf(S, b.x, b.y)], dn = b.x * sdb.c + b.y * sdb.s;
     var f = b.st === PEND ? clamp(1 - (dn - RC) / 0.2, 0, 1) : 1, owner = b.owner >= 0 && S.players[b.owner] ? COLORS[S.players[b.owner].col] : null, hot = b.hotUntil > S.t;
-    ballPaint(B, owner);
+    var bul = (S.cfg.mode | 0) === MODE_BULLET, tier = bul ? tierOf(b.hits | 0) : 0;
+    if (bul) {                                                       // Bullet: the colour says how fast it is; every touch pops a word
+      owner = TIER_COL[tier]; hot = hot || tier === 3;
+      if ((b.hits | 0) > (B.hits | 0) && b.st === LIVE) {
+        if (tier > (B.tier | 0)) { B.tier = tier; showTitle(T('fast' + tier), T('fastS'), 'last', 1100, TIER_COL[tier]); sfx('tier', tier); buzz(25); }
+        else if (tier) floatText(b.x, b.y, T('fast' + tier), TIER_COL[tier], tier === 3);
+      }
+      B.hits = b.hits | 0;
+    }
+    if (b.bomb) owner = '#ff4a2a';
+    ballPaint(B, b.bomb ? 'bomb' : owner);
     var sp = Math.hypot(b.vx, b.vy);
     // a bounce: the heading swings round
     if (sp > 0.05 && Math.hypot(B.vx, B.vy) > 0.05) {
@@ -3975,6 +4077,7 @@ function ballsUpdate(S, now, dt) {
     B.vx = b.vx; B.vy = b.vy;
     B.pop = Math.min(1, B.pop + dt / 0.28); B.sq = Math.max(0, B.sq - dt * 7);
     var pk = B.pop < 1 ? 1 + Math.sin(B.pop * Math.PI) * 0.35 - (1 - B.pop) * 0.7 : 1, r = r0 * (0.25 + 0.75 * f) * Math.max(0.05, pk);
+    if (b.bomb) r *= 1.3 + Math.max(0, 3 - fz0(b, S)) * 0.06;                  // the bomb is bigger, and swells as it is about to go
     B.grp.visible = f > 0.02; B.grp.position.set(bx, r + (1 - f) * -0.2, bz);
     // stretch along the way it's going, squash on impact
     var st = clamp(sp * 0.07, 0, 0.16) * (hot ? 1.4 : 1), sq = B.sq * B.sq * 0.38, sx = (1 + st) * (1 - sq), sy = 1 / Math.sqrt(sx);
@@ -3986,6 +4089,13 @@ function ballsUpdate(S, now, dt) {
     }
     B.st.scale.set(sx * r, sy * r * (1 + sq * 0.4), sy * r);
     B.mat.emissive.set(hot ? 0xff3a00 : 0x000000); B.mat.emissiveIntensity = hot ? 0.18 + 0.12 * Math.sin(now * 30) : 0;
+    if (bul && tier && !hot) { B.mat.emissive.copy(CC(TIER_COL[tier])); B.mat.emissiveIntensity = 0.1 * tier; }
+    var fz = b.bomb ? Math.max(0, b.fuseAt - S.t) : 99;
+    if (b.bomb) {                                                     // the bomb blinks faster as its fuse runs down
+      var rate = fz < 3 ? 9 : fz < 6 ? 4.5 : 2.2; B.mat.emissive.set(0xff2020); B.mat.emissiveIntensity = Math.sin(now * rate * TAU) > 0 ? 0.3 : 0;
+      var whole = Math.ceil(fz); if (whole < (B.fz | 0) && whole <= 3 && whole > 0) sfx('fuse'); B.fz = whole;
+      bombTag(bx, r, bz, whole, fz < 3);
+    }
     // contact shadow and the warning ring when it is coming at my goal
     B.sh.visible = B.grp.visible; B.sh.position.set(bx, 0.035, bz); B.sh.scale.setScalar(r * 2.6); B.sh.material.opacity = 0.42 * f;
     var warn = 0;
@@ -4005,12 +4115,24 @@ function ballsUpdate(S, now, dt) {
         var a = 1 - t; A[j * 2] = A[j * 2 + 1] = j < n ? a * a : 0;
       }
       B.tr.geometry.attributes.position.needsUpdate = true; B.tr.geometry.attributes.a.needsUpdate = true;
-      B.tm.uniforms.op.value = hot ? 0.9 : owner ? 0.55 : 0.35; var tc = hot ? '#ffb347' : owner || '#cfc6ff'; if (B.tcol !== tc) { B.tcol = tc; B.tm.uniforms.col.value.copy(CC(tc)); }
+      B.tm.uniforms.op.value = hot ? 0.9 : owner ? 0.55 + tier * 0.12 : 0.35; var tc = hot && !bul ? '#ffb347' : owner || '#cfc6ff'; if (B.tcol !== tc) { B.tcol = tc; B.tm.uniforms.col.value.copy(CC(tc)); }
     }
-    B.h.visible = hot && B.grp.visible; if (B.h.visible) { B.h.position.set(bx, r, bz); B.h.material.opacity = 0.45 * f; B.h.scale.setScalar(r * 3.6 + Math.sin(now * 40) * r * 0.3); }
+    B.h.visible = (hot || !!b.bomb) && B.grp.visible;
+    if (B.h.visible && b.bomb) { B.h.position.set(bx, r * 2.25, bz); B.h.material.opacity = 0.85 * f; B.h.scale.setScalar(r * (1.3 + Math.random() * 0.6)); }   // the lit fuse
+    else if (B.h.visible) { B.h.position.set(bx, r, bz); B.h.material.opacity = 0.45 * f; B.h.scale.setScalar(r * 3.6 + Math.sin(now * 40) * r * 0.3); }
     if (hot && f > 0.5 && !REDUCE && Math.random() < 0.7) trailDot(bx - b.vx * R3 * 0.02 + (Math.random() - 0.5) * r, r, bz - b.vy * R3 * 0.02 + (Math.random() - 0.5) * r, Math.random() < 0.5 ? '#ffd23f' : '#ff6a1a', 0.7);
   }
   for (i = 0; i < GFX.balls.length; i++) if (!GFX.balls[i].seen && GFX.balls[i].id >= 0) hideBall(GFX.balls[i]);
+  if (!list.some(function (q) { return q.bomb; })) bombTag();
+}
+function fz0(b, S) { return Math.max(0, b.fuseAt - S.t); }
+/* the seconds left on the bomb, floating over it */
+function bombTag(x, r, z, n, hot) {
+  var el = $('bombtag'); if (!el) return;
+  if (x == null || UI.screen !== 'game') { if (!el.hidden) el.hidden = true; return; }
+  var p = scr(_v.set(x, r * 2 + 0.9, z)); el.hidden = !p.ok;
+  var s = String(Math.max(1, n)); if (el.textContent !== s) el.textContent = s;
+  el.classList.toggle('hot', !!hot); placeEl(el, p.x, p.y, false);
 }
 function by0(z) { return z / R3; }
 function gfxInit() {
@@ -4415,6 +4537,7 @@ function crownUpdate(now, dt) {
 function fxEvent(a) {
   var S = G.S; if (!S || !GFX.ok) return;
   var now = performance.now() / 1000, k = a[0], pl, col, me = G.me, sl, mode = S.cfg.mode | 0;
+  logEvent(a);
   if (k === 'hit') {
     pl = S.players[a[1]]; if (!pl) return;
     if (G.role === 'client' && a[1] === me) { var v = G.verdicts.get(a[3] + ':' + (a[4] - 1)); if (v && v.hit) return; }
@@ -4429,11 +4552,11 @@ function fxEvent(a) {
     var sd = S.sides[pl.side], gx = sd.c * 1.1 - sd.s * (-a[3] * sd.s + a[4] * sd.c), gy = sd.s * 1.1 + sd.c * (-a[3] * sd.s + a[4] * sd.c);
     spark(gx * R3, 0.8, gy * R3, col, 22, 6, 0.38, 0.8); shock(gx, gy, col, 2.6, 0.45);
     var pp = padSimXY(pl);
-    if (mode === MODE_LIVES && a[1] === me) floatText(pp.x * 1.12, pp.y * 1.12, '-1', col, true);   // only my own score pops up; the bar at the top shows the rest
+    if (livesMode(mode) && a[1] === me) floatText(pp.x * 1.12, pp.y * 1.12, '-1', col, true);   // only my own score pops up; the bar at the top shows the rest
     else if (scp && a[2] === me && mode !== MODE_CROWN) { var sp2 = padSimXY(scp); floatText(sp2.x * 1.12, sp2.y * 1.12, '+1', COLORS[scp.col], true); }
     if (a[1] === me) FX.shake = Math.max(FX.shake, 0.3);
-    hudFlash(a[1]); gbFlash(a[1]); if (scp && mode !== MODE_LIVES) { hudFlash(a[2]); }
-    if (a[1] === me && mode === MODE_LIVES && a[5] === 1) setTimeout(function () { showTitle(T('lastLife'), '', 'last', 1500); }, 350);
+    hudFlash(a[1]); gbFlash(a[1]); if (scp && !livesMode(mode)) { hudFlash(a[2]); }
+    if (a[1] === me && livesMode(mode) && a[5] === 1) setTimeout(function () { showTitle(T('lastLife'), '', 'last', 1500); }, 350);
     if (mode === MODE_CROWN && a[1] !== me && scp && a[2] === me) { /* the crown callout says it */ }
     else if (scp && a[2] === me && mode === MODE_POINTS && a[6] === (S.cfg.target || 10) - 1) setTimeout(function () { showTitle(T('matchPoint'), '', 'last', 1400); }, 350);
     sfx('goal', a[1] === me); voice(pl.ch, 'hurt', 0.13);
@@ -4467,10 +4590,17 @@ function fxEvent(a) {
       sfx('crown', a[1] === me); hudFlash(a[1]); if (a[1] === me) buzz([30, 40, 30]);
     } else if (lost) { setMood(a[2], 'hurt', 1.4); showTitle(T('crownDrop'), T('crownDropS'), 'crown', 1400, GOLD); sfx('orb'); }
   } else if (k === 'cslip') {
-    pl = S.players[a[1]]; if (pl) { var cp2 = padSimXY(pl); floatText(cp2.x * 1.12, cp2.y * 1.12, '-3' + T('secS'), COLORS[pl.col], a[1] === me); }
+    pl = S.players[a[1]]; if (pl) { var cp2 = padSimXY(pl); floatText(cp2.x * 1.12, cp2.y * 1.12, '-3', COLORS[pl.col], a[1] === me); }
   } else if (k === 'cwarn') {
     pl = S.players[a[1]]; if (pl) { showTitle(a[1] === me ? T('cwarnMe') : T('cwarnT'), a[1] === me ? T('cwarnMeS') : T('cwarnS', { n: pl.name }), 'last', 1500, COLORS[pl.col]); sfx('tele'); }
   }
+  else if (k === 'boom') {                                                      // the bomb goes off
+    var bx2 = a[1], by2 = a[2]; spark(bx2 * R3, 0.8, by2 * R3, '#ff6a1a', 40, 9, 0.55, 0.9); spark(bx2 * R3, 0.8, by2 * R3, '#ffd23f', 24, 7, 0.4, 0.7);
+    shock(bx2, by2, '#ff4a2a', 5.5, 0.6); shock(bx2, by2, '#ffd23f', 3.4, 0.4); FX.shake = Math.max(FX.shake, a[3] === me ? 0.55 : 0.3);
+    sfx('boom'); if (a[3] === me) buzz([90, 50, 140]);
+    if (a[3] < 0) floatText(bx2, by2, T('boomSafe'), '#ffd23f', true);
+  }
+  else if (k === 'bombnew') { GFX.pulse = now; shock(0, 0, '#ff4a2a', 3.2, 0.45); sfx('launch'); showTitle(T('bombIn'), T('bombInS'), 'last', 1200, '#ff4a2a'); }
   else if (k === 'launch') { GFX.pulse = now; spark(Math.cos(a[1]) * 0.5, 0.9, Math.sin(a[1]) * 0.5, GOLD, 14, 4, 0.3, 0.5); shock(0, 0, GOLD, 3.2, 0.4); sfx('launch'); }
   else if (k === 'tele') sfx('tele');
   else if (k === 'smash') { sl = GFX.slots[a[1]]; if (sl) sl.smashT = now; if (!(G.role === 'client' && a[1] === me)) sfx('smash'); }
@@ -4554,7 +4684,18 @@ function camFit(pts, el, az, rect, slack, tgtOff, bottom) {
   if (bottom) oy = (1 - bb.y0) / 2 * H - (rect.y + rect.h);            // rest the arena on the bottom of the space so your side sits low, like Crash
   return { d: hi, ox: cxp - (rect.x + rect.w / 2), oy: oy, tgt: tgt };
 }
+/* iPhone Home Screen app bug: with the see-through status bar, the page can end short of the bottom of the
+   screen by the status bar's height, leaving a blue strip. Measure the gap and stretch the app over it. */
+function fixGap() {
+  var gap = 0;
+  if (navigator.standalone === true && window.screen && screen.height) {
+    var tall = innerHeight >= innerWidth, sh = tall ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+    gap = Math.round(sh - innerHeight); if (gap < 6 || gap > 100) gap = 0;
+  }
+  if (fixGap.v !== gap) { fixGap.v = gap; document.documentElement.style.setProperty('--gap', gap + 'px'); }
+}
 function gfxResize() {
+  fixGap();
   var r = cv.getBoundingClientRect(); if (!r.width || !r.height) return;
   VIEW.W = r.width; VIEW.H = r.height;
   var wide = VIEW.W > VIEW.H * 1.2, rect = { x: 0, y: 0, w: VIEW.W, h: VIEW.H };
@@ -4854,9 +4995,9 @@ function tagsUpdate(now, slices) {
     else {
       var key = pl.ch + COLORS[pl.col], im = g.firstChild;
       if (im.getAttribute('data-p') !== key) { im.src = portraitURL(pl.ch, COLORS[pl.col]); im.setAttribute('data-p', key); g.style.setProperty('--c', COLORS[pl.col]); }
-      var txt = !pl.alive ? 'KO' : mode === MODE_LIVES ? String(pl.lives) : String(pl.pts), nm = pl.name + (pl.remote && !pl.conn ? ' (' + T('away') + ')' : '');
+      var txt = !pl.alive ? 'KO' : livesMode(mode) ? String(pl.lives) : String(pl.pts), nm = pl.name + (pl.remote && !pl.conn ? ' (' + T('away') + ')' : '');
       if (g.children[1].textContent !== txt) { g.children[1].textContent = txt; g._w = 0; } if (g.lastChild.textContent !== nm) { g.lastChild.textContent = nm; g._w = 0; }
-      g.classList.toggle('low', mode === MODE_LIVES && pl.alive && pl.lives === 1); g.classList.toggle('out', !pl.alive); g.classList.toggle('pts', mode === MODE_POINTS || mode === MODE_TIME); g.classList.toggle('crn', mode === MODE_CROWN);
+      g.classList.toggle('low', livesMode(mode) && pl.alive && pl.lives === 1); g.classList.toggle('out', !pl.alive); g.classList.toggle('pts', mode === MODE_POINTS || mode === MODE_TIME); g.classList.toggle('crn', mode === MODE_CROWN);
       podPos(sl2, sl3, _v); _v.y = 3.2 * sl3.s + 0.6; var q = scr(_v);
       g.hidden = !q.ok; placeEl(g, q.x, q.y, true, VIEW.rect.y + 30); g._x = g._px; g._y = g._py;
     }
@@ -4879,7 +5020,8 @@ var UI = { screen: 'home', full: false, drag: null, exitArmed: 0, toastT: null, 
 function $(id) { return document.getElementById(id); }
 var ICON_ON = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/></svg>';
 var ICON_OFF = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9l5 6M21 9l-5 6"/></svg>';
-var TARGETS = [[3, 5, 10], [5, 10, 15], [2, 3, 5], [30, 45, 60]], MODE_NAMES = ['mLives', 'mPoints', 'mTime', 'mCrown'];
+var TARGETS = [[3, 5, 10], [5, 10, 15], [2, 3, 5], [45, 65, 75], [3, 5, 10], [3, 5, 10]], CROWN_SECS = [60, 90, 120], MODE_NAMES = ['mLives', 'mPoints', 'mTime', 'mCrown', 'mBullet', 'mBomb'];
+function targetsFor(c) { return (c.mode | 0) === 3 && c.ck ? CROWN_SECS : TARGETS[c.mode | 0]; }
 
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} return null; }
 function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, snd: AU.on, mus: AU.musicOn, vib: AU.vib !== false, gfx: GFX.quality || 'auto', how: !!UI.howSeen, plays: UI.plays || 0 }); }
@@ -5040,7 +5182,9 @@ var MODE_SVG = [
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 20.5l-1.3-1.2C5.6 14.7 2.5 11.9 2.5 8.4 2.5 5.6 4.7 3.5 7.4 3.5c1.6 0 3.1.7 4.6 2.2 1.5-1.5 3-2.2 4.6-2.2 2.7 0 4.9 2.1 4.9 4.9 0 3.5-3.1 6.3-8.2 10.9z"/></svg>',
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2.8l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.7l-5.4 2.9 1.1-6.1-4.5-4.3 6.1-.8z"/></svg>',
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 8.5V13l3 2M9.5 2.8h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
-  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M3.2 8.2l4.6 3.6L12 4.6l4.2 7.2 4.6-3.6-1.7 10.3H4.9z"/><rect x="4.9" y="19.5" width="14.2" height="2.3" rx="1.1" fill="currentColor"/></svg>'
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M3.2 8.2l4.6 3.6L12 4.6l4.2 7.2 4.6-3.6-1.7 10.3H4.9z"/><rect x="4.9" y="19.5" width="14.2" height="2.3" rx="1.1" fill="currentColor"/></svg>',
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="15.5" cy="12" r="6" fill="currentColor"/><path d="M2.5 8h6M1.5 12h5.5M2.5 16h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="11" cy="14" r="7.5" fill="currentColor"/><path d="M15.5 7.5l2-2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M18.5 2.5v2M21.5 5.5h-2M20.6 3.4l-1.3 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.5" cy="11.5" r="1.8" fill="#fff" opacity=".55"/></svg>'
 ];
 function buildMaps() {
   var box = $('maps'); box.textContent = '';
@@ -5052,8 +5196,9 @@ function buildMaps() {
     b.appendChild(ic); b.appendChild(nm); b.appendChild(sb); box.appendChild(b);
   });
 }
-function cfgTarget(c) { return [c.lives, c.pts, c.mins, c.crn || 45][c.mode | 0]; }
-function targetText(mode, v) { return mode === 2 ? v + ' ' + T('min') : mode === 3 ? v + ' ' + T('sec') : String(v); }
+function tgtKey(c) { return ['lives', 'pts', 'mins', c.ck ? 'crs' : 'crn', 'lives', 'lives'][c.mode | 0]; }
+function cfgTarget(c) { return c[tgtKey(c)] || targetsFor(c)[1]; }
+function targetText(mode, v, ck) { return mode === 2 ? v + ' ' + T('min') : mode === 3 ? v + ' ' + T(ck ? 'sec' : 'pts') : String(v); }
 function renderLobby() {
   setSize(ROOM.cfg.size);                                             // the arena on show matches the size picked
   var host = ROOM.role === 'host' || ROOM.role === 'solo', online = ROOM.role !== 'solo', i, c = ROOM.cfg, mode = c.mode | 0;
@@ -5085,16 +5230,18 @@ function renderLobby() {
   // what everyone sees: the mode, target and map the host picked
   var sum = $('summary'); sum.hidden = host; sum.textContent = '';
   if (!host) {
-    [T(MODE_NAMES[mode]) + ': ' + targetText(mode, cfgTarget(c)), mapName(c.map), T('size') + ': ' + T('sz' + (c.size | 0)), T('pw') + ': ' + T(c.pw ? 'on' : 'off')].forEach(function (txt, k) {
+    [T(MODE_NAMES[mode]) + ': ' + targetText(mode, cfgTarget(c), c.ck), mapName(c.map), T('size') + ': ' + T('sz' + (c.size | 0)), T('pw') + ': ' + T(c.pw ? 'on' : 'off')].concat(c.balls && mode !== 4 ? [T('balls') + ': ' + c.balls] : []).forEach(function (txt, k) {
       var p = document.createElement('span'); p.className = 'pill' + (k === 0 ? ' y' : ''); p.textContent = txt; sum.appendChild(p);
     });
   }
   if (host) {
     $('bots-n').textContent = String(ROOM.seats.filter(function (x) { return x.bot; }).length);
     seg('modes', mode);
-    $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', 'tgtCrown'][mode]);
+    $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', c.ck ? 'tgtTime' : 'tgtCrown', 'tgtLives', 'tgtLives'][mode]);
     var tb = $('seg-tgt').querySelectorAll('button');
-    TARGETS[mode].forEach(function (v, k) { tb[k].setAttribute('data-v', v); tb[k].textContent = targetText(mode, v); });
+    targetsFor(c).forEach(function (v, k) { tb[k].setAttribute('data-v', v); tb[k].textContent = targetText(mode, v, c.ck); });
+    $('kv-ck').hidden = mode !== 3; seg('seg-ck', c.ck ? 1 : 0);
+    $('kv-balls').hidden = mode === 4; $('balls-n').textContent = c.balls ? String(c.balls) : T('auto');
     seg('seg-tgt', cfgTarget(c)); seg('maps', c.map);
     seg('seg-speed', c.sp); seg('seg-level', c.bot); seg('seg-pw', c.pw); seg('seg-core', c.core ? 1 : 0); seg('seg-haz', c.haz ? 1 : 0); seg('seg-size', c.size | 0);
     var ok = ROOM.seats.length >= 2; $('b-start').disabled = !ok;
@@ -5107,7 +5254,7 @@ function renderLobby() {
 function showResults() {
   var S = G.S; if (!S) return;
   var mode = S.cfg.mode | 0, ps = S.players.slice().sort(function (a, b) { return (a.place || 99) - (b.place || 99); }), list = $('res-list'), i;
-  function mainVal(p) { return mode === MODE_LIVES ? (p.alive ? String(Math.max(0, p.lives)) : 'KO') : mode === MODE_CROWN ? p.pts + T('secS') : String(p.pts); }
+  function mainVal(p) { return livesMode(mode) ? (p.alive ? String(Math.max(0, p.lives)) : 'KO') : String(p.pts); }
   $('res-mode').textContent = T(MODE_NAMES[mode]) + (LANG === 'ar' ? '، ' : ', ') + mapName(S.cfg.map);
   var pod = $('podium'); pod.textContent = '';
   [1, 0, 2].forEach(function (k) {
@@ -5118,15 +5265,16 @@ function showResults() {
     var base = document.createElement('div'); base.className = 'base';
     var rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = String(k + 1);
     var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = p.name;
-    var vl = document.createElement('span'); vl.className = 'val'; vl.textContent = (mode === MODE_LIVES ? '♥ ' : mode === MODE_CROWN ? '' : '★ ') + mainVal(p);
+    var vl = document.createElement('span'); vl.className = 'val'; vl.textContent = (livesMode(mode) ? '♥ ' : mode === MODE_CROWN ? '' : '★ ') + mainVal(p) + (mode === MODE_CROWN ? ' ' + T('pts') : '');
     base.appendChild(rk); base.appendChild(nm); base.appendChild(vl); d.appendChild(im); d.appendChild(base); pod.appendChild(d);
   });
+  resLog(mode);
   list.textContent = '';
   var head = document.createElement('div'); head.className = 'rrow head';
-  [['', ''], ['', ''], ['', ''], [mode === MODE_LIVES ? T('left') : mode === MODE_CROWN ? T('crownCol') : T('points'), mode === MODE_LIVES ? T('left') : mode === MODE_CROWN ? T('crownCol') : T('points')], [T('goals'), T('goals')], [T('saves'), T('saves')]].forEach(function (x) { var c = document.createElement('span'); c.textContent = x[0]; if (x[1]) { c.title = x[1]; c.setAttribute('aria-label', x[1]); } head.appendChild(c); });
+  [['', ''], ['', ''], ['', ''], [livesMode(mode) ? T('left') : mode === MODE_CROWN ? T('crownCol') : T('points'), livesMode(mode) ? T('left') : mode === MODE_CROWN ? T('crownCol') : T('points')], [T('goals'), T('goals')], [T('saves'), T('saves')]].forEach(function (x) { var c = document.createElement('span'); c.textContent = x[0]; if (x[1]) { c.title = x[1]; c.setAttribute('aria-label', x[1]); } head.appendChild(c); });
   list.appendChild(head);
   for (i = 0; i < ps.length; i++) {
-    var p = ps[i], row = document.createElement('div'); row.className = 'rrow' + (p.seat === G.me ? ' me' : '') + (mode === MODE_LIVES && !p.alive ? ' out' : ''); row.style.setProperty('--c', COLORS[p.col]);
+    var p = ps[i], row = document.createElement('div'); row.className = 'rrow' + (p.seat === G.me ? ' me' : '') + (livesMode(mode) && !p.alive ? ' out' : ''); row.style.setProperty('--c', COLORS[p.col]);
     var a = document.createElement('span'); a.className = 'pl'; a.textContent = String(p.place || i + 1);
     var im2 = document.createElement('img'); im2.alt = ''; im2.src = portraitURL(p.ch, COLORS[p.col]);
     var n = document.createElement('span'); n.className = 'nm'; n.textContent = p.name;
@@ -5147,6 +5295,39 @@ function showResults() {
   $('b-again').hidden = !host; $('b-res-room').hidden = !host;
   $('res-note').textContent = host ? '' : T('waitHost'); $('res-note').hidden = host;
   showScreen('results');
+}
+
+/* who knocked out who (lives modes), or who scored on who: from the goal and KO events every phone sees */
+function logEvent(a) {
+  var L = G.log || (G.log = []), i;
+  if (a[0] === 'goal') L.push({ v: a[1], by: a[2], ko: false });
+  else if (a[0] === 'out') { for (i = L.length - 1; i >= 0; i--) if (L[i].v === a[1]) { L[i].ko = true; return; } L.push({ v: a[1], by: -1, ko: true }); }
+}
+function resLog(mode) {
+  var S = G.S, box = $('res-log'), L = G.log || [], rows = [];
+  box.textContent = '';
+  if (livesMode(mode)) rows = L.filter(function (e) { return e.ko; }).map(function (e) { return { by: e.by, v: e.v, n: 0 }; });
+  else {
+    var m = {}; L.forEach(function (e) { if (e.by < 0) return; var k = e.by + ':' + e.v; (m[k] = m[k] || { by: e.by, v: e.v, n: 0 }).n++; });
+    rows = Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 6);
+  }
+  box.hidden = !rows.length; if (!rows.length) return;
+  var h = document.createElement('div'); h.className = 'lbl'; h.textContent = T(livesMode(mode) ? 'koLog' : 'hitLog'); box.appendChild(h);
+  function face(p) {
+    var im = document.createElement('img'); im.alt = '';
+    if (p) { im.src = portraitURL(p.ch, COLORS[p.col]); im.style.setProperty('--c', COLORS[p.col]); } else im.className = 'wild';
+    return im;
+  }
+  function name(p) { var b = document.createElement('b'); b.textContent = p ? (p.seat === G.me ? T('you') : p.name) : T('wild'); return b; }
+  rows.forEach(function (r, k) {
+    var a = r.by >= 0 ? S.players[r.by] : null, v = S.players[r.v]; if (!v) return;
+    var row = document.createElement('div'); row.className = 'kl' + (r.by === G.me || r.v === G.me ? ' me' : '');
+    var verb = document.createElement('i'); verb.textContent = r.n ? '×' + r.n : 'KO';
+    var arrow = document.createElement('span'); arrow.className = 'ar'; arrow.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    [face(a), name(a), arrow, verb, face(v), name(v)].forEach(function (e) { row.appendChild(e); });
+    row.setAttribute('aria-label', (a ? a.name : T('wild')) + ' ' + (r.n ? T('scoredOn', { n: r.n }) : T('koBy')) + ' ' + v.name);
+    box.appendChild(row);
+  });
 }
 
 /* ---------- HUD ---------- */
@@ -5176,7 +5357,9 @@ function hudInfo(S) {
   var info = $('hud-info'), txt = '', hot = false, mode = S.cfg.mode | 0;
   if (mode === MODE_TIME) { if (S.ot) { txt = T('otT'); hot = true; } else { var left = S.endT ? S.endT - S.t : 60 * (S.cfg.mins || 3); txt = fmtClock(left); hot = S.endT && left < 10.5; } }
   else if (mode === MODE_POINTS) txt = T('firstTo', { n: S.cfg.target || 10 });
+  else if (mode === MODE_CROWN && S.cfg.crownBy) { if (S.ot) { txt = T('otT'); hot = true; } else { var lc = S.endT ? S.endT - S.t : (S.cfg.crownS || 90); txt = fmtClock(lc); hot = S.endT && lc < 10.5; } }
   else if (mode === MODE_CROWN) txt = T('crownTo', { n: S.cfg.crownT || 45 });
+  else if (mode === MODE_BULLET) { var bb = S.balls[0], ti = bb ? tierOf(bb.hits | 0) : 0; txt = T('spd' + ti); hot = ti === 3; }
   if (UI.infoTxt !== txt) { UI.infoTxt = txt; info.textContent = txt; info.hidden = !txt; }
   info.classList.toggle('hot', !!hot);
 }
@@ -5185,14 +5368,14 @@ function fmtClock(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) 
 function hudTick() {
   if (UI.screen !== 'game' || !G.S) return;
   var S = G.S, me = S.players[G.me], now = performance.now(), i, mode = S.cfg.mode | 0, top = -1e9;
-  if (mode !== MODE_LIVES) S.players.forEach(function (p) { top = Math.max(top, p.pts); });
+  if (!livesMode(mode)) S.players.forEach(function (p) { top = Math.max(top, p.pts); });
   if (mode === MODE_CROWN) top = 1e9;                                           // in Crown the crown itself marks the leader
   for (i = 0; i < UI.hud.length && i < S.players.length; i++) {
-    var h = UI.hud[i], p = S.players[i]; if (!h) continue; var val = mode === MODE_LIVES ? Math.max(0, p.lives) : p.pts, lead = mode !== MODE_LIVES && top > 0 && p.pts === top;
+    var h = UI.hud[i], p = S.players[i]; if (!h) continue; var val = livesMode(mode) ? Math.max(0, p.lives) : p.pts, lead = !livesMode(mode) && top > 0 && p.pts === top;
     if (h.val !== val) { h.val = val; h.b.textContent = String(val); }
     if (h.alive !== p.alive) { h.alive = p.alive; h.el.classList.toggle('out', !p.alive); }
     if (h.lead !== lead) { h.lead = lead; h.el.classList.toggle('lead', lead); }
-    var low = mode === MODE_LIVES && p.alive && p.lives === 1; if (h.low !== low) { h.low = low; h.el.classList.toggle('low', low); }
+    var low = livesMode(mode) && p.alive && p.lives === 1; if (h.low !== low) { h.low = low; h.el.classList.toggle('low', low); }
     var king = mode === MODE_CROWN && S.crown === i; if (h.king !== king) { h.king = king; h.el.classList.toggle('king', king); }
   }
   hudInfo(S);
@@ -5281,8 +5464,11 @@ function initUI() {
   });
   $('bots-minus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.max(0, ROOM.seats.filter(function (x) { return x.bot; }).length - 1); syncBots(); sendLobby(); renderLobby(); });
   $('bots-plus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.min(MAXP - humans().length, ROOM.seats.filter(function (x) { return x.bot; }).length + 1); syncBots(); sendLobby(); renderLobby(); });
-  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 3); }));
-  $('seg-tgt').addEventListener('click', hostSet(function (v) { var c = ROOM.cfg; c[['lives', 'pts', 'mins', 'crn'][c.mode | 0]] = +v; }));
+  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 5); }));
+  $('seg-tgt').addEventListener('click', hostSet(function (v) { var c = ROOM.cfg; c[tgtKey(c)] = +v; }));
+  $('seg-ck').addEventListener('click', hostSet(function (v) { ROOM.cfg.ck = +v ? 1 : 0; }));
+  $('balls-minus').addEventListener('click', function () { if (!(ROOM.role === 'host' || ROOM.role === 'solo')) return; sfx('click'); ROOM.cfg.balls = Math.max(0, (ROOM.cfg.balls | 0) - 1); sendLobby(); renderLobby(); });
+  $('balls-plus').addEventListener('click', function () { if (!(ROOM.role === 'host' || ROOM.role === 'solo')) return; sfx('click'); ROOM.cfg.balls = Math.min(10, (ROOM.cfg.balls | 0) + 1); sendLobby(); renderLobby(); });
   $('maps').addEventListener('click', hostSet(function (v) { ROOM.cfg.map = ci(v, -1, MAPS.length - 1); if (ROOM.cfg.map >= 0) ROOM.mapNow = ROOM.cfg.map; }));
   [['seg-speed', 'sp'], ['seg-level', 'bot'], ['seg-pw', 'pw'], ['seg-core', 'core'], ['seg-haz', 'haz'], ['seg-size', 'size']].forEach(function (d) {
     $(d[0]).addEventListener('click', hostSet(function (v) { ROOM.cfg[d[1]] = +v; }));
