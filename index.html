@@ -612,6 +612,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 @keyframes trayIn { 0% { opacity: 0; transform: translateY(10px) scale(0.9); } 100% { opacity: 1; transform: none; } }
 :root[data-theme="dark"] #b-emote [fill="#fff"] { fill: var(--card); }
 .hud-info.hot.purp { background: #8a2dff; box-shadow: 0 3px 0 #5310b0; }
+.score.nob .sc b { display: none; }
 </style>
 </head>
 <body>
@@ -727,6 +728,8 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
           <button type="button" data-v="3"><i class="mi" data-m="3"></i><b data-t="mCrown"></b><small data-t="mCrownS"></small></button>
           <button type="button" data-v="4"><i class="mi" data-m="4"></i><b data-t="mBullet"></b><small data-t="mBulletS"></small></button>
           <button type="button" data-v="5"><i class="mi" data-m="5"></i><b data-t="mBomb"></b><small data-t="mBombS"></small></button>
+          <button type="button" data-v="6"><i class="mi" data-m="6"></i><b data-t="mGold"></b><small data-t="mGoldS"></small></button>
+          <button type="button" data-v="7"><i class="mi" data-m="7"></i><b data-t="mFrenzy"></b><small data-t="mFrenzyS"></small></button>
         </div>
         <div class="kv" id="kv-ck" hidden><span class="lbl" data-t="crownBy"></span><div id="seg-ck" class="seg"><button type="button" data-v="0" data-t="ckPts"></button><button type="button" data-v="1" data-t="ckTime"></button></div></div>
         <div class="kv"><span id="tgt-lbl" class="lbl"></span><div id="seg-tgt" class="seg"><button type="button"></button><button type="button"></button><button type="button"></button></div></div>
@@ -870,8 +873,9 @@ var BASE_SP = 0.8, CAP_SP = 1.5, SMASH_CAP = 2.05;
 var TELE = 0.75;                // warning time before a pearl comes in
 var LIVE = 0, PEND = 1;
 var STEP = 1 / 120;
-var MODE_LIVES = 0, MODE_POINTS = 1, MODE_TIME = 2, MODE_CROWN = 3, MODE_BULLET = 4, MODE_BOMB = 5;
-function livesMode(m) { m = m | 0; return m === MODE_LIVES || m === MODE_BULLET || m === MODE_BOMB; }   // modes where a goal costs a life
+var MODE_LIVES = 0, MODE_POINTS = 1, MODE_TIME = 2, MODE_CROWN = 3, MODE_BULLET = 4, MODE_BOMB = 5, MODE_GOLD = 6, MODE_FRENZY = 7;
+function livesMode(m) { m = m | 0; return m === MODE_LIVES || m === MODE_BULLET || m === MODE_BOMB || m === MODE_FRENZY; }
+function toTarget(m) { m = m | 0; return m === MODE_POINTS || m === MODE_GOLD; }        // first to the points target wins   // modes where a goal costs a life
 /* Bullet: one pearl that speeds up on every touch. White, then orange after 3 touches, yellow after 6, red after 11,
    and purple after 16: the fastest of all. */
 var TIERS = [0, 3, 6, 11, 16];
@@ -940,7 +944,7 @@ function newMatch(roster, cfg) {
     K: K, sides: sides, corners: cornerPosts(K), lay: lay, whirl: lay.whirl || 0,
     players: [], balls: [], orbs: [], posts: [], ev: [], eid: 0, noEv: false,
     core: { next: -1, tele: null, spin: 0 }, endT: 0, ot: false, crown: -1, crownAt: 0, cwarn: -1,
-    nextBall: 1, nextOrb: 1, orbAt: 7, ballsWanted: cfg.mode === MODE_BULLET ? 1 : cfg.balls > 0 ? cfg.balls : Math.max(1, Math.round(n / 2.5)), moreAt: 12, places: n, winner: -1, overAt: 0, bombAt: -1
+    nextBall: 1, nextOrb: 1, orbAt: 7, ballsWanted: cfg.mode === MODE_BULLET || cfg.mode === MODE_FRENZY ? 1 : cfg.balls > 0 ? cfg.balls : Math.max(1, Math.round(n / 2.5)), moreAt: 12, places: n, winner: -1, overAt: 0, bombAt: -1, goldAt: -1, goalsN: 0
   };
   roster.forEach(function (r, i) {
     var sd = sides[ss[i]]; sd.seat = i;
@@ -1026,8 +1030,8 @@ function useShield(S, pl) {
 function finish(S, winner) {
   if (S.phase === 'over') return;
   if (!livesMode(S.cfg.mode)) {
-    var crown = S.cfg.mode === MODE_CROWN;
-    var order = S.players.slice().sort(function (a, b) { return (crown ? b.cr - a.cr : 0) || (b.pts - a.pts) || (b.score - a.score) || (b.saves - a.saves) || (a.seat - b.seat); });
+    var crown = S.cfg.mode === MODE_CROWN, held = crown && S.cfg.crownBy && winner >= 0 ? winner : -1;   // timed Crown: whoever wears it at the end wins
+    var order = S.players.slice().sort(function (a, b) { return (held >= 0 ? (b.seat === held) - (a.seat === held) : 0) || (crown ? b.cr - a.cr : 0) || (b.pts - a.pts) || (b.score - a.score) || (b.saves - a.saves) || (a.seat - b.seat); });
     order.forEach(function (p, i) { p.place = i + 1; });
     winner = order[0].seat;
   }
@@ -1058,10 +1062,12 @@ function goal(S, b, seat) {
   if (scp) { scp.score++; if (scp.bot && Math.random() < 0.08) ev(S, ['emo', sc, (Math.random() * 4) | 0]); }
   var lm = livesMode(mode);
   if (b.bomb) ev(S, ['boom', r3(b.x), r3(b.y), seat]);
+  S.goalsN++;
   if (lm) pl.lives--;
   else if (mode === MODE_CROWN) crownGoal(S, seat, sc);
-  else if (scp) scp.pts++;                                                 // points: a pearl you sent into someone else's goal
-  ev(S, ['goal', seat, sc, r3(b.x), r3(b.y), lm ? pl.lives : pl.pts, scp ? scp.pts : 0]);
+  else if (scp) scp.pts += b.gold ? 3 : 1;                                  // points: a pearl you sent into someone else's goal (a golden one is worth 3)
+  ev(S, ['goal', seat, sc, r3(b.x), r3(b.y), lm ? pl.lives : pl.pts, scp ? scp.pts : 0, b.gold ? 1 : 0]);
+  if (mode === MODE_FRENZY && S.phase === 'play' && maxBalls(S) > normalBalls(S)) ev(S, ['more', maxBalls(S)]);
   if (lm) {
     if (pl.lives <= 0) {
       pl.alive = false; pl.place = S.places--; pl.shield = false;
@@ -1069,9 +1075,9 @@ function goal(S, b, seat) {
       var al = aliveList(S);
       if (al.length <= 1) { if (al[0]) al[0].place = 1; finish(S, al[0] ? al[0].seat : -1); }
     }
-  } else if (mode === MODE_POINTS) {
+  } else if (toTarget(mode)) {
     if (scp && scp.pts >= (S.cfg.target || 10)) finish(S, sc);
-  } else if (S.ot) {
+  } else if (S.ot && mode === MODE_TIME) {
     if (leaders(S).n === 1) finish(S, -1);
   }
 }
@@ -1081,7 +1087,7 @@ function goal(S, b, seat) {
 function crownGoal(S, seat, sc) {
   var old = S.crown, kp = old >= 0 ? S.players[old] : null;
   if (old === seat && sc >= 0) setCrown(S, sc, old);
-  else if (old === seat) { kp.cr = Math.max(0, kp.cr - 3); kp.pts = Math.floor(kp.cr); ev(S, ['cslip', seat]); }
+  else if (old === seat) { if (!S.cfg.crownBy) { kp.cr = Math.max(0, kp.cr - 3); kp.pts = Math.floor(kp.cr); ev(S, ['cslip', seat]); } }
   else if (old < 0 && sc >= 0) setCrown(S, sc, -1);
 }
 function setCrown(S, to, from) {
@@ -1091,6 +1097,7 @@ function setCrown(S, to, from) {
   var np = to >= 0 ? S.players[to] : null;
   if (np) { np.guardUntil = Math.max(np.guardUntil, S.t + 1.6); np.guard = true; if (from >= 0) np.steals++; }   // a moment to settle before the next attack
   ev(S, ['crown', to, from]);
+  if (S.cfg.crownBy && S.ot && to >= 0) finish(S, to);                     // timed Crown overtime: the next one to grab it wins
 }
 /* A joined player's own phone decides whether they saved it (so lag never
    steals a save). The host applies that verdict here. */
@@ -1213,7 +1220,7 @@ function grant(S, pl, o, b) {
   ev(S, ['orb', pl.seat, o.ty, r3(o.x), r3(o.y)]);
   if (o.ty === 0) pl.wideUntil = S.t + 9;
   else if (o.ty === 1) { pl.shield = true; pl.shieldUntil = S.t + 14; }
-  else if (S.balls.length < 7 && S.cfg.mode !== MODE_BULLET && !b.bomb) {
+  else if (S.balls.length < 7 && S.cfg.mode !== MODE_BULLET && !b.bomb && !b.gold) {
     var c = Math.cos(0.38), s = Math.sin(0.38), vx = b.vx, vy = b.vy;
     b.vx = vx * c - vy * s; b.vy = vx * s + vy * c;
     S.balls.push({ id: S.nextBall++, x: b.x, y: b.y, vx: vx * c + vy * s, vy: -vx * s + vy * c, owner: b.owner,
@@ -1223,12 +1230,22 @@ function grant(S, pl, o, b) {
 
 function maxBalls(S) {
   if (S.cfg.mode === MODE_BULLET) return 1;
+  if (S.cfg.mode === MODE_FRENZY) return Math.min(10, 1 + S.goalsN);       // Frenzy: every goal adds a pearl
   if (S.cfg.balls > 0) return S.cfg.balls;                                  // the host picked how many
   return clamp(Math.ceil(aliveList(S).length / 2) + 2, 3, 6) - (S.cfg.mode === MODE_BOMB ? 1 : 0);
 }
-function normalBalls(S) { var n = 0; for (var i = 0; i < S.balls.length; i++) if (!S.balls[i].bomb) n++; return n; }
+function normalBalls(S) { var n = 0; for (var i = 0; i < S.balls.length; i++) if (!S.balls[i].bomb && !S.balls[i].gold) n++; return n; }
 /* Bomb: a ticking bomb rolls in with the pearls. Score with it like any pearl; when the fuse runs out it blows up
    on whoever's side it is on (a shield saves you). */
+/* Gold Rush: now and then a golden pearl rolls out; sending it into someone's goal is worth 3 points */
+function spawnGold(S) {
+  var al = aliveList(S); if (!al.length) return;
+  var pick = al[(Math.random() * al.length) | 0], tp = sidePt(S.sides[pick.side], (Math.random() * 1.4 - 0.7) * goalHalf(pick), AP);
+  var a = Math.atan2(tp.y, tp.x), sp = BASE_SP * speedK(S) * 1.05, r0 = S.cfg.core ? CORE_R + BR + 0.01 : 0.02;
+  S.balls.push({ id: S.nextBall++, x: Math.cos(a) * r0, y: Math.sin(a) * r0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, owner: -1, seq: 0, st: LIVE, tent: -1, tentUntil: 0,
+    hotUntil: -1, born: S.t, pendSeat: -1, pendUntil: 0, gold: 1 });
+  ev(S, ['goldnew', r3(a)]);
+}
 function spawnBomb(S) {
   var al = aliveList(S); if (!al.length) return;
   var pick = al[(Math.random() * al.length) | 0], tp = sidePt(S.sides[pick.side], (Math.random() * 1.4 - 0.7) * goalHalf(pick), AP);
@@ -1297,16 +1314,18 @@ function hostRules(S, dt) {
       if (mode === MODE_TIME) S.endT = t + 60 * (S.cfg.mins || 3);
       if (mode === MODE_CROWN) { S.crownStart = t + 1.3; if (S.cfg.crownBy) S.endT = t + (S.cfg.crownS || 90); }   // the crown lands on someone at random just after GO
       if (mode === MODE_BOMB) S.bombAt = t + 5;
+      if (mode === MODE_GOLD) S.goldAt = t + 7;
     }
     return;
   }
   if (S.phase !== 'play') return;
   var timed = mode === MODE_TIME || (mode === MODE_CROWN && S.cfg.crownBy);
   if (timed && !S.ot && S.endT && t >= S.endT) {
-    if (leaders(S).n === 1) { finish(S, -1); return; }
+    if (mode === MODE_CROWN) { if (S.crown >= 0) { finish(S, S.crown); return; } }   // timed Crown: the one wearing it when time runs out wins
+    else if (leaders(S).n === 1) { finish(S, -1); return; }
     S.ot = true; ev(S, ['ot']);
   }
-  if ((mode === MODE_POINTS || mode === MODE_CROWN) && t > POINTS_CAP + 3) { finish(S, -1); return; }
+  if ((toTarget(mode) || (mode === MODE_CROWN && !S.cfg.crownBy)) && t > POINTS_CAP + 3) { finish(S, -1); return; }
   if (mode === MODE_CROWN && S.crown < 0 && S.crownStart && t >= S.crownStart) {
     var al0 = aliveList(S); S.crownStart = 0; if (al0.length) setCrown(S, al0[(Math.random() * al0.length) | 0].seat, -1);
   }
@@ -1316,8 +1335,7 @@ function hostRules(S, dt) {
     kp.cr += dt; var whole = Math.floor(kp.cr + 1e-6);
     if (whole !== kp.pts) {
       kp.pts = whole;
-      if (S.cfg.crownBy) { if (S.ot && leaders(S).n === 1) { finish(S, -1); return; } }      // timed Crown: the clock decides, overtime until someone leads
-      else {
+      if (!S.cfg.crownBy) {
         if (kp.pts >= goalS) { finish(S, kp.seat); return; }
         if (goalS - kp.pts === 5 && S.cwarn !== kp.seat) { S.cwarn = kp.seat; ev(S, ['cwarn', kp.seat]); }
       }
@@ -1325,7 +1343,12 @@ function hostRules(S, dt) {
   }
   var extra = mode === MODE_CROWN && S.crown >= 0 && !(S.cfg.balls > 0) ? 1 : 0;      // one more pearl in play while somebody wears the crown
   var mb = maxBalls(S) + extra;
-  if (t >= S.moreAt) { S.ballsWanted++; S.moreAt = t + 10; }
+  if (mode === MODE_FRENZY) S.ballsWanted = mb;
+  else if (t >= S.moreAt) { S.ballsWanted++; S.moreAt = t + 10; }
+  if (mode === MODE_GOLD) {
+    var gold = null; for (i = 0; i < S.balls.length; i++) if (S.balls[i].gold && !S.balls[i].dead) gold = S.balls[i];
+    if (!gold) { if (S.goldAt < 0) S.goldAt = t + 6; else if (t >= S.goldAt) { S.goldAt = -1; spawnGold(S); } }
+  }
   if (S.ballsWanted > mb) S.ballsWanted = mb;
   var live = normalBalls(S), c = S.core, want = S.ballsWanted + extra;
   if (mode === MODE_BOMB) {
@@ -1336,7 +1359,7 @@ function hostRules(S, dt) {
   if (mode === MODE_CROWN && S.crown >= 0 && t - S.crownAt > 6 && t >= (S.huntAt || 0) && c.next < 0 && live < mb + 2) {   // every few seconds the launcher fires one straight at the king
     S.hunt = true; S.huntAt = t + 7; c.next = t + 0.9;
   }
-  if (c.next < 0 && live < Math.min(want, mb)) c.next = t + (mode === MODE_BULLET ? 1.8 : 1.0);   // Bullet: a breath between rallies
+  if (c.next < 0 && live < Math.min(want, mb)) c.next = t + (mode === MODE_BULLET ? 1.8 : mode === MODE_FRENZY ? 0.7 : 1.0);   // Bullet: a breath between rallies
   if (c.next >= 0) {
     if (c.tele === null && t >= c.next - TELE) {
       var al = aliveList(S), pick = null;                                       // fair: each new pearl goes to whoever has been sent the fewest, ties at random
@@ -1356,7 +1379,7 @@ function hostRules(S, dt) {
         vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, owner: -1, seq: 0, st: LIVE, tent: -1, tentUntil: 0,
         hotUntil: -1, born: t, pendSeat: -1, pendUntil: 0 });
       ev(S, ['launch', r3(a)]);
-      c.tele = null; c.next = (normalBalls(S) < Math.min(want, mb)) ? t + 1.5 : -1;
+      c.tele = null; c.next = (normalBalls(S) < Math.min(want, mb)) ? t + (mode === MODE_FRENZY ? 0.8 : 1.5) : -1;
     }
   }
   if (S.cfg.pw) {
@@ -1420,7 +1443,7 @@ function advance(S, dt, M, mode) {
   if (M.host) { while (S.ev.length && S.t - S.ev[0][1] > 0.7) S.ev.shift(); }
 }
 
-if (typeof module !== 'undefined') module.exports = { MODE_BULLET: MODE_BULLET, MODE_BOMB: MODE_BOMB, tierOf: tierOf, livesMode: livesMode, MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
+if (typeof module !== 'undefined') module.exports = { MODE_GOLD: MODE_GOLD, MODE_FRENZY: MODE_FRENZY, MODE_BULLET: MODE_BULLET, MODE_BOMB: MODE_BOMB, tierOf: tierOf, livesMode: livesMode, MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
 
 /* ================= CHARACTERS & COLOURS =================
    Eight original goofy creatures built in code. The body takes
@@ -1487,7 +1510,11 @@ var MAPS = [
   { k: 'dhow', layout: 1, en: 'Dhow Deck', ar: 'سطح المحمل', sen: 'Sailing at sunset', sar: 'إبحار وقت الغروب', c1: '#f08a4b', c2: '#2f7fbf' },
   { k: 'candy', layout: 2, en: 'Candy Land', ar: 'أرض الحلاوة', sen: 'Lollipops and gumdrops', sar: 'مصاصات وحلاوة', c1: '#ff8ec7', c2: '#a99bff' },
   { k: 'volcano', layout: 1, en: 'Lava Island', ar: 'جزيرة البركان', sen: 'Mind the lava', sar: 'انتبه من الحمم', c1: '#3a0d0a', c2: '#ff5a1f' },
-  { k: 'disco', layout: 2, en: 'Disco Night', ar: 'ليلة الديسكو', sen: 'Fight on the dance floor', sar: 'معركة على حلبة الرقص', c1: '#2a1650', c2: '#ff4fd8' }
+  { k: 'disco', layout: 2, en: 'Disco Night', ar: 'ليلة الديسكو', sen: 'Fight on the dance floor', sar: 'معركة على حلبة الرقص', c1: '#2a1650', c2: '#ff4fd8' },
+  { k: 'beach', layout: 0, en: 'Beach Party', ar: 'حفلة البحر', sen: 'Sun, sand and umbrellas', sar: 'شمس ورمل وشماسي', c1: '#2fb6d8', c2: '#ffd23f' },
+  { k: 'clouds', layout: 3, en: 'Cloud Kingdom', ar: 'مملكة الغيوم', sen: 'Play above the rainbows', sar: 'العب فوق قوس قزح', c1: '#9a8cff', c2: '#ff9fd6' },
+  { k: 'toys', layout: 1, en: 'Toy Room', ar: 'غرفة الألعاب', sen: 'Giant blocks and crayons', sar: 'مكعبات وألوان عملاقة', c1: '#ff5d6c', c2: '#4ab3ff' },
+  { k: 'jungle', layout: 2, en: 'Jungle Ruins', ar: 'أطلال الغابة', sen: 'A lost temple in the trees', sar: 'معبد ضايع بين الشجر', c1: '#2f6f3a', c2: '#a3c45a' }
 ];
 function mapName(i) { var m = MAPS[i]; return m ? (LANG === 'ar' ? m.ar : m.en) : T('mapRandom'); }
 function mapSub(i) { var m = MAPS[i]; return m ? (LANG === 'ar' ? m.sar : m.sen) : T('mapRandomSub'); }
@@ -1647,11 +1674,11 @@ var SFX = {
   tele: function () { play(BANK.whoosh(), { v: 0.12, r: 0.7, w: 0.2 }); },
   launch: function () { play(BANK.thump(), { v: 0.5, r: 0.8, w: 0.15 }); play(BANK.whoosh(), { v: 0.15, w: 0.1 }); },
   smash: function () { play(BANK.swish(), { v: 0.13, w: 0.05, jit: 0.1 }); },
-  goal: function (mine) {
-    play(BANK.boom(), { v: mine ? 0.55 : 0.3, w: 0.25 });
-    if (mine) play(BANK.aww(), { v: 0.32, t: 0.08, w: 0.3 }); else play(BANK.crowd(), { v: 0.3, t: 0.05, w: 0.3 });
+  goal: function (mine) {                                            // a soft drum hit and a little bell: clear, not noisy
+    if (mine) { play(BANK.doum(), { v: 0.3, r: 0.85, w: 0.12 }); play(BANK.aww(), { v: 0.1, t: 0.12, w: 0.2 }); }
+    else { play(BANK.thump(), { v: 0.2, r: 0.9, w: 0.08 }); play(BANK.chime(), { v: 0.06, r: 0.8, w: 0.25 }); }
   },
-  out: function () { play(BANK.boom(), { v: 0.6, r: 0.8, w: 0.35 }); play(BANK.crowd(), { v: 0.4, t: 0.1, w: 0.35, r: 0.95 }); },
+  out: function () { play(BANK.doum(), { v: 0.36, r: 0.7, w: 0.2 }); play(BANK.crowd(), { v: 0.14, t: 0.1, w: 0.3, r: 0.95 }); },
   orb: function () { play(BANK.chime(), { v: 0.3, w: 0.35 }); play(BANK.chime(), { v: 0.18, r: 1.5, t: 0.07, w: 0.35 }); },
   orbnew: function () { play(BANK.chime(), { v: 0.1, r: 0.75, w: 0.4 }); },
   cd: function () { play(BANK.doum(), { v: 0.55, w: 0.2 }); },
@@ -1663,7 +1690,7 @@ var SFX = {
   },
   click: function () { play(BANK.tick(), { v: 0.18, jit: 0.05 }); },
   tier: function (k) { play(BANK.zing(), { v: 0.14 + k * 0.04, r: 0.8 + k * 0.15, w: 0.2 }); play(BANK.whoosh(), { v: 0.16, r: 1 + k * 0.2, w: 0.15 }); },
-  boom: function () { play(BANK.boom(), { v: 0.75, r: 0.9, w: 0.3 }); play(BANK.thump(), { v: 0.5, r: 0.6, w: 0.2 }); },
+  boom: function () { play(BANK.boom(), { v: 0.42, r: 0.9, w: 0.25 }); play(BANK.thump(), { v: 0.35, r: 0.6, w: 0.15 }); },
   fuse: function () { play(BANK.tek(), { v: 0.22, r: 1.4, w: 0.1 }); },
   join: function () { play(BANK.pop(), { v: 0.3, w: 0.15 }); play(BANK.pop(), { v: 0.22, r: 1.3, t: 0.09, w: 0.15 }); }
 };
@@ -1747,7 +1774,7 @@ var STR = {
     h2t: 'Block', h2: 'Bounce the pearls away from your goal with your bumper.',
     h3t: 'Smash', h3: 'Tap SMASH just as a pearl reaches you to fire it back twice as hard.',
     h4t: 'Superpowers', h4: 'Roll a pearl you touched through a gold orb: Wide bumper, Shield, or Split pearl.',
-    h5t: 'Modes', h5: 'Lives: lose one per goal, last one standing wins. Points: score in other goals to reach the target. Time: most points when the clock runs out. Crown: score on the king to steal the crown. Wearing it earns a point every second: first to the target wins, or most points when the clock runs out. The crown is heavy: the king\'s bumper shrinks the longer they keep it. Bullet: one pearl that gets faster with every touch, white, orange, yellow, red, then purple. Bomb: a ticking bomb rolls in with the pearls; when the fuse runs out it blows up on whoever\'s side it is on.',
+    h5t: 'Modes', h5: 'Lives: lose one per goal, last one standing wins. Points: score in other goals to reach the target. Time: most points when the clock runs out. Crown: score on the king to steal the crown. On Points, wearing it earns a point every second and the first to the target wins. On Time, whoever wears the crown when the clock runs out wins. The crown is heavy: the king\'s bumper shrinks the longer they keep it. Bullet: one pearl that gets faster with every touch, white, orange, yellow, red, then purple. Bomb: a ticking bomb rolls in with the pearls; when the fuse runs out it blows up on whoever\'s side it is on. Gold Rush: a golden pearl is worth 3 points. Frenzy: every goal adds one more pearl.',
     taunt: 'Taunt',
     play: 'PLAY', howPlay: 'How do you want to play?', joinT: 'Join with a code', soloSub: 'Warm up against the bots, no internet needed',
     profile: 'Your player', colour: 'Colour', done: 'Done', editMe: 'Tap to edit', moreSet: 'More settings', loading: 'Loading',
@@ -1760,7 +1787,10 @@ var STR = {
     koLog: 'Knockouts', hitLog: 'Who scored on who', koBy: 'knocked out', scoredOn: 'scored {n} on', wild: 'Wild pearl',
     crownTo: 'Crown: first to {n} points', crownT: 'CROWN STOLEN!', crownGot2: 'THE KING!', crownGot: '{n} has the crown', youCrown: 'YOUR CROWN!',
     crownDrop: 'CROWN DROPPED!', crownDropS: 'Score to grab it', cwarnT: '5 POINTS TO WIN!', cwarnS: 'Stop {n}!', cwarnMe: '5 MORE POINTS!', cwarnMeS: 'Hold on!',
-    theme: 'Theme', thLight: 'Light', thDark: 'Dark',
+    mGold: 'Gold Rush', mGoldS: 'Golden pearl = 3 points', mFrenzy: 'Frenzy', mFrenzyS: 'Every goal adds a pearl',
+    goldIn: 'GOLDEN PEARL!', goldInS: 'Worth 3 points', goldGot: '{n} scored gold!', moreT: '{n} PEARLS!', frenzyN: 'Pearls: {n}',
+    otCrown: 'Grab the crown!', otCrownS: 'Whoever grabs the crown wins', heldCol: 'Held',
+        theme: 'Theme', thLight: 'Light', thDark: 'Dark',
     smashSide: 'SMASH button', sideL: 'Left', sideR: 'Right',
     crownFirst: 'Steal the crown and keep it!'
   },
@@ -1798,7 +1828,7 @@ var STR = {
     h2t: 'صدّ', h2: 'ردّ اللؤلؤ بعيد عن مرماك بالصدّام.',
     h3t: 'اضرب', h3: 'اضغط «اضرب» لحظة وصول اللؤلؤة عشان ترجعها بقوة مضاعفة.',
     h4t: 'القوى الخارقة', h4: 'وجّه لؤلؤة لمستها على كرة ذهبية: صدّام عريض، درع، أو لؤلؤة تنقسم.',
-    h5t: 'أنواع اللعب', h5: 'أرواح: كل هدف عليك يخسرك روح، وآخر واحد يبقى يفوز. نقاط: سجّل في مرمى غيرك لين توصل للهدف. وقت: الأكثر نقاط لما يخلص الوقت. التاج: سجّل على الملك عشان تسرق التاج. كل ثانية والتاج معك تاخذ نقطة: أول من يوصل للهدف يفوز، أو الأكثر نقاط لما يخلص الوقت. التاج ثقيل: صدّام الملك يصغر كل ما طوّل فيه. رصاصة: لؤلؤة وحدة تسرع مع كل ضربة، بيضا ثم برتقالية ثم صفرا ثم حمرا ثم بنفسجية. قنبلة: قنبلة تدخل مع اللؤلؤ، ولما يخلص الفتيل تنفجر على اللي هي في جهته.',
+    h5t: 'أنواع اللعب', h5: 'أرواح: كل هدف عليك يخسرك روح، وآخر واحد يبقى يفوز. نقاط: سجّل في مرمى غيرك لين توصل للهدف. وقت: الأكثر نقاط لما يخلص الوقت. التاج: سجّل على الملك عشان تسرق التاج. بالنقاط: كل ثانية والتاج معك تاخذ نقطة، وأول من يوصل للهدف يفوز. بالوقت: اللي التاج معه لما يخلص الوقت هو الفايز. التاج ثقيل: صدّام الملك يصغر كل ما طوّل فيه. رصاصة: لؤلؤة وحدة تسرع مع كل ضربة، بيضا ثم برتقالية ثم صفرا ثم حمرا ثم بنفسجية. قنبلة: قنبلة تدخل مع اللؤلؤ، ولما يخلص الفتيل تنفجر على اللي هي في جهته. حمّى الذهب: اللؤلؤة الذهبية تسوى ٣ نقاط. فوضى: كل هدف يزيد لؤلؤة.',
     taunt: 'استفزاز',
     play: 'العب', howPlay: 'كيف تبي تلعب؟', joinT: 'ادخل بالرمز', soloSub: 'سخّن ضد البوتات، بدون إنترنت',
     profile: 'لاعبك', colour: 'اللون', done: 'تم', editMe: 'اضغط للتعديل', moreSet: 'إعدادات أكثر', loading: 'جاري التحميل',
@@ -1811,7 +1841,10 @@ var STR = {
     koLog: 'مين طلّع مين', hitLog: 'مين سجّل على مين', koBy: 'طلّع', scoredOn: 'سجّل {n} على', wild: 'لؤلؤة طايشة',
     crownTo: 'التاج: أول من يوصل {n} نقطة', crownT: 'انسرق التاج!', crownGot2: 'الملك!', crownGot: 'التاج مع {n}', youCrown: 'التاج معك!',
     crownDrop: 'طاح التاج!', crownDropS: 'سجّل وخذه', cwarnT: 'باقي له ٥ نقاط!', cwarnS: 'وقّفوا {n}!', cwarnMe: 'باقي لك ٥ نقاط!', cwarnMeS: 'اثبت!',
-    theme: 'المظهر', thLight: 'فاتح', thDark: 'داكن',
+    mGold: 'حمّى الذهب', mGoldS: 'اللؤلؤة الذهبية = ٣ نقاط', mFrenzy: 'فوضى', mFrenzyS: 'كل هدف يزيد لؤلؤة',
+    goldIn: 'لؤلؤة ذهبية!', goldInS: 'تسوى ٣ نقاط', goldGot: '{n} سجّل الذهبية!', moreT: '{n} لؤلؤات!', frenzyN: 'اللؤلؤ: {n}',
+    otCrown: 'خذ التاج!', otCrownS: 'اللي ياخذ التاج يفوز', heldCol: 'مدة التاج',
+        theme: 'المظهر', thLight: 'فاتح', thDark: 'داكن',
     smashSide: 'زر الضربة', sideL: 'يسار', sideR: 'يمين',
     crownFirst: 'اسرق التاج وخلّه معك!'
   }
@@ -2215,14 +2248,14 @@ function commsStrings() {
    and receives the state about 20-30 times a second, then predicts in between. */
 var SPEEDS = [0.85, 1, 1.22];
 var ME = { id: '', name: '', ch: 0, col: 0 };
-var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, crs: 90, ck: 0, balls: 0, sp: 1, pw: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1 }, mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
+var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, crs: 90, ck: 0, balls: 0, gpts: 15, sp: 1, pw: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1 }, mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
 var G = { S: null, role: 'none', me: -1, mid: 0, acc: 0, quiet: false, verdicts: new Map(), seenV: new Map(), early: new Map(), lastEid: 0, vis: {},
   offset: 0, lat: 0, synced: false, pings: [], lastTick: -1, lastHost: 0, stale: false, smashN: 0, inT: 0, snapT: 0, relT: 0, overTimer: null };
 var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
 
 function cfgObj() {
   var c = ROOM.cfg, m = MAPS[ROOM.mapNow] || MAPS[0];
-  return { mode: c.mode | 0, lives: c.lives, target: c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: SPEEDS[c.sp] || 1, pw: !!c.pw, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, map: ROOM.mapNow, layout: m.layout };
+  return { mode: c.mode | 0, lives: c.lives, target: (c.mode | 0) === 6 ? c.gpts || 15 : c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: SPEEDS[c.sp] || 1, pw: !!c.pw, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, map: ROOM.mapNow, layout: m.layout };
 }
 /* the map on show in the lobby: the chosen one, or the last one played when it is random */
 function lobbyMap() { return ROOM.cfg.map >= 0 ? ROOM.cfg.map : ROOM.mapNow; }
@@ -2346,7 +2379,7 @@ function wallFx(b, soft) {
 }
 function lobbyMsg() {
   var c = ROOM.cfg, now = performance.now();
-  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90], map: ROOM.mapNow, bots: ROOM.bots,
+  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15], map: ROOM.mapNow, bots: ROOM.bots,
     seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0]; }),
     wait: ROOM.waiting.map(function (w) { return [w.id, w.name, w.ch, w.col]; }) }];
 }
@@ -2446,7 +2479,7 @@ function flagsOf(p) { return (p.alive ? 1 : 0) | (p.smashOn ? 2 : 0) | (p.wide ?
 function packSnap(S, hc) {
   return JSON.stringify(['s', G.mid, S.tick, r3(S.t), hc, S.phase === 'cd' ? 0 : S.phase === 'play' ? 1 : 2,
     S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1]; }),
-    S.balls.map(function (b) { return [b.id, r3(b.x), r3(b.y), r3(b.vx), r3(b.vy), b.owner, b.seq, b.st, b.tent, b.hotUntil > S.t ? 1 : 0, b.hits | 0, b.bomb ? Math.max(0.01, r3(b.fuseAt - S.t)) : 0]; }),
+    S.balls.map(function (b) { return [b.id, r3(b.x), r3(b.y), r3(b.vx), r3(b.vy), b.owner, b.seq, b.st, b.tent, b.hotUntil > S.t ? 1 : 0, b.hits | 0, b.bomb ? Math.max(0.01, r3(b.fuseAt - S.t)) : 0, b.gold ? 1 : 0]; }),
     S.orbs.map(function (o) { return [o.id, r3(o.x), r3(o.y), o.ty]; }),
     [S.core.tele === null ? null : r3(S.core.tele), S.core.next < 0 ? -1 : r3(S.core.next - S.t)],
     S.ev.map(function (e) { return [e[0]].concat(e.slice(2)); }),
@@ -2499,7 +2532,7 @@ function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
   ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
-  ROOM.cfg = { mode: ci(q[0], 0, 5), lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
+  ROOM.cfg = { mode: ci(q[0], 0, 7), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000; ROOM.seats.forEach(function (x) { was[x.id] = x.joinedAt; });
   ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
@@ -2556,7 +2589,7 @@ function applySnap(m, nowMs) {
     if (i !== G.me) { pl.pn = a[0]; pl.p = a[0]; rpush(pl, a[0], G.synced ? m[4] - G.offset : nowMs, nowMs); pl.smashOn = !!(f & 2); pl.smashUntil = pl.smashOn ? S.t + 0.15 : -1; }
   }
   S.balls = m[7].map(function (q) { return { id: q[0], x: q[1], y: q[2], vx: q[3], vy: q[4], owner: q[5], seq: q[6], st: q[7], tent: q[8],
-    hotUntil: q[9] ? S.t + 0.5 : -1, born: -9, pendSeat: -1, pendUntil: S.t + 2, tentUntil: 0, hits: q[10] | 0, bomb: q[11] > 0 ? 1 : 0, fuseAt: S.t + (+q[11] || 0) }; });
+    hotUntil: q[9] ? S.t + 0.5 : -1, born: -9, pendSeat: -1, pendUntil: S.t + 2, tentUntil: 0, hits: q[10] | 0, bomb: q[11] > 0 ? 1 : 0, fuseAt: S.t + (+q[11] || 0), gold: q[12] ? 1 : 0 }; });
   S.orbs = m[8].map(function (q) { return { id: q[0], x: q[1], y: q[2], ty: q[3], born: 0 }; });
   S.core.tele = m[9][0]; S.core.next = m[9][1] < 0 ? -1 : S.t + m[9][1];
   S.winner = -1;
@@ -3294,6 +3327,268 @@ MAPGEN.disco = function () {                          // a dance club: a mirror 
     } };
 };
 
+MAPGEN.beach = function () {                          // a sunny beach party: sea all round, striped umbrellas, beach balls, a lifeguard hut
+  var grp = new THREE.Group(), i, j, b = new Batch();
+  grp.add(new THREE.Mesh(new THREE.SphereGeometry(420, 32, 16), skyMat('#3d8fe8', '#bfe6ff', '#e8f7ff', '#2a7fd8', [0.4, 0.5, -0.77], '#fff8dc', 0.2)));
+  var sun = sprite('#fff4c4', 0.9, 80); sun.position.set(160, 180, -250); grp.add(sun);
+  grp.add(groundDisc(420, '#f6dfae', '#e9c98b', -2.7, function (g, n) {
+    for (var k = 0; k < 260; k++) { g.fillStyle = k % 3 ? 'rgba(200,150,90,0.12)' : 'rgba(255,255,255,0.25)'; g.beginPath(); g.arc(rnd(0, n), rnd(0, n), rnd(1, 3), 0, TAU); g.fill(); }
+  }, 16));
+  var sea = new THREE.Mesh(new THREE.RingGeometry(78, 420, 72, 1), new THREE.MeshLambertMaterial({ color: LC('#2fb6d8') })); sea.rotation.x = -Math.PI / 2; sea.position.y = -2.5; grp.add(sea);
+  var foam = new THREE.Mesh(new THREE.RingGeometry(76, 80, 72, 1), new THREE.MeshBasicMaterial({ color: LC('#e8fbff'), transparent: true, opacity: 0.85 })); foam.rotation.x = -Math.PI / 2; foam.position.y = -2.45; grp.add(foam);
+  var stripes = [['#ff5d8f', '#ffffff'], ['#2fb3ff', '#ffffff'], ['#ffd23f', '#ff7a2a'], ['#5ee08a', '#ffffff'], ['#a47bff', '#ffd23f']];
+  for (i = 0; i < 12; i++) {                                                    // umbrellas
+    var a = i / 12 * TAU + rnd(-0.12, 0.12), r = rnd(44, 66), x = Math.cos(a) * r, z = Math.sin(a) * r, h = rnd(6, 8), s = stripes[i % 5];
+    b.add(sgCyl(6), '#ffffff', x, h / 2 - 2.7, z, 0.18, h, 0.18);
+    for (j = 0; j < 8; j++) b.add(sgCone(3), s[j % 2], x, h - 2.7 + 0.6, z, 3.6, 1.6, 3.6, 0, j / 8 * TAU, 0);
+    b.add(sgBox(), s[0], x + Math.cos(a + 1.2) * 3, -2.4, z + Math.sin(a + 1.2) * 3, 3.2, 0.2, 1.6, 0, -a, 0);   // a towel
+  }
+  for (i = 0; i < 10; i++) {                                                    // beach balls
+    var ba = rnd(0, TAU), br = rnd(38, 70), bs = rnd(0.9, 1.6), bx = Math.cos(ba) * br, bz = Math.sin(ba) * br;
+    for (j = 0; j < 3; j++) b.add(sgSph(), ['#ff3b5c', '#ffffff', '#2fb3ff'][j], bx, -2.7 + bs, bz, bs * (1 - j * 0.02), bs, bs * (1 - j * 0.02), 0, j * 1.05, 0);
+  }
+  for (i = 0; i < 10; i++) { var pa = i / 10 * TAU + 0.3, pr = rnd(68, 76); palm(b, Math.cos(pa) * pr, Math.sin(pa) * pr, rnd(10, 14), rnd(0.1, 0.25)); }
+  var hx = -54, hz = -30;                                                       // the lifeguard hut
+  for (i = 0; i < 4; i++) b.add(sgBox(), '#ffffff', hx + (i % 2 ? 2 : -2), 1.3, hz + (i < 2 ? 2 : -2), 0.4, 8, 0.4);
+  b.add(sgBox(), '#ff3b5c', hx, 6, hz, 6, 3.2, 6); b.add(sgBox(), '#ffffff', hx, 6, hz + 3.05, 5, 1.4, 0.1); b.add(sgCone(4), '#ffd23f', hx, 9.2, hz, 5.4, 3, 5.4, 0, Math.PI / 4, 0);
+  grp.add(b.build(sceneMat('lit'), true));
+  var boats = new THREE.Group(), ob = new Batch();                                // little sailing boats out at sea
+  for (i = 0; i < 6; i++) { var sa = i / 6 * TAU + 0.2, sr = rnd(120, 200), sx = Math.cos(sa) * sr, sz = Math.sin(sa) * sr; ob.add(sgBox(), '#ffffff', sx, -1.8, sz, 7, 1.4, 2.6, 0, -sa, 0); ob.add(sgCone(3), ['#ff5d8f', '#ffd23f', '#ffffff'][i % 3], sx, 3.5, sz, 3, 9, 0.3, 0, -sa, 0); }
+  boats.add(ob.build(sceneMat('lit'))); grp.add(boats);
+  return { grp: grp,
+    L: { hemi: ['#e6f6ff', '#d8b98a', 0.8], amb: ['#fffaf0', 0.3], sun: ['#fff6e0', 1.4, [12, 24, 8]], rim: ['#9fe3ff', 0.4, [-12, 8, -12]], fog: ['#cfefff', 160, 430], exp: 0.98, clear: '#bfe6ff' },
+    tick: function (now, dt) { boats.rotation.y += dt * 0.006; sea.position.y = -2.5 + Math.sin(now * 0.8) * 0.06; } };
+};
+MAPGEN.clouds = function () {                         // a kingdom in the sky: soft cloud floor, rainbows, floating islands
+  var grp = new THREE.Group(), i, j, b = new Batch(), cb = new Batch();
+  grp.add(new THREE.Mesh(new THREE.SphereGeometry(420, 32, 16), skyMat('#7fb4ff', '#ffd6f2', '#fff3fb', '#b9a8ff', [-0.3, 0.35, -0.88], '#fff8e8', 0.22)));
+  grp.add(groundDisc(420, '#ffffff', '#e6dcff', -2.7, function (g, n) {
+    for (var k = 0; k < 70; k++) { var gr = g.createRadialGradient(0, 0, 0, 0, 0, 40); gr.addColorStop(0, 'rgba(210,200,255,0.35)'); gr.addColorStop(1, 'rgba(210,200,255,0)'); g.save(); g.translate(rnd(0, n), rnd(0, n)); g.fillStyle = gr; g.fillRect(-40, -40, 80, 80); g.restore(); }
+  }, 14));
+  for (i = 0; i < 26; i++) {                                                    // puffy clouds around the arena
+    var a = i / 26 * TAU + rnd(-0.1, 0.1), r = rnd(42, 70), x = Math.cos(a) * r, z = Math.sin(a) * r, s = rnd(2.6, 4.6);
+    for (j = 0; j < 4; j++) cb.add(sgSph(), j % 3 ? '#ffffff' : '#f3ecff', x + rnd(-s, s), -2.4 + rnd(0, s * 0.6), z + rnd(-s, s), s * rnd(0.7, 1.1), s * rnd(0.55, 0.8), s * rnd(0.7, 1.1));
+  }
+  var bows = ['#ff5d6c', '#ffa13d', '#ffd84a', '#5ee08a', '#4ab3ff', '#9a7bff'];
+  for (i = 0; i < 3; i++) {                                                     // rainbows
+    var ra = i / 3 * TAU + 0.6, rr = 120, rx = Math.cos(ra) * rr, rz = Math.sin(ra) * rr;
+    for (j = 0; j < 6; j++) { var arc = SG['arc' + j] || (SG['arc' + j] = new THREE.TorusGeometry(30 - j * 2.2, 1.1, 6, 40, Math.PI)); b.add(arc, bows[j], rx, -2.7, rz, 1, 1, 1, 0, -ra + Math.PI / 2, 0); }
+    for (j = 0; j < 5; j++) { cb.add(sgSph(), '#ffffff', rx + Math.cos(ra + Math.PI / 2) * 30 + rnd(-4, 4), rnd(-1, 3), rz + Math.sin(ra + Math.PI / 2) * 30 + rnd(-4, 4), rnd(5, 8)); cb.add(sgSph(), '#ffffff', rx - Math.cos(ra + Math.PI / 2) * 30 + rnd(-4, 4), rnd(-1, 3), rz - Math.sin(ra + Math.PI / 2) * 30 + rnd(-4, 4), rnd(5, 8)); }
+  }
+  var isl = new THREE.Group(), ib = new Batch();                                  // floating islands with a little tree each
+  for (i = 0; i < 6; i++) {
+    var ia = i / 6 * TAU + 0.25, ir = rnd(95, 150), ix = Math.cos(ia) * ir, iz = Math.sin(ia) * ir, iy = rnd(25, 55), is = rnd(6, 10);
+    ib.add(sgCone(7), '#a07a5a', ix, iy - is * 0.6, iz, is, is * 1.2, is, Math.PI, 0, 0); ib.add(sgCyl(10), '#7ed36a', ix, iy, iz, is, 0.8, is);
+    ib.add(sgCyl(6), '#8a5a3c', ix, iy + 2, iz, 0.5, 4, 0.5); ib.add(sgSph(), '#5fc25a', ix, iy + 5, iz, 2.6);
+  }
+  isl.add(ib.build(sceneMat('lit'))); grp.add(isl);
+  grp.add(b.build(sceneMat('lit'))); grp.add(cb.build(sceneMat('lit'), true));
+  return { grp: grp,
+    L: { hemi: ['#ffffff', '#d8ccff', 0.9], amb: ['#ffffff', 0.32], sun: ['#fff4ea', 1.25, [-10, 22, 9]], rim: ['#ffc8f0', 0.5, [12, 7, -12]], fog: ['#f5ecff', 150, 420], exp: 0.98, clear: '#e9e0ff' },
+    tick: function (now, dt) { isl.rotation.y += dt * 0.012; isl.position.y = Math.sin(now * 0.5) * 1.5; } };
+};
+MAPGEN.toys = function () {                           // a giant toy room: letter blocks, crayons, stacking rings, a toy train track
+  var grp = new THREE.Group(), i, j, b = new Batch();
+  grp.add(new THREE.Mesh(new THREE.SphereGeometry(420, 32, 16), skyMat('#fff1d6', '#ffe0b8', '#ffd6a0', '#f2b97a', [0.2, 0.6, -0.77], '#ffffff', 0.12)));
+  grp.add(groundDisc(420, '#e8b779', '#c98d52', -2.7, function (g, n) {
+    g.strokeStyle = 'rgba(120,70,30,0.22)'; g.lineWidth = 3; for (var y = 0; y < n; y += 32) { g.beginPath(); g.moveTo(0, y); g.lineTo(n, y); g.stroke(); }
+    g.lineWidth = 2; for (var k = 0; k < 40; k++) { var yy = Math.floor(rnd(0, n / 32)) * 32, xx = rnd(0, n); g.beginPath(); g.moveTo(xx, yy); g.lineTo(xx, yy + 32); g.stroke(); }
+  }, 12));
+  var cols = ['#ff5d6c', '#4ab3ff', '#ffd84a', '#5ee08a', '#a47bff', '#ff9a3d'];
+  for (i = 0; i < 16; i++) {                                                    // building blocks, some stacked
+    var a = i / 16 * TAU + rnd(-0.1, 0.1), r = rnd(44, 68), x = Math.cos(a) * r, z = Math.sin(a) * r, s = rnd(3.2, 4.8), st = 1 + (i % 3);
+    for (j = 0; j < st; j++) { b.add(sgBox(), cols[(i + j) % 6], x + rnd(-0.4, 0.4), -2.7 + s / 2 + j * s, z + rnd(-0.4, 0.4), s, s, s, 0, rnd(0, 1), 0); b.add(sgBox(), '#ffffff', x, -2.7 + s / 2 + j * s, z, s * 0.6, s * 0.6, s * 1.02, 0, 0, 0); }
+  }
+  for (i = 0; i < 10; i++) {                                                    // crayons lying on the floor
+    var ca = rnd(0, TAU), cr = rnd(40, 60), cx = Math.cos(ca) * cr, cz = Math.sin(ca) * cr, rot = rnd(0, TAU), col = cols[i % 6];
+    b.add(sgCyl(8), col, cx, -1.9, cz, 0.8, 9, 0.8, Math.PI / 2, rot, 0);
+    b.add(sgCone(8), col, cx + Math.cos(-rot) * 5.4, -1.9, cz + Math.sin(-rot) * 5.4, 0.8, 1.8, 0.8, 0, 0, -Math.PI / 2, 0);
+  }
+  for (i = 0; i < 4; i++) {                                                     // stacking ring towers
+    var ta = i / 4 * TAU + 0.4, tr = 76, tx = Math.cos(ta) * tr, tz = Math.sin(ta) * tr;
+    b.add(sgCyl(8), '#e2a35f', tx, 6, tz, 0.6, 18, 0.6);
+    for (j = 0; j < 5; j++) b.add(torusGeo(1, 0.45), cols[j], tx, -1.6 + j * 2.4, tz, 4.2 - j * 0.55, 4.2 - j * 0.55, 4.2 - j * 0.55, Math.PI / 2, 0, 0);
+  }
+  var train = new THREE.Group(), tb2 = new Batch();                               // a toy train going round
+  var rail = new THREE.Mesh(new THREE.RingGeometry(84, 87, 72, 1), new THREE.MeshLambertMaterial({ color: LC('#8a5a3c') })); rail.rotation.x = -Math.PI / 2; rail.position.y = -2.6; grp.add(rail);
+  for (i = 0; i < 4; i++) { var wa = i * 0.09; tb2.add(sgBox(), cols[i], Math.cos(wa) * 85.5, -0.7, Math.sin(wa) * 85.5, 5, 3.4, 3.4, 0, -wa - Math.PI / 2, 0); }
+  tb2.add(sgCyl(8), '#333a55', Math.cos(0) * 85.5, 2, 0, 0.8, 2.4, 0.8);
+  train.add(tb2.build(sceneMat('lit'))); grp.add(train);
+  grp.add(b.build(sceneMat('lit'), true));
+  return { grp: grp,
+    L: { hemi: ['#fff4e0', '#b07a4a', 0.82], amb: ['#fff2e0', 0.3], sun: ['#fff0d8', 1.3, [-10, 22, 10]], rim: ['#ffd2a0', 0.45, [12, 7, -12]], fog: ['#ffe6c4', 150, 420], exp: 0.98, clear: '#ffe6c4' },
+    tick: function (now, dt) { train.rotation.y -= dt * 0.12; } };
+};
+MAPGEN.jungle = function () {                         // jungle ruins: mossy stone, giant leaves, a stepped temple in the mist
+  var grp = new THREE.Group(), i, j, b = new Batch(), fb = new Batch();
+  grp.add(new THREE.Mesh(new THREE.SphereGeometry(420, 32, 16), skyMat('#2f6f5a', '#bfe3b0', '#e9f5d8', '#3f8a5a', [-0.3, 0.4, -0.86], '#fff6d0', 0.18)));
+  grp.add(groundDisc(420, '#6f9a52', '#2f5a34', -2.7, function (g, n) {
+    for (var k = 0; k < 90; k++) { g.fillStyle = k % 2 ? 'rgba(40,80,30,0.18)' : 'rgba(150,190,90,0.18)'; g.beginPath(); g.ellipse(rnd(0, n), rnd(0, n), rnd(6, 20), rnd(3, 9), rnd(0, 3), 0, TAU); g.fill(); }
+  }, 14));
+  for (i = 0; i < 14; i++) {                                                    // broken stone pillars with moss caps
+    var a = i / 14 * TAU + rnd(-0.1, 0.1), r = rnd(42, 56), x = Math.cos(a) * r, z = Math.sin(a) * r, h = rnd(3, 9);
+    b.add(sgCyl(8), i % 2 ? '#9a9a84' : '#8a8f78', x, h / 2 - 2.7, z, 1.6, h, 1.6);
+    b.add(sgSph(1), '#5f9a3e', x, h - 2.7, z, 1.9, 0.7, 1.9);
+  }
+  for (i = 0; i < 16; i++) {                                                    // jungle trees
+    var ta = i / 16 * TAU + 0.2, tr = rnd(62, 84), tx = Math.cos(ta) * tr, tz = Math.sin(ta) * tr, th = rnd(12, 20);
+    b.add(sgCyl(7), '#6a4a32', tx, th / 2 - 2.7, tz, 1.1, th, 1.1);
+    for (j = 0; j < 3; j++) fb.add(sgSph(1), ['#2f8a3c', '#3fa64a', '#24702f'][j], tx + rnd(-3, 3), th - 2.7 + rnd(-1, 2), tz + rnd(-3, 3), rnd(4, 6), rnd(3, 4.5), rnd(4, 6));
+  }
+  for (i = 0; i < 20; i++) { var la = rnd(0, TAU), lr = rnd(36, 48), lx = Math.cos(la) * lr, lz = Math.sin(la) * lr; fb.add(sgCone(4), '#4fae4a', lx, -1.5, lz, 1.4, 3.4, 0.4, rnd(-0.5, 0.5), la, rnd(-0.4, 0.4)); }   // big leaves
+  var px = 0, pz = -150;                                                        // the temple
+  for (i = 0; i < 6; i++) { var w = 52 - i * 8; b.add(sgBox(), i % 2 ? '#a3a58a' : '#8f937a', px, -2.7 + i * 5 + 2.5, pz, w, 5, w); }
+  b.add(sgBox(), '#6f735c', px, 30, pz, 10, 7, 10); b.add(sgBox(), '#2a2f22', px, 29, pz + 5.05, 4, 5, 0.2);
+  grp.add(b.build(sceneMat('lit'), true)); grp.add(fb.build(sceneMat('flat')));
+  var mist = sprite('#e9f5d8', 0.35, 260, 60); mist.position.set(0, 12, -150); grp.add(mist);
+  return { grp: grp,
+    L: { hemi: ['#e6ffd8', '#3f5a2a', 0.72], amb: ['#f4ffe8', 0.28], sun: ['#fff4d0', 1.35, [-12, 22, 8]], rim: ['#bff59a', 0.45, [12, 7, -12]], fog: ['#cfe8bf', 120, 380], exp: 1.0, clear: '#bfe3b0' } };
+};
+
+/* ---------- the ground right round the arena ----------
+   What you see past the edge of the arena in a match. Small, low and calm on purpose: nothing taller than a
+   player near the arena, nothing that moves or flashes, so it frames the game and never competes with the pearls.
+   One mesh for the solid things and one for the lights, laid out the same way every time. */
+function nearDecor(k) {
+  var grp = new THREE.Group(), b = new Batch(), gb = new Batch(), seed = 7, i, j, Y = -2.7;
+  for (i = 0; i < k.length; i++) seed = (seed * 31 + k.charCodeAt(i)) % 2147483647;
+  function R(a, c) { seed = (seed * 16807) % 2147483647; return a + (seed / 2147483647) * (c - a); }
+  function spots(n, r0, r1, f) { if (r1 - r0 > 2) n = Math.round(n * 1.4); for (var q = 0; q < n; q++) { var a = (q + R(0.15, 0.85)) / n * TAU, r = R(r0, r1); f(Math.cos(a) * r, Math.sin(a) * r, a, q); } }
+  function ring(r0, r1, col, y, segs) { var m = new THREE.Mesh(new THREE.RingGeometry(r0, r1, segs || 72, 1), new THREE.MeshLambertMaterial({ color: LC(col) })); m.rotation.x = -Math.PI / 2; m.position.y = y == null ? Y + 0.03 : y; grp.add(m); return m; }
+  function rock(x, z, s, col) { b.add(sgSph(1), col || '#8a8478', x, Y + s * 0.3, z, s, s * 0.6, s * R(0.7, 1.1), 0, R(0, 3), 0); }
+  function bush(x, z, s, c1, c2) { for (var q = 0; q < 3; q++) b.add(sgSph(1), q % 2 ? c1 : c2, x + R(-s, s) * 0.6, Y + s * 0.55, z + R(-s, s) * 0.6, s * R(0.6, 0.9)); }
+  function crate(x, z, s, col, a) { b.add(sgBox(), col || '#b07a44', x, Y + s / 2, z, s, s, s, 0, a || 0, 0); b.add(sgBox(), '#7a4e28', x, Y + s / 2, z, s * 1.02, s * 0.14, s * 1.02, 0, a || 0, 0); }
+  function barrel(x, z, s, col) { b.add(sgCyl(10), col || '#9a6034', x, Y + s * 0.65, z, s * 0.55, s * 1.3, s * 0.55); b.add(sgCyl(10), '#4a3a30', x, Y + s * 0.35, z, s * 0.57, s * 0.12, s * 0.57); b.add(sgCyl(10), '#4a3a30', x, Y + s * 0.95, z, s * 0.57, s * 0.12, s * 0.57); }
+  function lamp(x, z, h, pole, light) { b.add(sgCyl(6), pole, x, Y + h / 2, z, 0.16, h, 0.16); b.add(sgCyl(8), pole, x, Y + 0.15, z, 0.4, 0.3, 0.4); gb.add(sgSph(1), light, x, Y + h + 0.25, z, 0.42); }
+  function smallPalm(x, z, h) {
+    b.add(sgCyl(6), '#8f5a35', x, Y + h / 2, z, 0.22, h, 0.22);
+    for (var q = 0; q < 6; q++) { var la = q / 6 * TAU + R(0, 0.5); b.add(sgSph(1), q % 2 ? '#2f7a3d' : '#3f9a4a', x + Math.cos(la) * 0.9, Y + h - 0.2, z + Math.sin(la) * 0.9, 1.2, 0.12, 0.32, 0, -la, -0.4); }
+  }
+  function pine(x, z, s) { b.add(sgCyl(6), '#6a4a32', x, Y + s * 0.3, z, s * 0.12, s * 0.6, s * 0.12); for (var q = 0; q < 3; q++) b.add(sgCone(7), q % 2 ? '#2f6f4a' : '#3a8a5a', x, Y + s * (0.7 + q * 0.42), z, s * (0.75 - q * 0.18), s * 0.75, s * (0.75 - q * 0.18)); b.add(sgCone(7), '#ffffff', x, Y + s * 1.62, z, s * 0.28, s * 0.3, s * 0.28); }
+  var D = {
+    corniche: function () {                                                        // a stone promenade over the water: lamps, benches, planters, a railing
+      ring(19.2, 31, '#3a3157', Y + 0.02, 8); ring(30.6, 31.4, '#f5c451', Y + 0.06, 8);
+      var plat = new THREE.Mesh(new THREE.CylinderGeometry(31, 29.5, 4.2, 8, 1, false, Math.PI / 8), new THREE.MeshLambertMaterial({ color: LC('#2a2346') })); plat.position.y = Y - 2.1; grp.add(plat);
+      spots(16, 29.6, 29.6, function (x, z, a) { lamp(x, z, 4.2, '#20183a', '#ffd38a'); });
+      spots(8, 24, 26, function (x, z, a) { b.add(sgBox(), '#6a4a8a', x, Y + 0.45, z, 2.6, 0.2, 0.8, 0, -a + Math.PI / 2, 0); b.add(sgBox(), '#6a4a8a', x + Math.cos(a) * 0.35, Y + 0.85, z + Math.sin(a) * 0.35, 2.6, 0.7, 0.15, 0, -a + Math.PI / 2, 0); });
+      spots(8, 22.5, 24, function (x, z) { b.add(sgCyl(10), '#c9a46a', x, Y + 0.5, z, 1, 1, 1); bush(x, z, 0.9, '#2f7a4a', '#3f9a5a'); });
+      for (i = 0; i < 64; i++) { var ra = i / 64 * TAU; b.add(sgCyl(5), '#d8c8f0', Math.cos(ra) * 30.6, Y + 0.6, Math.sin(ra) * 30.6, 0.08, 1.2, 0.08); }
+      b.add(torusGeo(1, 0.025), '#e8dcff', 0, Y + 1.2, 0, 30.6, 30.6, 16, Math.PI / 2, 0, 0);
+    },
+    dunes: function () {                                                           // the camp: rugs and cushions, lanterns, a fire ring, little tents
+      spots(7, 24, 30, function (x, z, a) { var c = ['#a8322a', '#2c4f8a', '#c2792a'][Math.floor(R(0, 3))]; b.add(sgBox(), c, x, Y + 0.05, z, 4.4, 0.1, 3, 0, -a, 0); b.add(sgBox(), '#f2d27a', x, Y + 0.07, z, 3.6, 0.1, 0.25, 0, -a, 0); b.add(sgCyl(8), '#7a2a3a', x + Math.cos(a) * 1.6, Y + 0.45, z + Math.sin(a) * 1.6, 0.9, 0.7, 0.9); });
+      spots(10, 22, 34, function (x, z) { b.add(sgCyl(6), '#3a2a20', x, Y + 0.6, z, 0.25, 1.2, 0.25); gb.add(sgCyl(6), '#ffc56a', x, Y + 1.5, z, 0.3, 0.6, 0.3); b.add(sgCone(6), '#3a2a20', x, Y + 2, z, 0.38, 0.3, 0.38); });
+      spots(5, 36, 46, function (x, z, a) { b.add(sgCone(4), R(0, 1) < 0.5 ? '#f2e2c4' : '#e8cfa6', x, Y + 1.6, z, 3.2, 3.2, 3.2, 0, a, 0); b.add(sgCone(4), '#b8402a', x, Y + 2.9, z, 1.1, 0.7, 1.1, 0, a, 0); });
+      var fx = Math.cos(1.2) * 28, fz = Math.sin(1.2) * 28;
+      for (i = 0; i < 10; i++) { var fa = i / 10 * TAU; rock(fx + Math.cos(fa) * 1.6, fz + Math.sin(fa) * 1.6, 0.6, '#7a6a5a'); }
+      gb.add(sgCone(6), '#ff9a3a', fx, Y + 0.7, fz, 0.8, 1.4, 0.8); b.add(sgBox(), '#5a3a20', fx, Y + 0.2, fz, 2, 0.3, 0.3, 0, 0.5, 0);
+      spots(14, 22, 40, function (x, z) { b.add(sgSph(1), '#d9a26a', x, Y, z, R(1.5, 3), 0.5, R(0.8, 1.6), 0, R(0, 3), 0); });
+    },
+    souq: function () {                                                           // the market: stalls with striped awnings, spice sacks, rugs, lantern posts
+      ring(20, 23, '#6a5848', Y + 0.03, 72);
+      spots(9, 26, 32, function (x, z, a) {
+        var ry = -a + Math.PI / 2, c = ['#d23a3a', '#2a6ad0', '#2a9a5a', '#e0a020'][Math.floor(R(0, 4))];
+        b.add(sgBox(), '#7a5030', x, Y + 0.6, z, 3.6, 1.2, 1.6, 0, ry, 0);
+        for (var q = 0; q < 4; q++) { var off = (q - 1.5) * 0.98; b.add(sgBox(), q % 2 ? '#f4ead8' : c, x + Math.cos(ry) * off + Math.cos(a) * 0.4, Y + 2.7, z - Math.sin(ry) * off + Math.sin(a) * 0.4, 0.98, 0.12, 2, 0, ry, 0.25); }   // a striped awning
+        b.add(sgCyl(5), '#5a3a20', x + Math.cos(ry) * 1.7, Y + 1.3, z - Math.sin(ry) * 1.7, 0.08, 2.6, 0.08); b.add(sgCyl(5), '#5a3a20', x - Math.cos(ry) * 1.7, Y + 1.3, z + Math.sin(ry) * 1.7, 0.08, 2.6, 0.08);
+        for (var s = 0; s < 3; s++) b.add(sgDome(), ['#c2501a', '#e0b030', '#8a2a1a'][s], x + Math.cos(ry) * (s - 1) * 1.1, Y + 1.2, z - Math.sin(ry) * (s - 1) * 1.1, 0.45, 0.45, 0.45);
+      });
+      spots(12, 22.5, 24.5, function (x, z) { b.add(sgCyl(8), '#8a6a4a', x, Y + 0.45, z, 0.55, 0.9, 0.55); b.add(sgDome(), ['#c2501a', '#e0b030', '#5a8a2a'][Math.floor(R(0, 3))], x, Y + 0.9, z, 0.5, 0.35, 0.5); });
+      spots(10, 34, 36, function (x, z) { lamp(x, z, 3.6, '#3a2a1a', '#ffb94a'); });
+    },
+    reef: function () {                                                           // the sea floor: coral, sea fans, shells and open clams with pearls
+      ring(20, 24, '#e6d6a8', Y + 0.03, 72);
+      var cc = ['#ff7a8a', '#ff9a4a', '#c46aff', '#ffd25a', '#ff5aa8'];
+      spots(18, 24, 36, function (x, z) { var c = cc[Math.floor(R(0, 5))], s = R(0.8, 1.6); for (var q = 0; q < 4; q++) b.add(sgCone(6), c, x + R(-1, 1), Y + s, z + R(-1, 1), s * 0.3, s * 2, s * 0.3, R(-0.4, 0.4), 0, R(-0.4, 0.4)); b.add(sgSph(1), c, x, Y + 0.2, z, s * 0.8, s * 0.4, s * 0.8); });
+      spots(12, 22, 34, function (x, z) { b.add(sgDome(), '#f6e2c8', x, Y, z, 0.9, 0.3, 0.7, 0, R(0, 3), 0); });
+      spots(6, 24, 30, function (x, z, a) { b.add(sgDome(), '#8a7aa8', x, Y + 0.05, z, 1.2, 0.35, 1.2); b.add(sgDome(), '#a898c8', x, Y + 0.4, z, 1.2, 0.35, 1.2, -0.9, a, 0); gb.add(sgSph(1), '#ffffff', x, Y + 0.35, z, 0.38); });
+      spots(16, 36, 46, function (x, z) { for (var q = 0; q < 3; q++) b.add(sgCone(4), '#2f8a5a', x + R(-0.8, 0.8), Y + 2, z + R(-0.8, 0.8), 0.25, R(3, 5), 0.25, R(-0.2, 0.2), 0, R(-0.2, 0.2)); });
+    },
+    stadium: function () {                                                        // the touchline: a running track, ad boards, team benches, corner flags
+      ring(19.5, 24, '#b5432e', Y + 0.03, 72); ring(21.7, 21.85, '#f4f4f4', Y + 0.05, 72); ring(23.2, 23.35, '#f4f4f4', Y + 0.05, 72);
+      spots(14, 26.5, 26.5, function (x, z, a) { var c = ['#2a6ad0', '#e0a020', '#d23a3a', '#2a9a5a', '#ffffff'][Math.floor(R(0, 5))]; b.add(sgBox(), c, x, Y + 0.6, z, 5, 1.2, 0.3, 0, -a + Math.PI / 2, 0); b.add(sgBox(), '#1a1a2a', x, Y + 0.05, z, 5, 0.1, 0.5, 0, -a + Math.PI / 2, 0); });
+      spots(2, 30, 30, function (x, z, a) { b.add(sgBox(), '#2a3a5a', x, Y + 1.1, z, 7, 2.2, 1.8, 0, -a + Math.PI / 2, 0); for (var q = 0; q < 6; q++) b.add(sgBox(), q % 2 ? '#d23a3a' : '#e8e8e8', x + Math.sin(a) * (q - 2.5) * 1.05, Y + 0.6, z - Math.cos(a) * (q - 2.5) * 1.05, 0.8, 0.9, 0.8, 0, -a, 0); });
+      for (i = 0; i < 4; i++) { var fa = i / 4 * TAU + Math.PI / 4, fr = 21; b.add(sgCyl(5), '#f4f4f4', Math.cos(fa) * fr, Y + 0.9, Math.sin(fa) * fr, 0.06, 1.8, 0.06); b.add(sgBox(), '#ffd23f', Math.cos(fa) * fr + 0.3, Y + 1.6, Math.sin(fa) * fr, 0.6, 0.4, 0.04, 0, -fa, 0); }
+      spots(6, 31, 34, function (x, z) { b.add(sgCyl(5), '#333', x, Y + 0.7, z, 0.08, 1.4, 0.08); b.add(sgBox(), '#2a2a3a', x, Y + 1.6, z, 0.8, 0.6, 1.2); });
+    },
+    oasis: function () {                                                          // the pool: lily pads with flowers, floating petals, stepping stones
+      spots(22, 22, 41, function (x, z) { var s = R(0.8, 1.6); b.add(sgCyl(12), '#4fae5a', x, -2.36, z, s, 0.06, s); if (R(0, 1) < 0.4) b.add(sgSph(1), R(0, 1) < 0.5 ? '#ff8ec7' : '#ffffff', x + s * 0.3, -2.2, z, 0.3, 0.25, 0.3); });
+      spots(10, 44.5, 46, function (x, z) { rock(x, z, R(0.8, 1.4), '#c9a87a'); });
+      spots(8, 48, 54, function (x, z) { var c = ['#ff5d8f', '#ffd23f', '#ffffff'][Math.floor(R(0, 3))]; for (var q = 0; q < 4; q++) { var qx = x + R(-1.2, 1.2), qz = z + R(-1.2, 1.2); b.add(sgCyl(4), '#4f8a3a', qx, Y + 0.4, qz, 0.05, 0.8, 0.05); b.add(sgSph(1), c, qx, Y + 0.85, qz, 0.22); } });
+    },
+    snow: function () {                                                           // the clearing: snowmen, little pines, sleds, drifts
+      ring(20, 23, '#dfe8f2', Y + 0.03, 72);
+      spots(14, 24, 38, function (x, z) { b.add(sgDome(), '#ffffff', x, Y, z, R(1.5, 3), R(0.5, 1), R(1.2, 2.4), 0, R(0, 3), 0); });
+      spots(10, 27, 40, function (x, z) { pine(x, z, R(1.6, 2.6)); });
+      spots(4, 25, 30, function (x, z, a) { b.add(sgSph(1), '#ffffff', x, Y + 0.8, z, 1); b.add(sgSph(1), '#ffffff', x, Y + 2, z, 0.7); b.add(sgSph(1), '#ffffff', x, Y + 2.9, z, 0.5); b.add(sgCone(6), '#ff8a2a', x - Math.cos(a) * 0.5, Y + 2.9, z - Math.sin(a) * 0.5, 0.1, 0.5, 0.1, 0, 0, Math.PI / 2); b.add(sgCyl(8), '#d23a3a', x, Y + 2.45, z, 0.62, 0.2, 0.62); });
+      spots(3, 24, 28, function (x, z, a) { b.add(sgBox(), '#c2502a', x, Y + 0.3, z, 2.2, 0.15, 0.9, 0, -a, 0); b.add(sgBox(), '#7a4a26', x, Y + 0.1, z, 2.4, 0.08, 0.1, 0, -a, 0); });
+    },
+    moon: function () {                                                           // the base: a landing ring, craters, rocks, solar panels and cargo
+      ring(20, 22.5, '#5a6080', Y + 0.03, 72); spots(24, 21.25, 21.25, function (x, z) { gb.add(sgSph(1), '#7cf0ff', x, Y + 0.08, z, 0.18, 0.06, 0.18); });
+      spots(10, 25, 40, function (x, z) { var s = R(1.5, 3.5); b.add(torusGeo(1, 0.25), '#6a6c7c', x, Y + 0.05, z, s, s, s * 0.8, Math.PI / 2, 0, 0); b.add(sgCyl(14), '#4a4c5c', x, Y + 0.02, z, s * 0.9, 0.02, s * 0.9); });
+      spots(16, 23, 40, function (x, z) { rock(x, z, R(0.4, 1.1), '#8a8c98'); });
+      spots(4, 28, 32, function (x, z, a) { b.add(sgCyl(5), '#bfc4d0', x, Y + 0.6, z, 0.1, 1.2, 0.1); b.add(sgBox(), '#2a4a9a', x, Y + 1.3, z, 3, 0.08, 1.6, 0.5, -a, 0); });
+      spots(5, 26, 30, function (x, z, a) { crate(x, z, R(0.9, 1.3), '#d8dce6', a); });
+    },
+    dhow: function () {                                                           // cargo on the deck: barrels, rope coils, crates and sacks (on the planks only)
+      Y = -0.8;
+      for (i = 0; i < 24; i++) {
+        var a = R(0, TAU), rx = R(20.5, 27.5) * Math.cos(a), rz = R(20.5, 27.5) * Math.sin(a);
+        if ((rx / 28) * (rx / 28) + (rz / 18.6) * (rz / 18.6) > 1 || Math.hypot(rx, rz) < 20.2) continue;
+        var q = i % 4;
+        if (q === 0) barrel(rx, rz, R(0.8, 1.1)); else if (q === 1) b.add(torusGeo(1, 0.45), '#c8a46a', rx, Y + 0.2, rz, 0.8, 0.8, 0.8, Math.PI / 2, 0, 0);
+        else if (q === 2) crate(rx, rz, R(0.9, 1.3), '#b07a44', R(0, 1)); else b.add(sgSph(1), '#d8c08a', rx, Y + 0.45, rz, 0.8, 0.55, 0.6, 0, R(0, 3), 0);
+      }
+    },
+    candy: function () {                                                          // icing border, cupcakes, little lollipops and sweets on the grass
+      ring(20, 22.5, '#fff4fa', Y + 0.03, 72); spots(30, 21.3, 21.3, function (x, z, a, q) { b.add(sgSph(1), ['#ff5d8f', '#4ad7ff', '#ffd23f', '#7b5cff'][q % 4], x, Y + 0.1, z, 0.35, 0.2, 0.35); });
+      spots(8, 25, 32, function (x, z) { b.add(sgCyl(10), '#ffb0d0', x, Y + 0.45, z, 0.9, 0.9, 0.9); b.add(sgDome(), ['#ffffff', '#ffe08a', '#c8b0ff'][Math.floor(R(0, 3))], x, Y + 0.9, z, 1, 0.8, 1); b.add(sgSph(1), '#ff3b5c', x, Y + 1.7, z, 0.25); });
+      spots(10, 24, 36, function (x, z) { var c = ['#ff5d8f', '#7b5cff', '#4ad7ff', '#ffb02e'][Math.floor(R(0, 4))]; b.add(sgCyl(5), '#ffffff', x, Y + 0.8, z, 0.08, 1.6, 0.08); b.add(sgCyl(14), c, x, Y + 1.8, z, 0.6, 0.15, 0.6, Math.PI / 2, R(0, 3), 0); });
+      spots(18, 23, 38, function (x, z) { b.add(sgDome(), ['#ff5d8f', '#4ad7ff', '#ffd23f', '#5ee08a', '#7b5cff'][Math.floor(R(0, 5))], x, Y, z, R(0.4, 0.7), R(0.5, 0.8), R(0.4, 0.7)); });
+    },
+    volcano: function () {                                                        // beyond the lava: black rocks, glowing vents and crystals
+      spots(14, 36, 48, function (x, z) { rock(x, z, R(1, 2.4), '#2a1e1c'); });
+      spots(7, 37, 46, function (x, z) { b.add(sgCone(7), '#3a2622', x, Y + 0.8, z, 1.4, 1.6, 1.4); gb.add(sgCyl(7), '#ff7a2a', x, Y + 1.62, z, 0.45, 0.06, 0.45); });
+      spots(10, 38, 50, function (x, z) { for (var q = 0; q < 3; q++) b.add(sgCone(4), '#1a1222', x + R(-0.7, 0.7), Y + 0.8, z + R(-0.7, 0.7), 0.3, R(1.2, 2.2), 0.3, R(-0.3, 0.3), 0, R(-0.3, 0.3)); });
+    },
+    disco: function () {                                                          // the club: speaker stacks, light cubes, velvet ropes, the DJ booth
+      spots(8, 26, 30, function (x, z, a) { var ry = -a + Math.PI / 2; b.add(sgBox(), '#15121f', x, Y + 1.2, z, 1.6, 2.4, 1.2, 0, ry, 0); for (var q = 0; q < 2; q++) b.add(sgCyl(12), '#3a3550', x - Math.cos(a) * 0.62, Y + 0.7 + q * 1.1, z - Math.sin(a) * 0.62, 0.5, 0.05, 0.5, Math.PI / 2, ry, 0); });
+      spots(12, 22, 24, function (x, z, a, q) { gb.add(sgBox(), ['#ff4fd8', '#33e1ff', '#ffd23f', '#7b5cff'][q % 4], x, Y + 0.3, z, 0.6, 0.6, 0.6, 0, a, 0); });
+      for (i = 0; i < 24; i++) { var sa = i / 24 * TAU; b.add(sgCyl(6), '#d8c070', Math.cos(sa) * 33, Y + 0.6, Math.sin(sa) * 33, 0.08, 1.2, 0.08); if (i % 2) b.add(sgCyl(6), '#8a1a3a', Math.cos(sa + TAU / 48) * 33, Y + 1, Math.sin(sa + TAU / 48) * 33, 0.07, 4.3, 0.07, 0, -sa, Math.PI / 2); }
+      b.add(sgBox(), '#1e1a2e', 0, Y + 0.8, -38, 8, 1.6, 2.4); gb.add(sgBox(), '#33e1ff', 0, Y + 1.62, -36.8, 7.6, 0.1, 0.1);
+    },
+    beach: function () {                                                          // the sand: sandcastles, shells, starfish, buckets and spades
+      spots(6, 24, 32, function (x, z) { b.add(sgCyl(10), '#e8c88a', x, Y + 0.5, z, 1.4, 1, 1.4); for (var q = 0; q < 4; q++) { var qa = q / 4 * TAU; b.add(sgCyl(8), '#e0be7e', x + Math.cos(qa) * 1.3, Y + 0.8, z + Math.sin(qa) * 1.3, 0.4, 1.6, 0.4); b.add(sgCone(8), '#d8b072', x + Math.cos(qa) * 1.3, Y + 1.85, z + Math.sin(qa) * 1.3, 0.45, 0.5, 0.45); } });
+      spots(14, 22, 38, function (x, z) { var c = ['#ff9a7a', '#ffb84a', '#ff7aa8'][Math.floor(R(0, 3))], r0 = R(0, 3); for (var q = 0; q < 5; q++) b.add(sgBox(), c, x + Math.cos(r0 + q * 1.2566) * 0.35, Y + 0.06, z + Math.sin(r0 + q * 1.2566) * 0.35, 0.7, 0.1, 0.22, 0, -(r0 + q * 1.2566), 0); });
+      spots(16, 22, 40, function (x, z) { b.add(sgDome(), ['#fff4e0', '#ffd8c8', '#e8dcff'][Math.floor(R(0, 3))], x, Y, z, 0.4, 0.2, 0.3, 0, R(0, 3), 0); });
+      spots(4, 26, 30, function (x, z) { b.add(sgCyl(10), ['#ff3b5c', '#2fb3ff', '#ffd23f', '#5ee08a'][Math.floor(R(0, 4))], x, Y + 0.45, z, 0.5, 0.9, 0.5); b.add(sgBox(), '#ff7a2a', x + 0.8, Y + 0.5, z, 0.1, 1, 0.35, 0, 0, 0.4); });
+    },
+    clouds: function () {                                                         // little cloud puffs and golden stars resting on the cloud floor
+      spots(20, 23, 40, function (x, z) { var s = R(0.9, 1.8); for (var q = 0; q < 3; q++) b.add(sgSph(1), q ? '#ffffff' : '#f2ecff', x + R(-s, s), Y + s * 0.4, z + R(-s, s), s * R(0.6, 0.9), s * 0.55, s * R(0.6, 0.9)); });
+      spots(12, 22, 36, function (x, z) { gb.add(sgSph(1), '#ffe27a', x, Y + R(0.6, 1.6), z, 0.3); });
+    },
+    toys: function () {                                                           // a round play rug, little blocks, toy cars, spinning tops and dominoes
+      ring(20, 30, '#4ab3ff', Y + 0.03, 72); ring(21, 21.6, '#ffd84a', Y + 0.05, 72); ring(28.6, 29.2, '#ffd84a', Y + 0.05, 72);
+      var cols = ['#ff5d6c', '#4ab3ff', '#ffd84a', '#5ee08a', '#a47bff', '#ff9a3d'];
+      spots(14, 23, 36, function (x, z, a) { var s = R(0.9, 1.4); b.add(sgBox(), cols[Math.floor(R(0, 6))], x, Y + s / 2, z, s, s, s, 0, R(0, 1.5), 0); });
+      spots(5, 24, 30, function (x, z, a) { var ry = -a; b.add(sgBox(), cols[Math.floor(R(0, 6))], x, Y + 0.65, z, 2.4, 0.7, 1.2, 0, ry, 0); b.add(sgBox(), '#dff4ff', x, Y + 1.2, z, 1.2, 0.5, 1, 0, ry, 0); for (var q = 0; q < 4; q++) { var wl = q < 2 ? 0.8 : -0.8, wc = q % 2 ? 0.62 : -0.62; b.add(sgCyl(8), '#2a2a3a', x + Math.cos(ry) * wl + Math.sin(ry) * wc, Y + 0.3, z - Math.sin(ry) * wl + Math.cos(ry) * wc, 0.3, 0.2, 0.3, Math.PI / 2, ry, 0); } });
+      spots(4, 32, 36, function (x, z) { b.add(sgCone(10), cols[Math.floor(R(0, 6))], x, Y + 0.9, z, 1, 1.2, 1, Math.PI, 0, 0); b.add(sgCyl(6), '#ffffff', x, Y + 1.7, z, 0.1, 0.6, 0.1); });
+      spots(10, 33, 38, function (x, z, a) { b.add(sgBox(), '#f8f4ea', x, Y + 0.8, z, 0.3, 1.6, 0.8, 0, -a, 0); });
+    },
+    jungle: function () {                                                         // stone paving, ferns, mushrooms, flowers and fallen stones
+      ring(20, 23, '#8a8f78', Y + 0.03, 12);
+      spots(16, 24, 38, function (x, z) { for (var q = 0; q < 5; q++) { var fa = q / 5 * TAU + R(0, 1); b.add(sgCone(4), q % 2 ? '#2f8a3c' : '#3fa64a', x + Math.cos(fa) * 0.6, Y + 0.6, z + Math.sin(fa) * 0.6, 0.3, 1.6, 0.12, Math.sin(fa) * 0.6, -fa, -Math.cos(fa) * 0.6); } });
+      spots(8, 24, 34, function (x, z) { b.add(sgCyl(6), '#f2ead8', x, Y + 0.35, z, 0.18, 0.7, 0.18); b.add(sgDome(), R(0, 1) < 0.5 ? '#d84a3a' : '#e0a030', x, Y + 0.7, z, 0.6, 0.45, 0.6); });
+      spots(10, 23, 36, function (x, z) { for (var q = 0; q < 3; q++) { var qx = x + R(-0.8, 0.8), qz = z + R(-0.8, 0.8); b.add(sgCyl(4), '#3f7a2a', qx, Y + 0.35, qz, 0.05, 0.7, 0.05); b.add(sgSph(1), ['#ff5d8f', '#ffd23f', '#ff7a2a'][q], qx, Y + 0.75, qz, 0.2); } });
+      spots(7, 26, 34, function (x, z, a) { b.add(sgBox(), '#9a9a84', x, Y + 0.5, z, 2.2, 1, 1.2, R(-0.2, 0.2), -a + R(-0.5, 0.5), 0); b.add(sgBox(), '#5f9a3e', x, Y + 1.02, z, 2.2, 0.06, 1.2, 0, -a, 0); });
+    }
+  };
+  if (D[k]) D[k]();
+  if (b.parts.length) { var m = b.build(sceneMat('lit')); grp.add(m); }
+  if (gb.parts.length) grp.add(gb.build(sceneMat('glow')));
+  return grp;
+}
+
 /* ---------- reflections: a small studio of light cards ---------- */
 function buildEnv(renderer) {
   var s = new THREE.Scene();
@@ -3342,6 +3637,10 @@ var DECKS = {   // calm, light floors so the pearls and the players read at a gl
   dhow: { base: '#8a5a32', bay: '#73491f', field: '#f0dcb4', edge: '#dcc092', seam: '120,80,40', ring: '#e6cfa0', line: '#ffffff', wall: '#7a4a26', wallTop: '#ffd27a', plinth: '#5a3518', motif: 'sadu' },
   candy: { base: '#ff7eb6', bay: '#f0609f', field: '#fff0f6', edge: '#ffd3e6', seam: '200,80,140', ring: '#ffe0ee', line: '#7b5cff', wall: '#ff5d9e', wallTop: '#ffffff', plinth: '#c43d7e', motif: 'star' },
   volcano: { base: '#4a3028', bay: '#3a241e', field: '#e9ddd2', edge: '#d3c2b2', seam: '90,50,30', ring: '#dccbbb', line: '#ff7a2a', wall: '#3a2622', wallTop: '#ff7a2a', plinth: '#1e1210', motif: 'star' },
+  beach: { base: '#2fa6c8', bay: '#2690b0', field: '#fdf3dc', edge: '#f1dfb8', seam: '60,140,170', ring: '#f6e8c8', line: '#ff5d8f', wall: '#ffffff', wallTop: '#ff5d8f', plinth: '#1f7f9c', motif: 'shell' },
+  clouds: { base: '#b9a8ff', bay: '#a796f2', field: '#ffffff', edge: '#efe9ff', seam: '150,130,220', ring: '#f2edff', line: '#ff8ec7', wall: '#ffffff', wallTop: '#ffd84a', plinth: '#8f7fe0', motif: 'star' },
+  toys: { base: '#4ab3ff', bay: '#3a9fe8', field: '#fff6e6', edge: '#f4e2c4', seam: '170,120,60', ring: '#f8ead0', line: '#ff5d6c', wall: '#ff5d6c', wallTop: '#ffd84a', plinth: '#2b7fc4', motif: 'star' },
+  jungle: { base: '#5a6a48', bay: '#4c5a3c', field: '#e8e4cc', edge: '#d2cca8', seam: '90,100,60', ring: '#ddd8b8', line: '#ffd23f', wall: '#7a7e66', wallTop: '#7fd35a', plinth: '#3a4230', motif: 'sadu' },
   disco: { base: '#2a1650', bay: '#22103f', field: '#ece6ff', edge: '#d6ccff', seam: '60,30,110', ring: '#ddd3ff', line: '#ff4fd8', wall: '#2a1650', wallTop: '#33e1ff', plinth: '#140a28', motif: 'star' }
 };
 function polyPath(g, cx, cy, K, ap, s) {
@@ -4013,6 +4312,12 @@ var TIER_COL = [null, '#ff8a1f', '#ffd21f', '#ff2d3a', '#a24bff'];     // Bullet
 function ballTex(hex) {
   var key = hex || 'pearl'; if (_btex[key]) return _btex[key];
   var t = canvasTex(512, 256, function (g, w, h) {
+    if (hex === 'gold') {                                           // the golden pearl: warm metallic gold with a bright band
+      var gg = g.createLinearGradient(0, 0, 0, h); gg.addColorStop(0, '#fff3b0'); gg.addColorStop(0.45, '#ffcf3a'); gg.addColorStop(1, '#d48a00'); g.fillStyle = gg; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#fff8d8'; g.fillRect(0, h * 0.42, w, h * 0.16);
+      g.fillStyle = '#e09a00'; for (var q2 = 0; q2 < 6; q2++) { g.beginPath(); g.arc((q2 + 0.5) * w / 6, h * 0.5, h * 0.06, 0, TAU); g.fill(); }
+      return;
+    }
     if (hex === 'bomb') {                                           // a round cartoon bomb: glossy navy with a red danger band
       var bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#3a4270'); bg.addColorStop(0.5, '#1c2140'); bg.addColorStop(1, '#0d1028'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
       g.fillStyle = '#ff3a3a'; g.fillRect(0, h * 0.4, w, h * 0.2);
@@ -4103,7 +4408,8 @@ function ballsUpdate(S, now, dt) {
       B.hits = b.hits | 0;
     }
     if (b.bomb) owner = '#ff4a2a';
-    ballPaint(B, b.bomb ? 'bomb' : owner);
+    if (b.gold) { owner = GOLD; hot = true; }
+    ballPaint(B, b.bomb ? 'bomb' : b.gold ? 'gold' : owner);
     var sp = Math.hypot(b.vx, b.vy);
     // a bounce: the heading swings round
     if (sp > 0.05 && Math.hypot(B.vx, B.vy) > 0.05) {
@@ -4113,7 +4419,7 @@ function ballsUpdate(S, now, dt) {
     B.vx = b.vx; B.vy = b.vy;
     B.pop = Math.min(1, B.pop + dt / 0.28); B.sq = Math.max(0, B.sq - dt * 7);
     var pk = B.pop < 1 ? 1 + Math.sin(B.pop * Math.PI) * 0.35 - (1 - B.pop) * 0.7 : 1, r = r0 * (0.25 + 0.75 * f) * Math.max(0.05, pk);
-    if (b.bomb) r *= 1.3 + Math.max(0, 3 - fz0(b, S)) * 0.06;                  // the bomb is bigger, and swells as it is about to go
+    if (b.bomb) r *= 1.3 + Math.max(0, 3 - fz0(b, S)) * 0.06; else if (b.gold) r *= 1.2;                  // the bomb is bigger, and swells as it is about to go
     B.grp.visible = f > 0.02; B.grp.position.set(bx, r + (1 - f) * -0.2, bz);
     // stretch along the way it's going, squash on impact
     var st = clamp(sp * 0.07, 0, 0.16) * (hot ? 1.4 : 1), sq = B.sq * B.sq * 0.38, sx = (1 + st) * (1 - sq), sy = 1 / Math.sqrt(sx);
@@ -4124,7 +4430,7 @@ function ballsUpdate(S, now, dt) {
       B.m.quaternion.premultiply(_bq.setFromAxisAngle(_NZ, sp * R3 * dt / r0)).normalize();
     }
     B.st.scale.set(sx * r, sy * r * (1 + sq * 0.4), sy * r);
-    B.mat.emissive.set(hot ? (bul && tier === 4 ? 0x9a3bff : 0xff3a00) : 0x000000); B.mat.emissiveIntensity = hot ? 0.18 + 0.12 * Math.sin(now * 30) : 0;
+    B.mat.emissive.set(hot ? (b.gold ? 0xffb000 : bul && tier === 4 ? 0x9a3bff : 0xff3a00) : 0x000000); B.mat.emissiveIntensity = hot ? 0.18 + 0.12 * Math.sin(now * 30) : 0;
     if (bul && tier && !hot) { B.mat.emissive.copy(CC(TIER_COL[tier])); B.mat.emissiveIntensity = 0.1 * tier; }
     var fz = b.bomb ? Math.max(0, b.fuseAt - S.t) : 99;
     if (b.bomb) {                                                     // the bomb blinks faster as its fuse runs down
@@ -4156,7 +4462,7 @@ function ballsUpdate(S, now, dt) {
     B.h.visible = (hot || !!b.bomb) && B.grp.visible;
     if (B.h.visible && b.bomb) { B.h.position.set(bx, r * 2.25, bz); B.h.material.opacity = 0.85 * f; B.h.scale.setScalar(r * (1.3 + Math.random() * 0.6)); }   // the lit fuse
     else if (B.h.visible) { B.h.position.set(bx, r, bz); B.h.material.opacity = 0.45 * f; B.h.scale.setScalar(r * 3.6 + Math.sin(now * 40) * r * 0.3); }
-    if (hot && f > 0.5 && !REDUCE && Math.random() < 0.7) trailDot(bx - b.vx * R3 * 0.02 + (Math.random() - 0.5) * r, r, bz - b.vy * R3 * 0.02 + (Math.random() - 0.5) * r, bul && tier === 4 ? (Math.random() < 0.5 ? '#e0a8ff' : '#8a2dff') : Math.random() < 0.5 ? '#ffd23f' : '#ff6a1a', 0.7);
+    if (hot && f > 0.5 && !REDUCE && Math.random() < 0.7) trailDot(bx - b.vx * R3 * 0.02 + (Math.random() - 0.5) * r, r, bz - b.vy * R3 * 0.02 + (Math.random() - 0.5) * r, b.gold ? (Math.random() < 0.5 ? '#fff3b0' : '#ffd23f') : bul && tier === 4 ? (Math.random() < 0.5 ? '#e0a8ff' : '#8a2dff') : Math.random() < 0.5 ? '#ffd23f' : '#ff6a1a', 0.7);
   }
   for (i = 0; i < GFX.balls.length; i++) if (!GFX.balls[i].seen && GFX.balls[i].id >= 0) hideBall(GFX.balls[i]);
   if (!list.some(function (q) { return q.bomb; })) bombTag();
@@ -4328,7 +4634,7 @@ function setStage(st) {
   if (GFX.stageMap !== mk) {
     if (GFX.mapNow) { GFX.scene.remove(GFX.mapNow.grp); disposeTree(GFX.mapNow.grp); delete GFX.maps[GFX.stageMap]; }   // free the old map so phones don't run out of graphics memory
     var M = GFX.maps[mk];
-    if (!M) { M = GFX.maps[mk] = MAPGEN[mk](); M.grp.traverse(function (o) { o.castShadow = false; }); }   // far scenery is outside the shadow area: never draw it into the shadow map
+    if (!M) { M = GFX.maps[mk] = MAPGEN[mk](); M.grp.add(nearDecor(mk)); M.grp.traverse(function (o) { o.castShadow = false; }); }   // far scenery is outside the shadow area: never draw it into the shadow map
     GFX.scene.add(M.grp); GFX.mapNow = M; GFX.stageMap = mk;
     GFX.slots.forEach(function (s) { s.sealM.color.copy(LC(DECKS[mk].wall)); });
     GFX.fit = {};
@@ -4591,12 +4897,13 @@ function fxEvent(a) {
     spark(gx * R3, 0.8, gy * R3, col, 22, 6, 0.38, 0.8); shock(gx, gy, col, 2.6, 0.45);
     var pp = padSimXY(pl);
     if (livesMode(mode) && a[1] === me) floatText(pp.x * 1.12, pp.y * 1.12, '-1', col, true);   // only my own score pops up; the bar at the top shows the rest
-    else if (scp && a[2] === me && mode !== MODE_CROWN) { var sp2 = padSimXY(scp); floatText(sp2.x * 1.12, sp2.y * 1.12, '+1', COLORS[scp.col], true); }
+    else if (scp && a[2] === me && mode !== MODE_CROWN) { var sp2 = padSimXY(scp); floatText(sp2.x * 1.12, sp2.y * 1.12, a[7] ? '+3' : '+1', a[7] ? GOLD : COLORS[scp.col], true); }
+    if (a[7] && scp) showTitle(T('goldGot', { n: scp.seat === me ? T('you') : scp.name }), '+3', 'last', 1300, GOLD);
     if (a[1] === me) FX.shake = Math.max(FX.shake, 0.3);
     hudFlash(a[1]); gbFlash(a[1]); if (scp && !livesMode(mode)) { hudFlash(a[2]); }
     if (a[1] === me && livesMode(mode) && a[5] === 1) setTimeout(function () { showTitle(T('lastLife'), '', 'last', 1500); }, 350);
     if (mode === MODE_CROWN && a[1] !== me && scp && a[2] === me) { /* the crown callout says it */ }
-    else if (scp && a[2] === me && mode === MODE_POINTS && a[6] === (S.cfg.target || 10) - 1) setTimeout(function () { showTitle(T('matchPoint'), '', 'last', 1400); }, 350);
+    else if (scp && a[2] === me && toTarget(mode) && a[6] === (S.cfg.target || 10) - 1) setTimeout(function () { showTitle(T('matchPoint'), '', 'last', 1400); }, 350);
     sfx('goal', a[1] === me); voice(pl.ch, 'hurt', 0.13);
     if (scp) setTimeout(function () { if (AU.on) voice(scp.ch, 'happy', 0.11); }, 260);
     if (a[1] === me) { buzz([60, 40, 90]); flashScreen(); }
@@ -4611,7 +4918,9 @@ function fxEvent(a) {
     if (pl) { setMood(a[1], 'cheer', 60); showTitle(a[1] === me ? T('youWin') : T('winner'), pl.name, 'win', 2600, COLORS[pl.col]); GFX.confetti = now + 6; GFX.confAt = a[1]; }
     sfx('win'); musicStop(); if (pl) setTimeout(function () { if (AU.on) voice(pl.ch, 'happy', 0.2); }, 1100);
     onMatchOver();
-  } else if (k === 'ot') { showTitle(T('otT'), T('otS'), 'final', 1900); sfx('go'); }
+  } else if (k === 'ot') { showTitle(T('otT'), mode === MODE_CROWN ? T('otCrownS') : T('otS'), 'final', 1900); sfx('go'); }
+  else if (k === 'goldnew') { GFX.pulse = now; shock(0, 0, GOLD, 3.4, 0.45); sfx('orb'); showTitle(T('goldIn'), T('goldInS'), 'last', 1200, GOLD); }
+  else if (k === 'more') { GFX.pulse = now; showTitle(T('moreT', { n: a[1] }), '', 'last', 900, '#ff5d8f'); }
   else if (k === 'orb') {
     pl = S.players[a[1]]; col = pl ? COLORS[pl.col] : GOLD;
     spark(a[3] * R3, 1.1, a[4] * R3, GOLD, 12, 4, 0.3, 0.55); if (a[1] === me) floatText(a[3], a[4], T('o' + a[2]), col, true);
@@ -4722,27 +5031,30 @@ function camFit(pts, el, az, rect, slack, tgtOff, bottom) {
   if (bottom) oy = (1 - bb.y0) / 2 * H - (rect.y + rect.h);            // rest the arena on the bottom of the space so your side sits low, like Crash
   return { d: hi, ox: cxp - (rect.x + rect.w / 2), oy: oy, tgt: tgt };
 }
-/* iPhone Home Screen app bug: once the keyboard has been open (typing a name or a room code), iOS can leave
-   the page shorter than the screen until the app restarts, so a strip shows at the bottom. Remember the full
-   height seen for this screen width; when the page comes up short, first ask iOS to measure again, and if it
-   stays short, stretch the app over the strip. Content stays inside the real page, so nothing is pushed off screen. */
-var VPK = {};
+/* iPhone Home Screen app bug: iOS can lay the page out shorter than the screen (by about the status bar's
+   height), so a strip of blue shows at the bottom. window.innerHeight cannot be trusted there, so measure what
+   iOS really gave the page (a hidden full-height probe) against the size of the screen, and stretch the app by
+   exactly the difference. The buttons stay measured from the real bottom of the screen. */
 function typing() { var a = document.activeElement; return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
+function pageH() {
+  var p = fixGap.probe;
+  if (!p) { p = fixGap.probe = document.createElement('div'); p.style.cssText = 'position:fixed;top:0;bottom:0;left:0;width:1px;visibility:hidden;pointer-events:none;'; document.body.appendChild(p); }
+  return p.getBoundingClientRect().height;
+}
 function fixGap() {
-  var sa = navigator.standalone === true, w = innerWidth, h = innerHeight, gap = 0;
+  var sa = navigator.standalone === true, gap = 0;
   document.documentElement.classList.toggle('sa', sa);
-  if (!typing()) VPK[w] = Math.max(VPK[w] || 0, h);
-  if (sa && !typing() && VPK[w]) {
-    gap = VPK[w] - h;
-    if (window.screen && screen.height) gap = Math.min(gap, Math.max(screen.width, screen.height) - h);
-    if (gap < 4 || gap > 160) gap = 0;
+  if (sa && !typing() && window.screen && screen.height) {
+    var s0 = Math.min(screen.width, screen.height), s1 = Math.max(screen.width, screen.height), w = innerWidth;
+    var full = Math.abs(w - s0) <= Math.abs(w - s1) ? s1 : s0;                 // portrait: the long side is the height
+    gap = Math.round(full - pageH()); if (gap < 4 || gap > 100) gap = 0;
   }
   if (fixGap.v !== gap) { fixGap.v = gap; document.documentElement.style.setProperty('--gap', gap + 'px'); }
   return gap;
 }
 function remeasure() {
-  if (typing() || !VPK[innerWidth] || VPK[innerWidth] - innerHeight <= 4) return;
-  var app = $('app'); app.style.display = 'none'; void app.offsetHeight; app.style.display = '';   // makes iOS work out the page height again
+  if (typing() || !fixGap.v) return;
+  var app = $('app'); app.style.display = 'none'; void app.offsetHeight; app.style.display = '';   // asks iOS to work out the page height again
   setTimeout(gfxResize, 30); setTimeout(gfxResize, 400);
 }
 function gfxResize() {
@@ -5050,7 +5362,7 @@ function tagsUpdate(now, slices) {
       if (im.getAttribute('data-p') !== key) { im.src = portraitURL(pl.ch, COLORS[pl.col]); im.setAttribute('data-p', key); g.style.setProperty('--c', COLORS[pl.col]); }
       var txt = !pl.alive ? 'KO' : livesMode(mode) ? String(pl.lives) : String(pl.pts), nm = pl.name + (pl.remote && !pl.conn ? ' (' + T('away') + ')' : '');
       if (g.children[1].textContent !== txt) { g.children[1].textContent = txt; g._w = 0; } if (g.lastChild.textContent !== nm) { g.lastChild.textContent = nm; g._w = 0; }
-      g.classList.toggle('low', livesMode(mode) && pl.alive && pl.lives === 1); g.classList.toggle('out', !pl.alive); g.classList.toggle('pts', mode === MODE_POINTS || mode === MODE_TIME); g.classList.toggle('crn', mode === MODE_CROWN);
+      g.classList.toggle('low', livesMode(mode) && pl.alive && pl.lives === 1); g.classList.toggle('out', !pl.alive); g.classList.toggle('pts', toTarget(mode) || mode === MODE_TIME); g.classList.toggle('crn', mode === MODE_CROWN);
       podPos(sl2, sl3, _v); _v.y = 3.2 * sl3.s + 0.6; var q = scr(_v);
       g.hidden = !q.ok; placeEl(g, q.x, q.y, true, VIEW.rect.y + 30); g._x = g._px; g._y = g._py;
     }
@@ -5073,7 +5385,7 @@ var UI = { screen: 'home', full: false, drag: null, exitArmed: 0, toastT: null, 
 function $(id) { return document.getElementById(id); }
 var ICON_ON = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/></svg>';
 var ICON_OFF = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9l5 6M21 9l-5 6"/></svg>';
-var TARGETS = [[3, 5, 10], [5, 10, 15], [2, 3, 5], [45, 65, 75], [3, 5, 10], [3, 5, 10]], CROWN_SECS = [60, 90, 120], MODE_NAMES = ['mLives', 'mPoints', 'mTime', 'mCrown', 'mBullet', 'mBomb'];
+var TARGETS = [[3, 5, 10], [5, 10, 15], [2, 3, 5], [45, 65, 75], [3, 5, 10], [3, 5, 10], [15, 25, 35], [3, 5, 10]], CROWN_SECS = [60, 90, 120], MODE_NAMES = ['mLives', 'mPoints', 'mTime', 'mCrown', 'mBullet', 'mBomb', 'mGold', 'mFrenzy'];
 function targetsFor(c) { return (c.mode | 0) === 3 && c.ck ? CROWN_SECS : TARGETS[c.mode | 0]; }
 
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} return null; }
@@ -5236,6 +5548,10 @@ var MAP_ART = {
   candy: '<circle cx="38" cy="30" r="15"/><path d="M36 44h4v40h-4z"/><path d="M66 84a15 15 0 0 1 30 0z"/><circle cx="102" cy="22" r="7" opacity=".7"/><path d="M38 21a9 9 0 1 1-8 10" fill="none" stroke="#1d2550" stroke-width="2.5" opacity=".35"/>',
   volcano: '<path d="M8 84l38-50h28l38 50z"/><path d="M50 34q10-12 20 0" fill="#1d2550" opacity=".35"/><circle cx="62" cy="16" r="7" opacity=".6"/><circle cx="74" cy="7" r="5" opacity=".45"/>',
   disco: '<circle cx="60" cy="28" r="14"/><path d="M60 4v10" stroke="#fff" stroke-width="2"/><path d="M60 42L28 84h14zM60 42l32 42H78z" opacity=".45"/><path d="M52 22h16M50 30h20M54 37h12" stroke="#1d2550" stroke-width="2" opacity=".3"/>',
+  beach: '<path d="M0 70q30-6 60-2t60 0v16H0z"/><path d="M38 66V34" stroke="#fff" stroke-width="2.5"/><path d="M16 38q22-22 44 0z"/><circle cx="88" cy="62" r="7"/><circle cx="98" cy="20" r="9" opacity=".6"/>',
+  clouds: '<path d="M8 74a12 12 0 0 1 20-10 14 14 0 0 1 26 2 10 10 0 0 1 14 8z"/><path d="M60 80a10 10 0 0 1 16-8 12 12 0 0 1 22 2 9 9 0 0 1 14 6z" opacity=".75"/><path d="M30 54a32 32 0 0 1 64 0" fill="none" stroke="#fff" stroke-width="4" opacity=".7"/><path d="M38 54a24 24 0 0 1 48 0" fill="none" stroke="#fff" stroke-width="4" opacity=".45"/>',
+  toys: '<rect x="14" y="54" width="22" height="22" rx="3"/><rect x="20" y="32" width="20" height="20" rx="3" opacity=".75"/><rect x="44" y="58" width="18" height="18" rx="3" opacity=".6"/><path d="M76 78V30" stroke="#fff" stroke-width="3"/><rect x="66" y="64" width="20" height="8" rx="4"/><rect x="68" y="54" width="16" height="8" rx="4" opacity=".8"/><rect x="70" y="44" width="12" height="8" rx="4" opacity=".6"/>',
+  jungle: '<path d="M30 84h60V72H82V62h-8V52H46v10h-8v10h-8z"/><path d="M8 84V40M112 84V36" stroke="#fff" stroke-width="3"/><circle cx="8" cy="36" r="9" opacity=".75"/><circle cx="112" cy="32" r="10" opacity=".75"/>',
   random: '<rect x="44" y="22" width="34" height="34" rx="7" transform="rotate(-12 61 39)"/><g fill="#1d2550" opacity=".55"><circle cx="54" cy="32" r="3"/><circle cx="62" cy="40" r="3"/><circle cx="70" cy="48" r="3"/></g>'
 };
 function mapArt(k) { return '<svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><g fill="#fff">' + (MAP_ART[k] || '') + '</g></svg>'; }
@@ -5245,7 +5561,9 @@ var MODE_SVG = [
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 8.5V13l3 2M9.5 2.8h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M3.2 8.2l4.6 3.6L12 4.6l4.2 7.2 4.6-3.6-1.7 10.3H4.9z"/><rect x="4.9" y="19.5" width="14.2" height="2.3" rx="1.1" fill="currentColor"/></svg>',
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="15.5" cy="12" r="6" fill="currentColor"/><path d="M2.5 8h6M1.5 12h5.5M2.5 16h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
-  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="11" cy="14" r="7.5" fill="currentColor"/><path d="M15.5 7.5l2-2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M18.5 2.5v2M21.5 5.5h-2M20.6 3.4l-1.3 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.5" cy="11.5" r="1.8" fill="#fff" opacity=".55"/></svg>'
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="11" cy="14" r="7.5" fill="currentColor"/><path d="M15.5 7.5l2-2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M18.5 2.5v2M21.5 5.5h-2M20.6 3.4l-1.3 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.5" cy="11.5" r="1.8" fill="#fff" opacity=".55"/></svg>',
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="13" r="7.5" fill="currentColor"/><path d="M12 2.2l1.1 2.3 2.5.3-1.8 1.7.5 2.5L12 7.8 9.7 9l.5-2.5-1.8-1.7 2.5-.3z" fill="currentColor"/><path d="M9 13h6M12 10v6" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg>',
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="7" cy="8" r="4" fill="currentColor"/><circle cx="17" cy="7" r="3.2" fill="currentColor"/><circle cx="12.5" cy="16" r="5" fill="currentColor"/><circle cx="4.5" cy="18" r="2.4" fill="currentColor"/></svg>'
 ];
 function buildMaps() {
   var box = $('maps'); box.textContent = '';
@@ -5257,7 +5575,7 @@ function buildMaps() {
     b.appendChild(ic); b.appendChild(nm); b.appendChild(sb); box.appendChild(b);
   });
 }
-function tgtKey(c) { return ['lives', 'pts', 'mins', c.ck ? 'crs' : 'crn', 'lives', 'lives'][c.mode | 0]; }
+function tgtKey(c) { return ['lives', 'pts', 'mins', c.ck ? 'crs' : 'crn', 'lives', 'lives', 'gpts', 'lives'][c.mode | 0]; }
 function cfgTarget(c) { return c[tgtKey(c)] || targetsFor(c)[1]; }
 function targetText(mode, v, ck) { return mode === 2 ? v + ' ' + T('min') : mode === 3 ? v + ' ' + T(ck ? 'sec' : 'pts') : String(v); }
 function renderLobby() {
@@ -5291,18 +5609,18 @@ function renderLobby() {
   // what everyone sees: the mode, target and map the host picked
   var sum = $('summary'); sum.hidden = host; sum.textContent = '';
   if (!host) {
-    [T(MODE_NAMES[mode]) + ': ' + targetText(mode, cfgTarget(c), c.ck), mapName(c.map), T('size') + ': ' + T('sz' + (c.size | 0)), T('pw') + ': ' + T(c.pw ? 'on' : 'off')].concat(c.balls && mode !== 4 ? [T('balls') + ': ' + c.balls] : []).forEach(function (txt, k) {
+    [T(MODE_NAMES[mode]) + ': ' + targetText(mode, cfgTarget(c), c.ck), mapName(c.map), T('size') + ': ' + T('sz' + (c.size | 0)), T('pw') + ': ' + T(c.pw ? 'on' : 'off')].concat(c.balls && mode !== 4 && mode !== 7 ? [T('balls') + ': ' + c.balls] : []).forEach(function (txt, k) {
       var p = document.createElement('span'); p.className = 'pill' + (k === 0 ? ' y' : ''); p.textContent = txt; sum.appendChild(p);
     });
   }
   if (host) {
     $('bots-n').textContent = String(ROOM.seats.filter(function (x) { return x.bot; }).length);
     seg('modes', mode);
-    $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', c.ck ? 'tgtTime' : 'tgtCrown', 'tgtLives', 'tgtLives'][mode]);
+    $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', c.ck ? 'tgtTime' : 'tgtCrown', 'tgtLives', 'tgtLives', 'tgtPoints', 'tgtLives'][mode]);
     var tb = $('seg-tgt').querySelectorAll('button');
     targetsFor(c).forEach(function (v, k) { tb[k].setAttribute('data-v', v); tb[k].textContent = targetText(mode, v, c.ck); });
     $('kv-ck').hidden = mode !== 3; seg('seg-ck', c.ck ? 1 : 0);
-    $('kv-balls').hidden = mode === 4; $('balls-n').textContent = c.balls ? String(c.balls) : T('auto');
+    $('kv-balls').hidden = mode === 4 || mode === 7; $('balls-n').textContent = c.balls ? String(c.balls) : T('auto');
     seg('seg-tgt', cfgTarget(c)); seg('maps', c.map);
     seg('seg-speed', c.sp); seg('seg-level', c.bot); seg('seg-pw', c.pw); seg('seg-core', c.core ? 1 : 0); seg('seg-haz', c.haz ? 1 : 0); seg('seg-size', c.size | 0);
     var ok = ROOM.seats.length >= 2; $('b-start').disabled = !ok;
@@ -5315,7 +5633,8 @@ function renderLobby() {
 function showResults() {
   var S = G.S; if (!S) return;
   var mode = S.cfg.mode | 0, ps = S.players.slice().sort(function (a, b) { return (a.place || 99) - (b.place || 99); }), list = $('res-list'), i;
-  function mainVal(p) { return livesMode(mode) ? (p.alive ? String(Math.max(0, p.lives)) : 'KO') : String(p.pts); }
+  var held = mode === MODE_CROWN && S.cfg.crownBy;
+  function mainVal(p) { return livesMode(mode) ? (p.alive ? String(Math.max(0, p.lives)) : 'KO') : held ? p.pts + T('secS') : String(p.pts); }
   $('res-mode').textContent = T(MODE_NAMES[mode]) + (LANG === 'ar' ? '، ' : ', ') + mapName(S.cfg.map);
   var pod = $('podium'); pod.textContent = '';
   [1, 0, 2].forEach(function (k) {
@@ -5326,13 +5645,13 @@ function showResults() {
     var base = document.createElement('div'); base.className = 'base';
     var rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = String(k + 1);
     var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = p.name;
-    var vl = document.createElement('span'); vl.className = 'val'; vl.textContent = (livesMode(mode) ? '♥ ' : mode === MODE_CROWN ? '' : '★ ') + mainVal(p) + (mode === MODE_CROWN ? ' ' + T('pts') : '');
+    var vl = document.createElement('span'); vl.className = 'val'; vl.textContent = (livesMode(mode) ? '♥ ' : mode === MODE_CROWN ? '' : '★ ') + mainVal(p) + (mode === MODE_CROWN && !held ? ' ' + T('pts') : '');
     base.appendChild(rk); base.appendChild(nm); base.appendChild(vl); d.appendChild(im); d.appendChild(base); pod.appendChild(d);
   });
   resLog(mode);
   list.textContent = '';
   var head = document.createElement('div'); head.className = 'rrow head';
-  [['', ''], ['', ''], ['', ''], [livesMode(mode) ? T('left') : mode === MODE_CROWN ? T('crownCol') : T('points'), livesMode(mode) ? T('left') : mode === MODE_CROWN ? T('crownCol') : T('points')], [T('goals'), T('goals')], [T('saves'), T('saves')]].forEach(function (x) { var c = document.createElement('span'); c.textContent = x[0]; if (x[1]) { c.title = x[1]; c.setAttribute('aria-label', x[1]); } head.appendChild(c); });
+  [['', ''], ['', ''], ['', ''], [livesMode(mode) ? T('left') : mode === MODE_CROWN ? T(held ? 'heldCol' : 'crownCol') : T('points'), livesMode(mode) ? T('left') : mode === MODE_CROWN ? T(held ? 'heldCol' : 'crownCol') : T('points')], [T('goals'), T('goals')], [T('saves'), T('saves')]].forEach(function (x) { var c = document.createElement('span'); c.textContent = x[0]; if (x[1]) { c.title = x[1]; c.setAttribute('aria-label', x[1]); } head.appendChild(c); });
   list.appendChild(head);
   for (i = 0; i < ps.length; i++) {
     var p = ps[i], row = document.createElement('div'); row.className = 'rrow' + (p.seat === G.me ? ' me' : '') + (livesMode(mode) && !p.alive ? ' out' : ''); row.style.setProperty('--c', COLORS[p.col]);
@@ -5403,7 +5722,7 @@ function hudOrder(S) {
 function hudBuild() {
   var S = G.S, box = $('score'); box.textContent = ''; UI.hud = [];
   if (!S) return;
-  box.classList.toggle('many', S.players.length > 5); box.style.setProperty('--cols', Math.ceil(S.players.length / 2));
+  box.classList.toggle('many', S.players.length > 5); box.classList.toggle('nob', (S.cfg.mode | 0) === MODE_CROWN && !!S.cfg.crownBy);   // timed Crown has no points to show box.style.setProperty('--cols', Math.ceil(S.players.length / 2));
   S.players.forEach(function () { UI.hud.push(null); });
   hudOrder(S).forEach(function (i) {
     var p = S.players[i], el = document.createElement('div'); el.className = 'sc' + (i === G.me ? ' me' : ''); el.style.setProperty('--c', COLORS[p.col]);
@@ -5417,8 +5736,9 @@ function hudBuild() {
 function hudInfo(S) {
   var info = $('hud-info'), txt = '', hot = false, mode = S.cfg.mode | 0;
   if (mode === MODE_TIME) { if (S.ot) { txt = T('otT'); hot = true; } else { var left = S.endT ? S.endT - S.t : 60 * (S.cfg.mins || 3); txt = fmtClock(left); hot = S.endT && left < 10.5; } }
-  else if (mode === MODE_POINTS) txt = T('firstTo', { n: S.cfg.target || 10 });
-  else if (mode === MODE_CROWN && S.cfg.crownBy) { if (S.ot) { txt = T('otT'); hot = true; } else { var lc = S.endT ? S.endT - S.t : (S.cfg.crownS || 90); txt = fmtClock(lc); hot = S.endT && lc < 10.5; } }
+  else if (toTarget(mode)) txt = T('firstTo', { n: S.cfg.target || 10 });
+  else if (mode === MODE_FRENZY) txt = T('frenzyN', { n: S.balls.length });
+  else if (mode === MODE_CROWN && S.cfg.crownBy) { if (S.ot) { txt = T('otCrown'); hot = true; } else { var lc = S.endT ? S.endT - S.t : (S.cfg.crownS || 90); txt = fmtClock(lc); hot = S.endT && lc < 10.5; } }
   else if (mode === MODE_CROWN) txt = T('crownTo', { n: S.cfg.crownT || 45 });
   else if (mode === MODE_BULLET) { var bb = S.balls[0], ti = bb ? tierOf(bb.hits | 0) : 0; txt = T('spd' + ti); hot = ti >= 3; }
   if (UI.infoTxt !== txt) { UI.infoTxt = txt; info.textContent = txt; info.hidden = !txt; }
@@ -5529,7 +5849,7 @@ function initUI() {
   });
   $('bots-minus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.max(0, ROOM.seats.filter(function (x) { return x.bot; }).length - 1); syncBots(); sendLobby(); renderLobby(); });
   $('bots-plus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.min(MAXP - humans().length, ROOM.seats.filter(function (x) { return x.bot; }).length + 1); syncBots(); sendLobby(); renderLobby(); });
-  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 5); }));
+  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 7); }));
   $('seg-tgt').addEventListener('click', hostSet(function (v) { var c = ROOM.cfg; c[tgtKey(c)] = +v; }));
   $('seg-ck').addEventListener('click', hostSet(function (v) { ROOM.cfg.ck = +v ? 1 : 0; }));
   $('balls-minus').addEventListener('click', function () { if (!(ROOM.role === 'host' || ROOM.role === 'solo')) return; sfx('click'); ROOM.cfg.balls = Math.max(0, (ROOM.cfg.balls | 0) - 1); sendLobby(); renderLobby(); });
