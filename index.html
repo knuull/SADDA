@@ -35,7 +35,6 @@
 [hidden] { display: none !important; }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
-html { height: calc(100% + var(--gap, 0px)); }
 body {
   margin: 0; background: var(--b2); color: var(--navy); font-family: var(--font); font-size: 15px; line-height: 1.3;
   overflow: hidden; overscroll-behavior: none; -webkit-tap-highlight-color: transparent;
@@ -348,6 +347,8 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 .hud-top { position: absolute; top: 8px; inset-inline: 8px; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
 .hud-top > button { pointer-events: auto; flex: none; }
 .hud-top .ibtn { width: 42px; height: 42px; }
+.sa .hud-top { top: 54px; }                                     /* iPhone Home Screen app: the system tints a band under the status bar; keep the players' cards below it */
+@media (orientation: landscape) { .sa .hud-top { top: 8px; } }
 .hud-pad { width: 42px; flex: none; }
 .hud-mid { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
 .score { direction: ltr; max-width: 100%; display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; min-width: 0; padding: 7px 2px 6px; }
@@ -3950,7 +3951,7 @@ function buildHead(ch, hex) {
 
 /* ================= 3D RUNTIME: stage, players, camera, effects ================= */
 var VIEW = { W: 300, H: 300, pxPerUnit: 100, padDir: 1, rect: { x: 0, y: 0, w: 300, h: 300 } };
-var CAM = { elP0: 0.8, elP1: 1.04, fovP: 54, elW0: 0.55, elW1: 0.8, fovW: 46, nearF: 0.985, margin: 0.015, nearCrop: 0.14, padP: 96, slackP: 0.93, slackW: 0.97 };   // match camera: height range (radians), field of view, where your hero stands, side margin, room kept for the buttons on tall screens
+var CAM = { elP0: 0.8, elP1: 1.04, fovP: 54, elW0: 0.55, elW1: 0.8, fovW: 46, nearF: 0.985, margin: 0.025, nearCrop: 0, padP: 96, slackP: 0.93, slackW: 0.97 };   // match camera: height range (radians), field of view, where your hero stands, side margin, room kept for the buttons on tall screens
 var FX = { shake: 0, mood: {}, lastWall: {}, cd: null };
 var PN = 700, PT = null;
 var REDUCE = false; try { REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
@@ -4684,15 +4685,28 @@ function camFit(pts, el, az, rect, slack, tgtOff, bottom) {
   if (bottom) oy = (1 - bb.y0) / 2 * H - (rect.y + rect.h);            // rest the arena on the bottom of the space so your side sits low, like Crash
   return { d: hi, ox: cxp - (rect.x + rect.w / 2), oy: oy, tgt: tgt };
 }
-/* iPhone Home Screen app bug: with the see-through status bar, the page can end short of the bottom of the
-   screen by the status bar's height, leaving a blue strip. Measure the gap and stretch the app over it. */
+/* iPhone Home Screen app bug: once the keyboard has been open (typing a name or a room code), iOS can leave
+   the page shorter than the screen until the app restarts, so a strip shows at the bottom. Remember the full
+   height seen for this screen width; when the page comes up short, first ask iOS to measure again, and if it
+   stays short, stretch the app over the strip. Content stays inside the real page, so nothing is pushed off screen. */
+var VPK = {};
+function typing() { var a = document.activeElement; return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA'); }
 function fixGap() {
-  var gap = 0;
-  if (navigator.standalone === true && window.screen && screen.height) {
-    var tall = innerHeight >= innerWidth, sh = tall ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-    gap = Math.round(sh - innerHeight); if (gap < 6 || gap > 100) gap = 0;
+  var sa = navigator.standalone === true, w = innerWidth, h = innerHeight, gap = 0;
+  document.documentElement.classList.toggle('sa', sa);
+  if (!typing()) VPK[w] = Math.max(VPK[w] || 0, h);
+  if (sa && !typing() && VPK[w]) {
+    gap = VPK[w] - h;
+    if (window.screen && screen.height) gap = Math.min(gap, Math.max(screen.width, screen.height) - h);
+    if (gap < 4 || gap > 160) gap = 0;
   }
   if (fixGap.v !== gap) { fixGap.v = gap; document.documentElement.style.setProperty('--gap', gap + 'px'); }
+  return gap;
+}
+function remeasure() {
+  if (typing() || !VPK[innerWidth] || VPK[innerWidth] - innerHeight <= 4) return;
+  var app = $('app'); app.style.display = 'none'; void app.offsetHeight; app.style.display = '';   // makes iOS work out the page height again
+  setTimeout(gfxResize, 30); setTimeout(gfxResize, 400);
 }
 function gfxResize() {
   fixGap();
@@ -4798,7 +4812,7 @@ function camFitPlayer(az, rect) {
     for (k = 0; k < 14; k++) { el = (lo + hi) / 2; r = fitD(el); if (r.v > r.w) hi = el; else lo = el; }   // the height is what limits: look from lower down
     el = (lo + hi) / 2; r = fitD(el);
   }
-  var m = r.m, free = Math.max(0, spanWant - (m.near - m.top)), res = tall ? CAM.padP : 0, lift = Math.max(Math.min(free, res), free * 0.62);   // tall screens: spare room mostly below, where the buttons are, a little above
+  var m = r.m, free = Math.max(0, spanWant - (m.near - m.top)), res = tall ? CAM.padP : 0, lift = Math.max(Math.min(free, res), free * 0.46);   // tall screens: spare room mostly below, where the buttons are, a little above
   return { d: r.d, el: el, ox: (m.x0 + m.x1) / 2 - (rect.x + rect.w / 2), oy: m.near - (rect.y + rect.h * CAM.nearF - lift) };
 }
 function camUpdate(now, dt) {
@@ -5536,11 +5550,12 @@ function initUI() {
     else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') INPUT.right = false;
   });
   window.addEventListener('resize', gfxResize);
+  document.addEventListener('focusout', function (e) { if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) { setTimeout(remeasure, 150); setTimeout(gfxResize, 500); } });
   window.addEventListener('orientationchange', function () { setTimeout(gfxResize, 250); });
   if (window.ResizeObserver) new ResizeObserver(function (en) {                 // the camera keeps the arena under the score row
     var h = Math.round(en[0].contentRect.height); if (UI.screen === 'game' && h && Math.abs(h - (UI.topH || 0)) > 1) { UI.topH = h; gfxResize(); }
   }).observe(document.querySelector('.hud-top'));
-  document.addEventListener('visibilitychange', function () { if (document.hidden) return; if (UI.screen === 'game') wakeLock(); G.lastHost = performance.now(); ROOM.tickAt = 0; });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) return; setTimeout(remeasure, 200); if (UI.screen === 'game') wakeLock(); G.lastHost = performance.now(); ROOM.tickAt = 0; });
   window.addEventListener('pagehide', function () { if (ROOM.role === 'host') hostBroadcast(['bye']); else if (ROOM.role === 'client') clientRelay(['bye']); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { gfxResize(); });
 
