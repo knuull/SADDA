@@ -614,6 +614,21 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
 .hud-info.hot.purp { background: #8a2dff; box-shadow: 0 3px 0 #5310b0; }
 .score.nob .sc b { display: none; }
 .hud-info.hot.blk { background: #15151c; color: #fff; box-shadow: 0 3px 0 #000, 0 0 0 2px #fff; }
+/* levels: a small chip next to names, a bar on the profile and the results */
+.lvc { display: inline-grid; place-items: center; min-width: 30px; height: 18px; padding: 0 6px; border-radius: 9px; font-style: normal; font-size: 0.64rem; font-weight: 800; line-height: 1; color: #fff; background: linear-gradient(180deg, #6a99ff, #2253e8); box-shadow: 0 2px 0 rgba(11, 27, 102, 0.3); white-space: nowrap; flex: none; }
+.lvc.max { color: #5a3a00; background: linear-gradient(180deg, #ffe680, #ffb81c); }
+.lvc:empty { display: none; }
+.pf-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.seat .lvc { position: absolute; top: 4px; inset-inline-start: 4px; }
+.rrow .nm .lvc, .kl .lvc { margin-inline-start: 6px; vertical-align: 1px; }
+.xpbox { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 16px; background: var(--soft); }
+.xprow { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.xprow b { font-size: 1rem; font-weight: 800; }
+.xprow small { font-size: 0.74rem; font-weight: 700; color: var(--muted); margin-inline-start: auto; }
+.xpgain { font-weight: 800; color: var(--green-lip); }
+.xpbar { height: 10px; border-radius: 5px; background: var(--soft-3); overflow: hidden; }
+.xpbar i { display: block; height: 100%; width: 0; border-radius: 5px; background: linear-gradient(90deg, #63f2ff, #2f68ff); transition: width 1.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.xpbox.max .xpbar i { background: linear-gradient(90deg, #ffe680, #ffb81c); }
 </style>
 </head>
 <body>
@@ -662,7 +677,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
       <button id="b-lang" class="ibtn lang" type="button"><span></span></button>
       <button id="b-help" class="ibtn" type="button" aria-label="How to play"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M8.6 9a3.5 3.5 0 1 1 5 3.2c-1 .5-1.6 1.2-1.6 2.3v.4"/><circle cx="12" cy="19.2" r="1.8" fill="currentColor"/></svg></button>
     </div>
-    <button id="b-profile" class="profile" type="button"><img id="pf-img" alt="" width="56" height="56"><span class="pf-txt"><b id="pf-name"></b><small data-t="editMe"></small></span></button>
+    <button id="b-profile" class="profile" type="button"><img id="pf-img" alt="" width="56" height="56"><span class="pf-txt"><span class="pf-row"><i id="pf-lv" class="lvc"></i><b id="pf-name"></b></span><small data-t="editMe"></small></span></button>
   </header>
 
   <section id="s-home" class="screen home">
@@ -698,6 +713,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
       <div class="sheet-head"><h2 id="pr-title" class="sheet-title" data-t="profile"></h2><button class="ibtn sm soft x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <label class="lbl" for="in-name" data-t="name"></label>
       <input id="in-name" class="field" type="text" maxlength="12" autocomplete="off" autocapitalize="words" spellcheck="false">
+      <div class="xpbox"><div class="xprow"><b id="xp-lv"></b><small id="xp-txt"></small></div><div class="xpbar"><i id="xp-fill"></i></div></div>
       <div class="lbl" data-t="pickChar"></div>
       <div class="pick-ch"></div>
       <div class="lbl" data-t="colour"></div>
@@ -832,6 +848,7 @@ button.opt:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--soft-2
     <div class="panel">
       <div class="reshead"><h2 class="res-title" data-t="results"></h2><span id="res-mode" class="pill"></span></div>
       <div id="podium" class="podium"></div>
+      <div id="res-xp" class="xpbox res" hidden><div class="xprow"><b id="rx-lv"></b><span id="rx-gain" class="xpgain"></span><small id="rx-txt"></small></div><div class="xpbar"><i id="rx-fill"></i></div></div>
       <div id="res-log" class="klog" hidden></div>
       <div id="res-list" class="reslist"></div>
       <div id="res-awards" class="awards"></div>
@@ -965,7 +982,7 @@ function newMatch(roster, cfg) {
   roster.forEach(function (r, i) {
     var sd = sides[ss[i]]; sd.seat = i;
     S.players.push({
-      seat: i, id: r.id, name: r.name, ch: r.ch, col: r.col, bot: !!r.bot, remote: !!r.remote, conn: true,
+      seat: i, id: r.id, name: r.name, ch: r.ch, col: r.col, lv: r.lv | 0, bot: !!r.bot, remote: !!r.remote, conn: true,
       side: sd.i, a0: sd.a, L: sd.L, alive: true, lives: cfg.lives, pts: 0, conc: 0, bricks: BRICKS,
       p: 0, pt: 0, pn: 0, pv: 0, pvel: 0, smashUntil: -1, smashCd: 0, smashN: 0, smashOn: false,
       wideUntil: -1, wide: false, shield: false, shieldUntil: -1, guardUntil: -1, guard: false,
@@ -1806,6 +1823,7 @@ var STR = {
     koLog: 'Knockouts', hitLog: 'Who scored on who', koBy: 'knocked out', scoredOn: 'scored {n} on', wild: 'Wild pearl',
     crownTo: 'Crown: first to {n} points', crownT: 'CROWN STOLEN!', crownGot2: 'THE KING!', crownGot: '{n} has the crown', youCrown: 'YOUR CROWN!',
     crownDrop: 'CROWN DROPPED!', crownDropS: 'Score to grab it', cwarnT: '5 POINTS TO WIN!', cwarnS: 'Stop {n}!', cwarnMe: '5 MORE POINTS!', cwarnMeS: 'Hold on!',
+    lvS: 'Lv {n}', lvL: 'Level {n}', xpTxt: '{a} / {b} XP to level {n}', xpMax: 'Top level. Legend!', xpGain: '+{n} XP', lvUp: 'LEVEL UP!', lvUpS: 'Level {n}',
     mFort: 'Fortress', mFortS: 'Break walls, guard yours', wallN: 'Your wall: {n}/5', wallDown: 'WALL DOWN!', wallDownS: 'Your goal is open', wallUp: 'Wall rebuilt',
     mGold: 'Gold Rush', mGoldS: 'Golden pearl = 3 points', mFrenzy: 'Frenzy', mFrenzyS: 'Every goal adds a pearl',
     goldIn: 'GOLDEN PEARL!', goldInS: 'Worth 3 points', goldGot: '{n} scored gold!', moreT: '{n} PEARLS!', frenzyN: 'Pearls: {n}',
@@ -1861,6 +1879,7 @@ var STR = {
     koLog: 'مين طلّع مين', hitLog: 'مين سجّل على مين', koBy: 'طلّع', scoredOn: 'سجّل {n} على', wild: 'لؤلؤة طايشة',
     crownTo: 'التاج: أول من يوصل {n} نقطة', crownT: 'انسرق التاج!', crownGot2: 'الملك!', crownGot: 'التاج مع {n}', youCrown: 'التاج معك!',
     crownDrop: 'طاح التاج!', crownDropS: 'سجّل وخذه', cwarnT: 'باقي له ٥ نقاط!', cwarnS: 'وقّفوا {n}!', cwarnMe: 'باقي لك ٥ نقاط!', cwarnMeS: 'اثبت!',
+    lvS: 'Lv {n}', lvL: 'المستوى {n}', xpTxt: '{a} / {b} نقطة خبرة للمستوى {n}', xpMax: 'أعلى مستوى. أسطورة!', xpGain: '+{n} خبرة', lvUp: 'مستوى جديد!', lvUpS: 'المستوى {n}',
     mFort: 'القلعة', mFortS: 'كسّر جدرانهم واحمِ جدارك', wallN: 'جدارك: {n}/5', wallDown: 'طاح الجدار!', wallDownS: 'مرماك مفتوح', wallUp: 'رجع الجدار',
     mGold: 'حمّى الذهب', mGoldS: 'اللؤلؤة الذهبية = ٣ نقاط', mFrenzy: 'فوضى', mFrenzyS: 'كل هدف يزيد لؤلؤة',
     goldIn: 'لؤلؤة ذهبية!', goldInS: 'تسوى ٣ نقاط', goldGot: '{n} سجّل الذهبية!', moreT: '{n} لؤلؤات!', frenzyN: 'اللؤلؤ: {n}',
@@ -2285,7 +2304,7 @@ function pickMap() {
   var m; do { m = (Math.random() * MAPS.length) | 0; } while (MAPS.length > 1 && m === ROOM.mapNow);
   return m;
 }
-function prof() { return { name: ME.name || T('guest'), ch: ME.ch, col: ME.col }; }
+function prof() { return { name: ME.name || T('guest'), ch: ME.ch, col: ME.col, lv: myLevel() }; }
 function cleanName(s) { s = String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12); return s || T('guest'); }
 function ci(v, a, b) { v = v | 0; return v < a ? a : v > b ? b : v; }
 function humans() { return ROOM.seats.filter(function (s) { return !s.bot; }); }
@@ -2317,7 +2336,7 @@ function syncBots() {
 /* ---------- starting and ending a match ---------- */
 function beginMatch(role) {
   var roster = ROOM.seats.map(function (s) {
-    return { id: s.id, name: s.bot ? chName(s.ch) : s.name, ch: s.ch, col: s.col, bot: !!s.bot,
+    return { id: s.id, name: s.bot ? chName(s.ch) : s.name, ch: s.ch, col: s.col, bot: !!s.bot, lv: s.bot ? 0 : s.lv || 1,
       remote: !s.bot && (role === 'client' ? s.id !== ROOM.hostId : s.id !== ME.id) };
   });
   var S = newMatch(roster, cfgObj()), nowMs = performance.now();
@@ -2401,7 +2420,7 @@ function wallFx(b, soft) {
 function lobbyMsg() {
   var c = ROOM.cfg, now = performance.now();
   return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15], map: ROOM.mapNow, bots: ROOM.bots,
-    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0]; }),
+    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1]; }),
     wait: ROOM.waiting.map(function (w) { return [w.id, w.name, w.ch, w.col]; }) }];
 }
 function sendLobby() { if (ROOM.role === 'host') hostBroadcast(lobbyMsg()); if (UI.screen === 'lobby') renderLobby(); }
@@ -2437,14 +2456,14 @@ function onHostMsg(id, m) {
     p = m[1] || {};
     if (!seat && !w) {
       if (humans().length + ROOM.waiting.length >= MAXP) { hostSendTo(id, ['err', 'full']); return; }
-      t = { id: id, name: cleanName(p.name), ch: ci(p.ch, 0, CHARS.length - 1), col: ci(p.col, 0, COLORS.length - 1), bot: false, seen: now, joinedAt: now / 1000 };
+      t = { id: id, name: cleanName(p.name), ch: ci(p.ch, 0, CHARS.length - 1), col: ci(p.col, 0, COLORS.length - 1), lv: ci(p.lv, 1, LV_MAX), bot: false, seen: now, joinedAt: now / 1000 };
       if (ROOM.phase === 'lobby') { t.col = freeCol(t.col, id); ROOM.seats.push(t); syncBots(); } else ROOM.waiting.push(t);
       sfx('join');
     }
     sendLobby();
   } else if (k === 'prof') {
     p = m[1] || {}; t = (ROOM.phase === 'lobby' ? seat : null) || w; if (!t) return;
-    t.name = cleanName(p.name); t.ch = ci(p.ch, 0, CHARS.length - 1); t.col = freeCol(ci(p.col, 0, COLORS.length - 1), id);
+    t.name = cleanName(p.name); t.lv = ci(p.lv, 1, LV_MAX); t.ch = ci(p.ch, 0, CHARS.length - 1); t.col = freeCol(ci(p.col, 0, COLORS.length - 1), id);
     if (t === seat) syncBots(); sendLobby();
   } else if (k === 'p') hostSendTo(id, ['q', m[1], Math.round(now)]);
   else if (k === 'i') hostInput(id, m, now);
@@ -2556,7 +2575,7 @@ function applyLobby(d) {
   ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000; ROOM.seats.forEach(function (x) { was[x.id] = x.joinedAt; });
-  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
+  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
   ROOM.waiting = (d.wait || []).map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3] }; });
   var seated = ROOM.seats.find(function (s) { return s.id === ME.id; }), mine = seated || ROOM.waiting.find(function (s) { return s.id === ME.id; });
   if (!mine) { if (ROOM.joined) clientRelay(['hello', prof()]); return; }
@@ -2690,7 +2709,7 @@ function createRoom() {
   netHost().then(function (code) {
     ROOM.busy = false; hideToast();
     ROOM.role = 'host'; ROOM.code = code; ROOM.phase = 'lobby'; ROOM.bots = 0; ROOM.hostId = ME.id; ROOM.waiting = [];
-    ROOM.seats = [{ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, bot: false, seen: performance.now(), joinedAt: performance.now() / 1000 }];
+    ROOM.seats = [{ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), bot: false, seen: performance.now(), joinedAt: performance.now() / 1000 }];
     stopTimers(); ROOM.timer = setInterval(hostTimer, 1500);
     showScreen('lobby');
   }).catch(function () { ROOM.busy = false; netClose(); toast(T('netFail'), 4500); });
@@ -2710,7 +2729,7 @@ function joinRoom(code) {
 function soloRoom() {
   ROOM.role = 'solo'; ROOM.code = ''; ROOM.phase = 'lobby'; ROOM.waiting = []; ROOM.hostId = ME.id;
   if (ROOM.bots < 1) ROOM.bots = 3;
-  ROOM.seats = [{ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, bot: false, seen: 0, joinedAt: performance.now() / 1000 }];
+  ROOM.seats = [{ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), bot: false, seen: 0, joinedAt: performance.now() / 1000 }];
   syncBots(); showScreen('lobby');
 }
 function teardown() {
@@ -2731,7 +2750,7 @@ function profChanged() {
   if (ROOM.role === 'client') { if (ROOM.joined) clientRelay(['prof', prof()]); return; }
   if (ROOM.role !== 'host' && ROOM.role !== 'solo') return;
   var s = ROOM.seats.find(function (x) { return x.id === ME.id; }); if (!s) return;
-  s.name = cleanName(ME.name); s.ch = ME.ch; s.col = ME.col = freeCol(ME.col, ME.id);
+  s.name = cleanName(ME.name); s.lv = myLevel(); s.ch = ME.ch; s.col = ME.col = freeCol(ME.col, ME.id);
   syncBots(); sendLobby(); if (ROOM.role === 'solo') renderLobby();
 }
 function keyMove(me, dt) {
@@ -5432,13 +5451,37 @@ var ICON_OFF = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="tru
 var TARGETS = [[3, 5, 10], [5, 10, 15], [2, 3, 5], [45, 65, 75], [3, 5, 10], [3, 5, 10], [15, 25, 35], [3, 5, 10], [2, 3, 5]], CROWN_SECS = [60, 90, 120], MODE_NAMES = ['mLives', 'mPoints', 'mTime', 'mCrown', 'mBullet', 'mBomb', 'mGold', 'mFrenzy', 'mFort'];
 function targetsFor(c) { return (c.mode | 0) === 3 && c.ck ? CROWN_SECS : TARGETS[c.mode | 0]; }
 
+/* ---------- levels: XP from every match, level 1 to 25 ----------
+   Going from level n to n+1 takes 100 + 40 x (n - 1) XP, so the first levels come quickly and 25 takes a while
+   (13,440 XP in all, about 150 matches). Kept on this phone with the rest of your profile. */
+var LV_MAX = 25;
+function lvNeed(n) { return 100 + 40 * (n - 1); }
+function levelInfo(xp) {
+  var lv = 1; xp = Math.max(0, xp | 0);
+  while (lv < LV_MAX && xp >= lvNeed(lv)) { xp -= lvNeed(lv); lv++; }
+  return { lv: lv, into: xp, need: lv < LV_MAX ? lvNeed(lv) : 0 };
+}
+function myLevel() { return levelInfo(UI.xp || 0).lv; }
+function lvChip(el, lv) { el.textContent = lv > 0 ? (lv >= LV_MAX ? T('lvS', { n: 'MAX' }) : T('lvS', { n: lv })) : ''; el.classList.toggle('max', lv >= LV_MAX); }
+function xpShow(box, lvEl, txtEl, fill, xp) {
+  var L = levelInfo(xp); lvEl.textContent = T('lvL', { n: L.lv });
+  txtEl.textContent = L.lv >= LV_MAX ? T('xpMax') : T('xpTxt', { a: L.into, b: L.need, n: L.lv + 1 });
+  fill.style.width = (L.lv >= LV_MAX ? 100 : Math.round(L.into / L.need * 100)) + '%'; box.classList.toggle('max', L.lv >= LV_MAX);
+}
+/* what one match is worth: playing it, where you finished, goals and saves; less against bots only */
+function matchXP(S, p) {
+  var n = S.players.length, place = p.place || n, xp = 20 + Math.round(60 * (n - place) / Math.max(1, n - 1)) + 4 * (p.score || 0) + Math.min(30, p.saves || 0);
+  var people = S.players.some(function (q) { return !q.bot && q.seat !== p.seat; });
+  if (!people) xp = Math.round(xp * 0.6);
+  return Math.min(150, xp);
+}
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} return null; }
-function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, snd: AU.on, mus: AU.musicOn, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', th: UI.theme || 'auto', how: !!UI.howSeen, plays: UI.plays || 0 }); }
+function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, snd: AU.on, mus: AU.musicOn, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', xp: UI.xp || 0, th: UI.theme || 'auto', how: !!UI.howSeen, plays: UI.plays || 0 }); }
 function loadProfile() {
   var p = store('sadda.profile') || {};
   ME.name = typeof p.name === 'string' ? p.name.slice(0, 12) : '';
   ME.ch = ci(p.ch == null ? Math.random() * CHARS.length : p.ch, 0, CHARS.length - 1); ME.col = ci(p.col == null ? Math.random() * 8 : p.col, 0, COLORS.length - 1);
-  AU.on = p.snd !== false; AU.musicOn = p.mus !== false; AU.vib = p.vib !== false; UI.gfx = p.gfx || 'auto'; UI.smashL = p.sm === 'l'; UI.theme = /^(light|dark)$/.test(p.th) ? p.th : 'auto'; applyTheme(); UI.howSeen = !!p.how; UI.plays = +p.plays || 0;
+  AU.on = p.snd !== false; AU.musicOn = p.mus !== false; AU.vib = p.vib !== false; UI.gfx = p.gfx || 'auto'; UI.smashL = p.sm === 'l'; UI.xp = Math.max(0, +p.xp || 0); UI.theme = /^(light|dark)$/.test(p.th) ? p.th : 'auto'; applyTheme(); UI.howSeen = !!p.how; UI.plays = +p.plays || 0;
   LANG = p.lang === 'ar' || p.lang === 'en' ? p.lang : ((navigator.language || 'en').slice(0, 2) === 'ar' ? 'ar' : 'en');
   UI.langSet = !!p.langSet;
   var id = null; try { id = sessionStorage.getItem('sadda.id'); } catch (e) {}
@@ -5546,6 +5589,7 @@ function refreshPickers() {
   $('show-name').textContent = chName(ME.ch); $('show-sub').textContent = chSub(ME.ch);
   var pk = ME.ch + hex, pi = $('pf-img'); if (pi.getAttribute('data-p') !== pk) { pi.src = portraitURL(ME.ch, hex); pi.setAttribute('data-p', pk); }
   $('pf-name').textContent = ME.name || T('guest');
+  lvChip($('pf-lv'), myLevel()); xpShow($('xp-lv').parentNode.parentNode, $('xp-lv'), $('xp-txt'), $('xp-fill'), UI.xp || 0);
 }
 /* ---------- bottom sheets on the home screen: how to play, and your player ---------- */
 function openSheet(id) {
@@ -5637,6 +5681,7 @@ function renderLobby() {
     var cell = document.createElement('div'); cell.className = 'seat';
     var im = document.createElement('img'); im.alt = ''; cell.appendChild(im);
     var nm = document.createElement('b'); cell.appendChild(nm); var tg = document.createElement('i'); cell.appendChild(tg);
+    var lc = document.createElement('em'); lc.className = 'lvc'; cell.appendChild(lc);
     box.appendChild(cell);
   }
   var shown = all.length <= 4 ? 4 : all.length <= 8 ? 8 : 10;               // rows of 4, or two rows of 5 for a full room
@@ -5645,10 +5690,10 @@ function renderLobby() {
     var el = box.children[i], it = all[i];
     el.hidden = i >= shown;
     el.className = 'seat' + (it ? '' : ' empty') + (it && it.s.id === ME.id ? ' me' : '') + (it && (it.s.away || it.w) ? ' dim' : '');
-    if (!it) { el.children[1].textContent = T('open'); el.children[2].textContent = ''; el.style.removeProperty('--c'); el.firstChild.removeAttribute('src'); el.firstChild.removeAttribute('data-p'); continue; }
+    if (!it) { el.children[3].textContent = ''; el.children[1].textContent = T('open'); el.children[2].textContent = ''; el.style.removeProperty('--c'); el.firstChild.removeAttribute('src'); el.firstChild.removeAttribute('data-p'); continue; }
     var s = it.s, key = s.ch + COLORS[s.col]; el.style.setProperty('--c', COLORS[s.col]);
     if (el.firstChild.getAttribute('data-p') !== key) { el.firstChild.src = portraitURL(s.ch, COLORS[s.col]); el.firstChild.setAttribute('data-p', key); }
-    el.children[1].textContent = s.bot ? chName(s.ch) : s.name;
+    el.children[1].textContent = s.bot ? chName(s.ch) : s.name; lvChip(el.children[3], s.bot ? 0 : (s.id === ME.id ? myLevel() : s.lv || 1));
     el.children[2].textContent = it.w ? T('waiting') : s.id === ME.id ? T('you') : s.bot ? T('bot') : s.away ? T('away') : s.id === ROOM.hostId ? T('host') : '';
   }
   $('hostctl').hidden = !host; $('b-start').hidden = !host;
@@ -5703,7 +5748,7 @@ function showResults() {
     var p = ps[i], row = document.createElement('div'); row.className = 'rrow' + (p.seat === G.me ? ' me' : '') + (livesMode(mode) && !p.alive ? ' out' : ''); row.style.setProperty('--c', COLORS[p.col]);
     var a = document.createElement('span'); a.className = 'pl'; a.textContent = String(p.place || i + 1);
     var im2 = document.createElement('img'); im2.alt = ''; im2.src = portraitURL(p.ch, COLORS[p.col]);
-    var n = document.createElement('span'); n.className = 'nm'; n.textContent = p.name;
+    var n = document.createElement('span'); n.className = 'nm'; n.textContent = p.name; if (!p.bot) { var lc2 = document.createElement('i'); lc2.className = 'lvc'; lvChip(lc2, p.seat === G.me ? myLevel() : p.lv || 1); n.appendChild(lc2); }
     var g0 = document.createElement('span'); g0.className = 'num main'; g0.textContent = mainVal(p);
     var g1 = document.createElement('span'); g1.className = 'num'; g1.textContent = String(p.score);
     var g2 = document.createElement('span'); g2.className = 'num'; g2.textContent = String(p.saves);
@@ -5717,12 +5762,28 @@ function showResults() {
     var t = document.createElement('div'); var b1 = document.createElement('small'); b1.textContent = T(d[0]); var b2 = document.createElement('b'); b2.textContent = top.name + ' (' + top[d[1]] + ')';
     t.appendChild(b1); t.appendChild(b2); c.appendChild(im); c.appendChild(t); aw.appendChild(c);
   });
+  resXP(S);
   var host = ROOM.role === 'host' || ROOM.role === 'solo';
   $('b-again').hidden = !host; $('b-res-room').hidden = !host;
   $('res-note').textContent = host ? '' : T('waitHost'); $('res-note').hidden = host;
   showScreen('results');
 }
 
+/* my XP for this match, once per match, with the bar filling up and a LEVEL UP! when it ticks over */
+function resXP(S) {
+  var box = $('res-xp'), me = S.players[G.me];
+  if (!me) { box.hidden = true; return; }
+  if (G.xpMid !== G.mid) {
+    G.xpMid = G.mid; var before = levelInfo(UI.xp || 0).lv, gain = matchXP(S, me);
+    G.xpBefore = UI.xp || 0; G.xpGain = gain; UI.xp = (UI.xp || 0) + gain; saveProfile();
+    var after = levelInfo(UI.xp).lv;
+    if (after > before) setTimeout(function () { showTitle(T('lvUp'), T('lvUpS', { n: after >= LV_MAX ? 'MAX' : after }), 'win', 2200, GOLD); sfx('crown', true); buzz([40, 60, 40]); }, 2600);
+    if (ROOM.role !== 'none') profChanged();                                     // the room sees the new level
+  }
+  box.hidden = false; $('rx-gain').textContent = T('xpGain', { n: G.xpGain || 0 });
+  xpShow(box, $('rx-lv'), $('rx-txt'), $('rx-fill'), G.xpBefore || 0);          // start from where you were, then fill to the new total
+  setTimeout(function () { xpShow(box, $('rx-lv'), $('rx-txt'), $('rx-fill'), UI.xp || 0); }, 500);
+}
 /* who knocked out who (lives modes), or who scored on who: from the goal and KO events every phone sees */
 function logEvent(a) {
   var L = G.log || (G.log = []), i;
