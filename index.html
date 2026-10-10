@@ -1742,13 +1742,20 @@ var BANK = {
 function play(buf, o) {
   if (!AU.ctx || !AU.on || !buf) return; o = o || {};
   AU.lastUse = performance.now(); if (AU.ctx.state === 'suspended') { try { AU.ctx.resume(); } catch (e) {} }
-  var c = AU.ctx, t = c.currentTime + (o.t || 0), s = c.createBufferSource(), g = c.createGain();
+  var c = AU.ctx, t = c.currentTime + (o.t || 0);
+  /* with many pearls in play, dozens of bounces a second would each start a sound: keep at most 6 starting in
+     any 60 ms and never the same sound twice within 35 ms. It sounds cleaner and the phone does far less work. */
+  var R = AU.recent || (AU.recent = []);
+  while (R.length && R[0] < t - 0.06) R.shift();
+  if (o.lim && (R.length >= 6 || (buf._t && Math.abs(t - buf._t) < 0.035))) return;   // only the bounce sounds are thinned; goals, KOs and calls always play
+  buf._t = t; R.push(t);
+  var s = c.createBufferSource(), g = c.createGain();
   s.buffer = buf; s.playbackRate.value = (o.r || 1) * (1 + (Math.random() - 0.5) * (o.jit == null ? 0.08 : o.jit));
   g.gain.value = (o.v == null ? 0.5 : o.v) * (0.88 + Math.random() * 0.24);
   var last = g;
   if (c.createStereoPanner && o.p) { var pn = c.createStereoPanner(); pn.pan.value = o.p; g.connect(pn); last = pn; }
   s.connect(g); last.connect(o.bus || AU.out);
-  if (o.w && AU.rev) { var sg = c.createGain(); sg.gain.value = o.w; last.connect(sg); sg.connect(AU.rev); }
+  if (o.w && AU.rev && R.length < 4) { var sg = c.createGain(); sg.gain.value = o.w; last.connect(sg); sg.connect(AU.rev); }
   s.start(t);
 }
 
@@ -1757,13 +1764,13 @@ function voice(ch, kind) { if (kind === 'pick') play(BANK.pop(), { v: 0.25, r: 0
 
 var SFX = {
   hit: function (ch, smash) {                                        // ceramic pearl off a rubber bumper
-    if (!smash) { play(BANK.pearl(), { v: 0.4, w: 0.12 }); play(BANK.thump(), { v: 0.35, w: 0.05 }); return; }
-    play(BANK.smack(), { v: 0.5, w: 0.08, jit: 0.06 });               // the smash: a punchy thwack and a little sparkle, not a bang
-    play(BANK.pearl(), { v: 0.3, r: 0.9, w: 0.1 });
-    play(BANK.zing(), { v: 0.12, t: 0.02, w: 0.3, jit: 0.04 });
+    if (!smash) { play(BANK.pearl(), { v: 0.4, w: 0.12, lim: 1 }); play(BANK.thump(), { v: 0.35, w: 0.05, lim: 1 }); return; }
+    play(BANK.smack(), { v: 0.5, w: 0.08, jit: 0.06, lim: 1 });               // the smash: a punchy thwack and a little sparkle, not a bang
+    play(BANK.pearl(), { v: 0.3, r: 0.9, w: 0.1, lim: 1 });
+    play(BANK.zing(), { v: 0.12, t: 0.02, w: 0.3, jit: 0.04, lim: 1 });
   },
-  wall: function (soft) { play(soft ? BANK.wood() : BANK.pearl(), { v: soft ? 0.25 : 0.18, r: soft ? 1 : 0.8, w: 0.1, jit: 0.15 }); },
-  ward: function () { play(BANK.bell(), { v: 0.25, r: 1.5, w: 0.3 }); play(BANK.pearl(), { v: 0.3, w: 0.1 }); },
+  wall: function (soft) { play(soft ? BANK.wood() : BANK.pearl(), { v: soft ? 0.25 : 0.18, r: soft ? 1 : 0.8, w: 0.1, jit: 0.15, lim: 1 }); },
+  ward: function () { play(BANK.bell(), { v: 0.25, r: 1.5, w: 0.3, lim: 1 }); play(BANK.pearl(), { v: 0.3, w: 0.1, lim: 1 }); },
   tele: function () { play(BANK.whoosh(), { v: 0.12, r: 0.7, w: 0.2 }); },
   launch: function () { play(BANK.thump(), { v: 0.5, r: 0.8, w: 0.15 }); play(BANK.whoosh(), { v: 0.15, w: 0.1 }); },
   smash: function () { play(BANK.swish(), { v: 0.13, w: 0.05, jit: 0.1 }); },
@@ -4558,16 +4565,35 @@ function makeBall(sc) {
   B.grp = new THREE.Group(); B.st = new THREE.Group(); B.grp.add(B.st);
   B.mat = new THREE.MeshStandardMaterial({ map: ballTex(null), roughness: 0.3, metalness: 0, envMapIntensity: 0.7, emissive: new THREE.Color(0, 0, 0), toneMapped: false });   // true colours, like the characters
   B.m = new THREE.Mesh(pearlGeo(), B.mat); B.m.castShadow = true; B.st.add(B.m);
-  B.m.add(new THREE.Mesh(pearlGeo(), pearlInk()));
-  B.xm = new THREE.MeshBasicMaterial({ color: LC('#ffffff'), transparent: true, opacity: 0.5, depthWrite: false, depthFunc: THREE.GreaterDepth, toneMapped: false });
-  var xr = new THREE.Mesh(pearlGeo(), B.xm); xr.renderOrder = 5; B.m.add(xr);       // shows through anyone standing in front of it
-  B.sh = mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x0b1240, map: blobTex(), transparent: true, opacity: 0.5, depthWrite: false }), 0, 0.035, 0); B.sh.rotation.x = -Math.PI / 2; B.sh.renderOrder = 1;
+  B.xc = LC('#ffffff');
   B.ring = mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: LC('#ff3b5c'), map: warnRingTex(), transparent: true, opacity: 0, depthWrite: false, toneMapped: false }), 0, 0.045, 0); B.ring.rotation.x = -Math.PI / 2; B.ring.renderOrder = 2;
   B.h = sprite('#ffb347', 0.5, 1);
-  var tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TRN * 2 * 3), 3)); tg.setAttribute('a', new THREE.BufferAttribute(new Float32Array(TRN * 2), 1));
-  var idx = []; for (var i = 0; i < TRN - 1; i++) { var k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); } tg.setIndex(idx);
-  B.tm = trailMat(); B.tr = new THREE.Mesh(tg, B.tm); B.tr.frustumCulled = false; B.tr.renderOrder = 2;
-  [B.grp, B.sh, B.ring, B.h, B.tr].forEach(function (o) { o.visible = false; sc.add(o); });
+  [B.grp, B.ring, B.h].forEach(function (o) { o.visible = false; sc.add(o); });
+  return B;
+}
+/* Everything every pearl has in common is drawn in one go for all of them: the dark outline, the see-through
+   ghost, the shadow on the floor and the streak behind. With ten pearls that is 4 draws instead of 50,
+   and one upload of streak data a frame instead of twenty. */
+function makeBallBatch(sc) {
+  var N = BALLS_MAX, B = {};
+  B.ink = new THREE.InstancedMesh(pearlGeo(), pearlInk(), N);
+  var xg = pearlGeo().clone(), ones = new Float32Array(xg.attributes.position.count * 3).fill(1);
+  xg.setAttribute('color', new THREE.BufferAttribute(ones, 3));                 // r128 only applies per-pearl colours with vertex colours on
+  B.xr = new THREE.InstancedMesh(xg, new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, transparent: true, opacity: 0.5, depthWrite: false, depthFunc: THREE.GreaterDepth, toneMapped: false }), N);
+  B.xr.renderOrder = 5;                                                // shows through anyone standing in front of it
+  for (var i = 0; i < N; i++) B.xr.setColorAt(i, LC('#ffffff'));
+  var shg = new THREE.PlaneGeometry(1, 1); shg.rotateX(-Math.PI / 2);
+  B.sh = new THREE.InstancedMesh(shg, new THREE.MeshBasicMaterial({ color: 0x0b1240, map: blobTex(), transparent: true, opacity: 0.42, depthWrite: false }), N); B.sh.renderOrder = 1;
+  var V = N * TRN * 2, tg = new THREE.BufferGeometry();
+  tg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(V * 3), 3).setUsage(THREE.DynamicDrawUsage));
+  tg.setAttribute('c', new THREE.BufferAttribute(new Float32Array(V * 4), 4).setUsage(THREE.DynamicDrawUsage));
+  var idx = [], k, j; for (k = 0; k < N; k++) for (j = 0; j < TRN - 1; j++) { var o = (k * TRN + j) * 2; idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2); } tg.setIndex(idx);
+  B.tr = new THREE.Mesh(tg, new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
+    vertexShader: 'attribute vec4 c; varying vec4 vC; void main(){ vC = c; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'varying vec4 vC; void main(){ gl_FragColor = vC; }' }));
+  B.tr.renderOrder = 2;
+  [B.ink, B.xr, B.sh, B.tr].forEach(function (o) { o.frustumCulled = false; o.count = 0; o.visible = false; sc.add(o); });
+  B.tr.count = undefined;
   return B;
 }
 function blobTex() {
@@ -4579,10 +4605,10 @@ function warnRingTex() {
 function ballPaint(B, hex) {
   if (B.own === hex) return; B.own = hex;
   B.mat.map = ballTex(hex);                                          // always textured: swapping the picture needs no new shader
-  B.xm.color.copy(LC(hex || '#ffffff'));
+  B.xc = LC(hex === 'bomb' ? '#ff4a2a' : hex === 'gold' ? GOLD : hex || '#ffffff');
   B.tcol = null;
 }
-function hideBall(B) { B.grp.visible = B.sh.visible = B.ring.visible = B.h.visible = B.tr.visible = false; B.id = -1; B.hist.length = 0; }
+function hideBall(B) { B.grp.visible = B.ring.visible = B.h.visible = false; B.id = -1; B.hist.length = 0; }
 /* when (and where) a pearl will first reach a side, flying straight: the same sums as the rules */
 function ballNext(S, b) {
   var best = -1, bs = 1e9;
@@ -4590,8 +4616,8 @@ function ballNext(S, b) {
   return best < 0 ? null : { si: best, s: bs };
 }
 function ballsUpdate(S, now, dt) {
-  var used = {}, i, j, B, b, free = [];
-  for (i = 0; i < GFX.balls.length; i++) GFX.balls[i].seen = false;
+  var i, j, B, b, BB = GFX.bb, n = 0, TP = BB.tr.geometry.attributes.position.array, TC = BB.tr.geometry.attributes.c.array;
+  for (i = 0; i < GFX.balls.length; i++) { GFX.balls[i].seen = false; GFX.balls[i].trW = false; }
   var list = S && S.phase !== 'over' ? S.balls : [], me = S && S.players[G.me], r0 = pearlR();
   for (i = 0; i < list.length; i++) {
     b = list[i]; B = null;
@@ -4646,32 +4672,45 @@ function ballsUpdate(S, now, dt) {
       bombTag(bx, r, bz, whole, fz < 3);
     }
     // contact shadow and the warning ring when it is coming at my goal
-    B.sh.visible = B.grp.visible; B.sh.position.set(bx, 0.035, bz); B.sh.scale.setScalar(r * 2.6); B.sh.material.opacity = 0.42 * f;
+    if (B.grp.visible) {                                               // outline, ghost and floor shadow: one slot each in the shared batches
+      B.grp.updateMatrixWorld(true);
+      BB.ink.setMatrixAt(n, B.m.matrixWorld); BB.xr.setMatrixAt(n, B.m.matrixWorld); BB.xr.setColorAt(n, B.xc);
+      _s3.set(r * 2.6 * f, 1, r * 2.6 * f); _v.set(bx, 0.035, bz); _m4.compose(_v, _q0, _s3); BB.sh.setMatrixAt(n, _m4); n++;
+    }
     var warn = 0;
     if (me && me.alive && b.st === LIVE && f > 0.9) { var nx = ballNext(S, b); if (nx && nx.si === me.side && nx.s < 0.9) warn = 1 - nx.s / 0.9; }
     B.ring.visible = warn > 0; if (warn > 0) { B.ring.position.set(bx, 0.045, bz); B.ring.scale.setScalar(r * (3.4 - warn * 0.9 + Math.sin(now * 18) * 0.15)); B.ring.material.opacity = 0.35 + warn * 0.55; }
     // the streak behind it
     var h = B.hist; if (!h.length || Math.hypot(bx - h[0].x, bz - h[0].z) > 0.12) { h.unshift({ x: bx, z: bz }); if (h.length > TRN) h.length = TRN; } else { h[0].x = bx; h[0].z = bz; }
     var on = f > 0.5 && h.length > 2 && sp > 0.3;
-    B.tr.visible = on;
     if (on) {
-      var P = B.tr.geometry.attributes.position.array, A = B.tr.geometry.attributes.a.array, n = h.length, wv = r * (hot ? 1.1 : 0.8), maxL = r * (hot ? 9 : 2.5 + clamp(sp / 1.6, 0, 1) * 4.5), dist = 0;
+      B.trW = true;
+      var base = B.k * TRN * 2, P = TP, C4 = TC, op = hot ? 0.9 : owner ? 0.55 + tier * 0.12 : 0.35, tc = CC(hot && !bul ? '#ffb347' : owner || '#cfc6ff'), hn = h.length, wv = r * (hot ? 1.1 : 0.8), maxL = r * (hot ? 9 : 2.5 + clamp(sp / 1.6, 0, 1) * 4.5), dist = 0;
       for (j = 0; j < TRN; j++) {
-        var q = h[Math.min(j, n - 1)], q2 = h[Math.min(j + 1, n - 1)], q0 = h[Math.min(Math.max(0, j - 1), n - 1)], dx = q0.x - q2.x, dz = q0.z - q2.z, dl = Math.hypot(dx, dz) || 1;
-        if (j > 0 && j < n) dist += Math.hypot(q.x - q0.x, q.z - q0.z);
-        var t = clamp(dist / maxL, 0, 1), hw = wv * (1 - t) * (j < n ? 1 : 0), px = -dz / dl * hw, pz = dx / dl * hw;
-        P[j * 6] = q.x + px; P[j * 6 + 1] = r * 0.9; P[j * 6 + 2] = q.z + pz; P[j * 6 + 3] = q.x - px; P[j * 6 + 4] = r * 0.9; P[j * 6 + 5] = q.z - pz;
-        var a = 1 - t; A[j * 2] = A[j * 2 + 1] = j < n ? a * a : 0;
+        var q = h[Math.min(j, hn - 1)], q2 = h[Math.min(j + 1, hn - 1)], q0 = h[Math.min(Math.max(0, j - 1), hn - 1)], dx = q0.x - q2.x, dz = q0.z - q2.z, dl = Math.hypot(dx, dz) || 1;
+        if (j > 0 && j < hn) dist += Math.hypot(q.x - q0.x, q.z - q0.z);
+        var t = clamp(dist / maxL, 0, 1), hw = wv * (1 - t) * (j < hn ? 1 : 0), px = -dz / dl * hw, pz = dx / dl * hw, v = (base + j * 2) * 3, w4 = (base + j * 2) * 4;
+        P[v] = q.x + px; P[v + 1] = r * 0.9; P[v + 2] = q.z + pz; P[v + 3] = q.x - px; P[v + 4] = r * 0.9; P[v + 5] = q.z - pz;
+        var a = 1 - t, al = j < hn ? a * a * op : 0;
+        C4[w4] = C4[w4 + 4] = tc.r; C4[w4 + 1] = C4[w4 + 5] = tc.g; C4[w4 + 2] = C4[w4 + 6] = tc.b; C4[w4 + 3] = C4[w4 + 7] = al;
       }
-      B.tr.geometry.attributes.position.needsUpdate = true; B.tr.geometry.attributes.a.needsUpdate = true;
-      B.tm.uniforms.op.value = hot ? 0.9 : owner ? 0.55 + tier * 0.12 : 0.35; var tc = hot && !bul ? '#ffb347' : owner || '#cfc6ff'; if (B.tcol !== tc) { B.tcol = tc; B.tm.uniforms.col.value.copy(CC(tc)); }
     }
     B.h.visible = (hot || !!b.bomb) && B.grp.visible && !(bul && tier === 5);
     if (B.h.visible && b.bomb) { B.h.position.set(bx, r * 2.25, bz); B.h.material.opacity = 0.85 * f; B.h.scale.setScalar(r * (1.3 + Math.random() * 0.6)); }   // the lit fuse
     else if (B.h.visible) { B.h.position.set(bx, r, bz); B.h.material.opacity = 0.45 * f; B.h.scale.setScalar(r * 3.6 + Math.sin(now * 40) * r * 0.3); }
     if (hot && f > 0.5 && !REDUCE && Math.random() < 0.7) trailDot(bx - b.vx * R3 * 0.02 + (Math.random() - 0.5) * r, r, bz - b.vy * R3 * 0.02 + (Math.random() - 0.5) * r, b.gold ? (Math.random() < 0.5 ? '#fff3b0' : '#ffd23f') : bul && tier === 5 ? (Math.random() < 0.5 ? '#ffffff' : '#8f96ff') : bul && tier === 4 ? (Math.random() < 0.5 ? '#e0a8ff' : '#8a2dff') : Math.random() < 0.5 ? '#ffd23f' : '#ff6a1a', 0.7);
   }
-  for (i = 0; i < GFX.balls.length; i++) if (!GFX.balls[i].seen && GFX.balls[i].id >= 0) hideBall(GFX.balls[i]);
+  for (i = 0; i < GFX.balls.length; i++) {
+    B = GFX.balls[i];
+    if (!B.seen && B.id >= 0) hideBall(B);
+    if (!B.trW && B.trOn) { var b0 = B.k * TRN * 2 * 4; for (j = 0; j < TRN * 2; j++) TC[b0 + j * 4 + 3] = 0; }   // streak gone: make its stretch see-through
+    B.trOn = B.trW;
+  }
+  BB.ink.count = BB.xr.count = BB.sh.count = n; BB.ink.visible = BB.xr.visible = BB.sh.visible = n > 0;
+  if (n) { BB.ink.instanceMatrix.needsUpdate = BB.xr.instanceMatrix.needsUpdate = BB.sh.instanceMatrix.needsUpdate = true; BB.xr.instanceColor.needsUpdate = true; }
+  var anyTr = GFX.balls.some(function (q) { return q.trOn; });
+  BB.tr.visible = anyTr || BB.trWas; BB.trWas = anyTr;
+  if (BB.tr.visible) { BB.tr.geometry.attributes.position.needsUpdate = true; BB.tr.geometry.attributes.c.needsUpdate = true; }
   if (!list.some(function (q) { return q.bomb; })) bombTag();
 }
 function fz0(b, S) { return Math.max(0, b.fuseAt - S.t); }
@@ -4720,7 +4759,8 @@ function gfxInit() {
   for (var w = 0; w < 2; w++) { var wm = mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: LC('#ff4f7b'), map: warnTex, transparent: true, opacity: 0, depthWrite: false, depthTest: false, toneMapped: false }), 0, 0.07, 0); wm.rotation.x = -Math.PI / 2; wm.renderOrder = 6; GFX.warnG.add(wm); GFX.warn.push(wm); }
   var i;
   for (i = 0; i < MAXP; i++) GFX.slots.push(makeSlot(i));
-  for (i = 0; i < BALLS_MAX; i++) GFX.balls.push(makeBall(sc));
+  for (i = 0; i < BALLS_MAX; i++) { GFX.balls.push(makeBall(sc)); GFX.balls[i].k = i; }
+  GFX.bb = makeBallBatch(sc);
   var icons = [function (g) { g.moveTo(30, 64); g.lineTo(98, 64); g.moveTo(46, 46); g.lineTo(28, 64); g.lineTo(46, 82); g.moveTo(82, 46); g.lineTo(100, 64); g.lineTo(82, 82); },
     function (g) { g.moveTo(38, 36); g.lineTo(90, 36); g.lineTo(90, 68); g.lineTo(64, 96); g.lineTo(38, 68); g.closePath(); },
     function (g) { g.arc(44, 78, 12, 0, TAU); g.moveTo(96, 78); g.arc(84, 78, 12, 0, TAU); g.moveTo(76, 44); g.arc(64, 44, 12, 0, TAU); }];
