@@ -741,6 +741,7 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
 .rc-bar { height: 10px; margin-top: 4px; border-radius: 6px; background: rgba(11, 27, 102, 0.12); overflow: hidden; }
 .rc-bar i { display: block; height: 100%; width: 0; border-radius: 6px; background: linear-gradient(90deg, #5f91ff, #22b356); transition: width 0.9s cubic-bezier(0.2, 1, 0.3, 1); }
 [dir="rtl"] .rc-bar i { margin-inline-start: 0; }
+:root[data-theme="dark"] .rc-bar { background: rgba(255, 255, 255, 0.12); }
 .rc-next { font-size: 0.76rem; font-weight: 700; color: var(--muted); }
 .rc-stats { grid-column: 2; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
 .rc-stats div { display: flex; flex-direction: column; align-items: center; padding: 5px 4px; border-radius: 12px; background: rgba(255, 255, 255, 0.6); }
@@ -799,7 +800,7 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
 /* lobby: casual or competitive */
 .compseg { padding: 5px; }
 .compseg button { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.98rem; }
-.compseg button[data-v="1"].on { color: #5a3a00; background: linear-gradient(180deg, #ffe680, #ffb81c); box-shadow: 0 3px 0 var(--yellow-lip); }
+.compseg button[data-v="1"].on, .compseg button[data-v="2"].on { color: #5a3a00; background: linear-gradient(180deg, #ffe680, #ffb81c); box-shadow: 0 3px 0 var(--yellow-lip); }
 #hostctl.comp .casual-only { display: none !important; }
 .comprules { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 12px; border-radius: 18px; background: linear-gradient(160deg, #fff8dc, #ffeaa8); color: #4d3500; }
 :root[data-theme="dark"] .comprules { background: linear-gradient(160deg, #3a3418, #2b2610); color: #ffe7a6; }
@@ -852,8 +853,8 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
   width: var(--w); inset-inline-start: calc(4px + var(--i) * (var(--w) + 4px)); border-radius: 12px; background: linear-gradient(180deg, #6f9dff, var(--b2)); box-shadow: 0 3px 0 var(--b4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition: inset-inline-start 0.32s cubic-bezier(0.2, 1.25, 0.4, 1), background 0.2s; }
 .seg.has button.on { background: none; box-shadow: none; color: #fff; }
-.compseg.has[data-i="1"]::before { background: linear-gradient(180deg, #ffe680, #ffb81c); box-shadow: 0 3px 0 var(--yellow-lip), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
-.compseg.has[data-i="1"] button.on { color: #5a3a00; background: none; }
+.compseg.has[data-i="1"]::before, .compseg.has[data-i="2"]::before { background: linear-gradient(180deg, #ffe680, #ffb81c); box-shadow: 0 3px 0 var(--yellow-lip), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+.compseg.has[data-i="1"] button.on, .compseg.has[data-i="2"] button.on { color: #5a3a00; background: none; }
 .seg button:active { transform: scale(0.96); }
 /* buttons: a soft shine across the top of the coloured ones */
 .btn.primary::after, .btn.blue::after, .btn.pink::after { content: ""; position: absolute; top: 3px; left: 10px; right: 10px; height: 40%; border-radius: 14px 14px 40% 40%; background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0)); pointer-events: none; }
@@ -946,6 +947,58 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
 .seat .srn { grid-column: 1; justify-self: center; text-align: center; line-height: 1.2; }
 .seats.five .seat .srn { display: block; font-size: 0.54rem; }
 .seats.five .seat .srn:empty { display: none; }
+
+/* lobby: Casual, Ranked Lives, Ranked Bullet */
+.compseg button { gap: 5px; padding: 4px 6px; }
+.compseg button svg { flex: none; }
+.compseg .cs { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.05; }
+.compseg .cs small { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.72; }
+.compseg .cs b { font-size: 0.95rem; white-space: nowrap; }
+
+/* settings: a slider each for music, sounds and voice chat; tap the picture to mute one */
+.mixer { display: flex; flex-direction: column; gap: 8px; }
+.mix { --mx: #8a5cff; --v: 100%; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 12px; row-gap: 0; padding: 8px 14px 4px 8px; border-radius: 18px; background: var(--soft); }
+[dir="rtl"] .mix { padding: 8px 8px 4px 14px; }
+.mix[data-k="s"] { --mx: #2f68ff; }
+.mix[data-k="v"] { --mx: #10b07c; }
+.mxi { grid-row: 1 / span 2; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 14px; display: grid; place-items: center; color: #fff; background: var(--mx); box-shadow: 0 3px 0 rgba(11, 27, 102, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.35); transition: background 0.2s, transform 0.15s; }
+.mxi:active { transform: scale(0.92); }
+.mxi .x { display: none; }
+.mix.off .mxi { color: var(--muted); background: var(--soft-3); box-shadow: none; }
+.mix.off .mxi .x { display: inline; }
+.mix.off .mxi .w { opacity: 0.25; }
+.mxl { font-size: 0.92rem; font-weight: 800; padding-top: 2px; }
+.mxv { font-size: 0.8rem; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.mix input[type="range"] { grid-column: 2 / span 2; -webkit-appearance: none; appearance: none; width: 100%; height: 32px; margin: 0; padding: 0; background: transparent; touch-action: pan-y; }
+.mix input[type="range"]:focus { outline: none; }
+.mix input[type="range"]::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--mx) 0 var(--v), var(--soft-3) var(--v) 100%); }
+[dir="rtl"] .mix input[type="range"]::-webkit-slider-runnable-track { background: linear-gradient(270deg, var(--mx) 0 var(--v), var(--soft-3) var(--v) 100%); }
+.mix input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; margin-top: -8px; border: 4px solid #fff; border-radius: 50%; background: var(--mx); box-shadow: 0 2px 6px rgba(11, 27, 102, 0.35); }
+.mix input[type="range"]::-moz-range-track { height: 10px; border-radius: 5px; background: var(--soft-3); }
+.mix input[type="range"]::-moz-range-progress { height: 10px; border-radius: 5px; background: var(--mx); }
+.mix input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 4px solid #fff; border-radius: 50%; background: var(--mx); box-shadow: 0 2px 6px rgba(11, 27, 102, 0.35); }
+.mix input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(47, 104, 255, 0.45), 0 2px 6px rgba(11, 27, 102, 0.35); }
+.mix.off input[type="range"]::-webkit-slider-thumb { background: var(--soft-3); }
+.tog.row { flex-direction: row; justify-content: space-between; width: 100%; margin-top: 8px; padding: 12px 16px 12px 18px; font-size: 0.92rem; }
+
+/* ranks tab: my title, and the two ranked playlists */
+.titlebar { display: flex; align-items: center; gap: 12px; padding: 8px 16px 8px 10px; border-radius: 18px; color: #4d3500; background: linear-gradient(120deg, #fff6cf, #ffe08a 60%, #ffcf4a); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6); }
+.titlebar i { width: 36px; height: 41px; flex: none; }
+.titlebar span { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.titlebar small { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; }
+.titlebar b { font-size: 1.08rem; }
+.titlebar.t6 { color: #2a1452; background: linear-gradient(120deg, #dffcff, #efe0ff 50%, #ffe3f4); }
+:root[data-theme="dark"] .titlebar { color: #ffe7a6; background: linear-gradient(120deg, #4a3c10, #2e260b); box-shadow: inset 0 0 0 2px rgba(255, 207, 74, 0.35); }
+.pltabs button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; font-size: 0.98rem; }
+.pltabs .mi { display: grid; place-items: center; width: 22px; height: 22px; }
+.pltabs .mi svg { width: 20px; height: 20px; }
+.pltabs em { width: 22px; height: 25px; display: block; }
+.pltabs em svg { width: 100%; height: 100%; }
+.rr-pl { font-style: normal; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+/* a player's title: a small gold ribbon in the seat menu and on the join card */
+.ttl { align-self: flex-start; display: inline-block; margin-top: 3px; padding: 2px 9px 3px; border-radius: 8px; font-size: 0.72rem; font-weight: 800; color: #5a3a00; background: linear-gradient(180deg, #fff1b0, #ffcf4a); box-shadow: 0 1px 0 var(--yellow-lip); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ttl.t6 { color: #2a1452; background: linear-gradient(90deg, #bff6ff, #e2cbff, #ffd0ec); box-shadow: 0 1px 0 rgba(122, 63, 224, 0.4); }
+.ttl[hidden] { display: none; }
 </style>
 </head>
 <body>
@@ -1063,6 +1116,8 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
         <p id="soc-note" class="note info" hidden></p>
       </div>
       <div id="soc-r" class="socpane" hidden>
+        <div id="my-title" class="titlebar" hidden><i></i><span><small data-t="titleT"></small><b></b></span></div>
+        <div id="pl-tabs" class="seg pltabs"><button type="button" data-v="l"><i class="mi" data-m="0"></i><span data-t="mLives"></span><em hidden></em></button><button type="button" data-v="b"><i class="mi" data-m="4"></i><span data-t="mBullet"></span><em hidden></em></button></div>
         <div id="my-rank" class="rankcard"></div>
         <div id="lb-tabs" class="seg"><button type="button" data-v="g" data-t="top50"></button><button type="button" data-v="f" data-t="friendsT"></button></div>
         <div id="lb-list" class="lblist"></div>
@@ -1071,12 +1126,12 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
     </div>
   </div>
 
-  <div id="joincard" class="joincard" role="status" hidden><img alt=""><div class="jc-tx"><b class="jc-n"></b><small data-t="joinedT"></small><span class="jc-row"><i class="lvc"></i><span class="jc-r"></span></span></div><i class="jc-e"></i></div>
+  <div id="joincard" class="joincard" role="status" hidden><img alt=""><div class="jc-tx"><b class="jc-n"></b><small data-t="joinedT"></small><span class="jc-row"><i class="lvc"></i><span class="jc-r"></span></span><span class="jc-t ttl" hidden></span></div><i class="jc-e"></i></div>
   <div id="invite" class="invite" role="alert" hidden><img alt=""><div class="iv-txt"><b></b><small></small></div><button id="b-ivjoin" class="btn primary sm" type="button" data-t="join"></button><button id="b-ivx" class="ibtn sm soft" type="button" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 
   <div id="seatmenu" class="seatmenu-ov" hidden>
     <div class="seatmenu" role="dialog" aria-modal="true">
-      <div class="sm-head"><img alt=""><div><b></b><small></small></div><i class="sm-rk"></i></div>
+      <div class="sm-head"><img alt=""><div><b></b><small></small><span class="sm-ttl ttl" hidden></span></div><i class="sm-rk"></i></div>
       <button id="sm-add" class="btn primary sm" type="button"></button>
       <button id="sm-inv" class="btn blue sm" type="button" data-t="inviteB" hidden></button>
       <button id="sm-kick" class="btn soft sm danger" type="button"></button>
@@ -1101,8 +1156,8 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
       <div id="seats" class="seats"></div>
       <div id="summary" class="summary" hidden></div>
       <div id="hostctl" class="setup">
-        <div id="seg-comp" class="seg compseg"><button type="button" data-v="0"><span data-t="casual"></span></button><button type="button" data-v="1"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span data-t="compT"></span></button></div>
-        <div id="comp-rules" class="comprules" hidden><i id="cr-rk"></i><p data-t="compRules"></p></div>
+        <div id="seg-comp" class="seg compseg"><button type="button" data-v="0"><span data-t="casual"></span></button><button type="button" data-v="1"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span class="cs"><small data-t="rankedT"></small><b data-t="mLives"></b></span></button><button type="button" data-v="2"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span class="cs"><small data-t="rankedT"></small><b data-t="mBullet"></b></span></button></div>
+        <div id="comp-rules" class="comprules" hidden><i id="cr-rk"></i><p id="cr-tx"></p></div>
         <section class="grp casual-only">
           <div class="grp-h"><span data-t="mode"></span></div>
         <div id="modes" class="modes">
@@ -1176,11 +1231,13 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
       <button id="b-resume" class="btn primary" type="button" data-t="resume"></button>
       <div class="lbl" data-t="language"></div>
       <div id="seg-lang" class="seg"><button type="button" data-v="en">English</button><button type="button" data-v="ar">العربية</button></div>
-      <div class="toggles">
-        <button id="t-snd" class="tog" type="button"><span data-t="sound"></span><i></i></button>
-        <button id="t-mus" class="tog" type="button"><span data-t="music"></span><i></i></button>
-        <button id="t-vib" class="tog" type="button"><span data-t="vibration"></span><i></i></button>
+      <div class="lbl" data-t="volume"></div>
+      <div class="mixer">
+        <div class="mix" data-k="m"><button class="mxi" type="button" data-tl="music"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9 5.6 19 3.5v11.8a3 3 0 1 1-2-2.8V7.3l-6 1.3v8.7a3 3 0 1 1-2-2.8z"/><path class="x" d="M3.5 3.5l17 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><span class="mxl" data-t="music"></span><b class="mxv"></b><input type="range" min="0" max="100" step="5" data-tl="music"></div>
+        <div class="mix" data-k="s"><button class="mxi" type="button" data-tl="sounds"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M4 9h3.5L12 5v14l-4.5-4H4z"/><path class="w" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M15.5 9.2a4 4 0 0 1 0 5.6M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="x" d="M3.5 3.5l17 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><span class="mxl" data-t="sounds"></span><b class="mxv"></b><input type="range" min="0" max="100" step="5" data-tl="sounds"></div>
+        <div class="mix" data-k="v"><button class="mxi" type="button" data-tl="voiceVol"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M5 4h14a2.5 2.5 0 0 1 2.5 2.5v8A2.5 2.5 0 0 1 19 17h-7l-4.6 3.6V17H5a2.5 2.5 0 0 1-2.5-2.5v-8A2.5 2.5 0 0 1 5 4z"/><path class="w" stroke="#fff" stroke-width="2" stroke-linecap="round" d="M8 9.2v2.6M11 7.8v5.4M14 9v3M17 10v1"/><path class="x" d="M3.5 3.5l17 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><span class="mxl" data-t="voiceVol"></span><b class="mxv"></b><input type="range" min="0" max="100" step="5" data-tl="voiceVol"></div>
       </div>
+      <button id="t-vib" class="tog row" type="button"><span data-t="vibration"></span><i></i></button>
       <div class="lbl" data-t="theme"></div>
       <div id="seg-theme" class="seg"><button type="button" data-v="auto" data-t="gAuto"></button><button type="button" data-v="light" data-t="thLight"></button><button type="button" data-v="dark" data-t="thDark"></button></div>
       <div class="lbl" data-t="smashSide"></div>
@@ -1972,7 +2029,7 @@ function mapSub(i) { var m = MAPS[i]; return m ? (LANG === 'ar' ? m.sar : m.sen)
    reacts to goals, a referee whistle starts the match, and the music is a darbuka, a riq and
    a plucked oud (Karplus-Strong strings) in maqam Hijaz. A short room reverb sits under it all. */
 var HIJAZ = [293.66, 311.13, 369.99, 392.0, 440.0, 466.16, 523.25, 587.33];
-var AU = { ctx: null, out: null, mus: null, rev: null, on: true, musicOn: true, timer: null, step: 0, nextT: 0, playing: false, heat: 0, bar: 0, buf: {}, sr: 44100 };
+var AU = { ctx: null, out: null, mus: null, rev: null, vox: null, on: true, musicOn: true, vol: { m: 80, s: 100, v: 100 }, duck: 0, timer: null, step: 0, nextT: 0, playing: false, heat: 0, bar: 0, buf: {}, sr: 44100 };
 
 function auInit() {
   try {
@@ -1984,12 +2041,29 @@ function auInit() {
       AU.out = c.createGain(); AU.out.gain.value = 0.8; AU.out.connect(air);
       AU.mus = c.createGain(); AU.mus.gain.value = 0.5; AU.mus.connect(air);
       AU.rev = c.createConvolver(); AU.rev.buffer = roomIR(c, 1.3); var rg = c.createGain(); rg.gain.value = 0.32; AU.rev.connect(rg); rg.connect(air);
+      /* voice chat has its own line: lifted and held level by a limiter, and kept out of the game's compressor
+         so a loud goal never squashes what a friend is saying */
+      var vl = c.createDynamicsCompressor(); vl.threshold.value = -12; vl.knee.value = 6; vl.ratio.value = 10; vl.attack.value = 0.003; vl.release.value = 0.2; vl.connect(c.destination);
+      AU.vox = c.createGain(); AU.vox.connect(vl);
+      auVol(true);
     }
     if (AU.ctx.state === 'suspended') AU.ctx.resume();
     auWarm();
   } catch (e) { /* no audio on this device */ }
 }
 /* a small hall: decaying stereo noise, darker as it fades */
+/* the three volume sliders in Settings: music, sounds and voice chat, each 0 to 100. While someone is talking
+   the music dips a lot and the sounds a little, so voices always come through on top. */
+function volK(x) { x = Math.max(0, Math.min(1, (x || 0) / 100)); return x * (0.4 + 0.6 * x); }
+function auVol(now) {
+  AU.on = AU.vol.s > 0; AU.musicOn = AU.vol.m > 0;
+  var c = AU.ctx; if (!c || !AU.out) return;
+  var t = c.currentTime, tc = now ? 0.01 : AU.duck ? 0.06 : 0.35;
+  AU.out.gain.setTargetAtTime(0.8 * volK(AU.vol.s) * (1 - 0.3 * AU.duck), t, tc);
+  AU.mus.gain.setTargetAtTime(0.5 * volK(AU.vol.m) * (1 - 0.6 * AU.duck), t, tc);
+  if (AU.vox) AU.vox.gain.setTargetAtTime(2.2 * volK(AU.vol.v), t, 0.05);
+}
+function auDuck(on) { on = on ? 1 : 0; if (AU.duck === on) return; AU.duck = on; auVol(); }
 function roomIR(c, len) {
   var n = Math.floor(c.sampleRate * len), b = c.createBuffer(2, n, c.sampleRate);
   for (var ch = 0; ch < 2; ch++) {
@@ -2093,7 +2167,8 @@ var BANK = {
 };
 /* play a sample: v volume, r playback rate (pitch), p pan, t delay, w reverb send, bus */
 function play(buf, o) {
-  if (!AU.ctx || !AU.on || !buf) return; o = o || {};
+  o = o || {}; var mus = o.bus && o.bus === AU.mus;
+  if (!AU.ctx || !buf || !(mus ? AU.musicOn : AU.on)) return;
   AU.lastUse = performance.now(); if (AU.ctx.state === 'suspended') { try { AU.ctx.resume(); } catch (e) {} }
   var c = AU.ctx, t = c.currentTime + (o.t || 0);
   /* with many pearls in play, dozens of bounces a second would each start a sound: keep at most 6 starting in
@@ -2108,7 +2183,7 @@ function play(buf, o) {
   var last = g;
   if (c.createStereoPanner && o.p) { var pn = c.createStereoPanner(); pn.pan.value = o.p; g.connect(pn); last = pn; }
   s.connect(g); last.connect(o.bus || AU.out);
-  if (o.w && AU.rev && R.length < 4) { var sg = c.createGain(); sg.gain.value = o.w; last.connect(sg); sg.connect(AU.rev); }
+  if (o.w && AU.rev && R.length < 4) { var sg = c.createGain(); sg.gain.value = o.w * volK(mus ? AU.vol.m : AU.vol.s); last.connect(sg); sg.connect(AU.rev); }   // the echo follows its own slider
   s.start(t);
 }
 
@@ -2161,7 +2236,7 @@ function musicTick() {
   if (AU.nextT < c.currentTime) AU.nextT = c.currentTime + 0.05;
   while (AU.nextT < c.currentTime + 0.25) {
     var s = AU.step % 8, k = MAQSUM[s], dt = AU.nextT - c.currentTime, sw = s % 2 ? e8 * 0.06 : 0;   // a little swing
-    if (AU.on && AU.musicOn) {
+    if (AU.musicOn) {
       if (k === 1) play(BANK.doum(), { v: 0.5, t: dt, bus: AU.mus, w: 0.12, jit: 0.04 });
       else if (k === 2) play(BANK.tek(), { v: 0.3, t: dt + sw, bus: AU.mus, w: 0.1 });
       else if (k === 3) play(BANK.tek(), { v: 0.14, t: dt + sw, bus: AU.mus, r: 1.2 });
@@ -2203,9 +2278,12 @@ var STR = {
     roomN: 'Room {c}', top50: 'Top 50', lbLoading: 'Loading the leaderboard…', lbEmpty: 'Nobody is ranked yet. Finish 5 competitive matches to be the first on the board.', lbOff: 'The leaderboard needs internet.',
     fbEmpty: 'Add friends to compare ranks with them.', season: 'Season {n}', unranked: 'Unranked', placement: 'Placement matches {n}/5', placeNote: 'Play {n} more competitive matches to get your rank',
     nextR: 'Next: {r}', topRank: 'The top rank', gamesT: 'Matches', winsT: 'Wins', bestT: 'Best', allRanks: 'All ranks',
-    rankInfo: 'Play Competitive to earn Sadda Rating (SR). Finishing above stronger players moves you up faster. Your first 5 matches place you.',
+    rankInfo: 'Play Competitive to earn Sadda Rating (SR). Lives and Bullet are ranked separately, each with its own rank. Finishing above stronger players moves you up faster. Your first 5 matches in each one place you. The best rank you ever reach becomes your title.',
+    rankedT: 'Ranked', titleT: 'Your title', ttl: '{p} {r}', ttlU: '{p} {r}', mLivesT: 'Lives', mBulletT: 'Bullet',
+    volume: 'Volume', sounds: 'Sounds', voiceVol: 'Voice chat',
     rRookie: 'Rookie', rBlocker: 'Blocker', rWall: 'Wall', rGuard: 'Guardian', rTitan: 'Titan', rLegend: 'Legend', rUntouch: 'Untouchable',
-    casual: 'Casual', compT: 'Competitive', compRules: 'Same rules for everyone: Lives, 5 lives, normal speed, power-ups on, no bots. Your rank goes up or down by where you finish against each player.',
+    casual: 'Casual', compT: 'Competitive', compRules: 'Ranked Lives. Same rules for everyone: 5 lives, Wild speed, power-ups on, no bots. Your rank goes up or down by where you finish against each player.',
+    compRulesB: 'Ranked Bullet. Same rules for everyone: one pearl that gets faster with every hit, 3 lives, power-ups on, no bots. Bullet has its own rank, apart from Lives.',
     comp2: 'Competitive needs at least 2 players', quitLoss: 'You left a competitive match: {d} SR', rankUp: 'Rank up!', rankDown: 'Rank down', placedT: 'Ranked!', srU: 'SR',
     addFriend: 'Add friend', isFriend: 'Friends', pendingT: 'Request sent', kickRoom: 'Remove from room', inviteFr: 'Friends', youRank: 'Your rank', compTag: 'Competitive', ranked: 'ranked',
     langTitle: 'Choose your language', settings: 'Settings', language: 'Language', howBtn: 'How to play',
@@ -2272,9 +2350,12 @@ var STR = {
     roomN: 'غرفة {c}', top50: 'أفضل 50', lbLoading: 'نحمّل لوحة المتصدرين…', lbEmpty: 'ما فيه أحد مصنّف للحين. خلّص 5 مباريات تنافسية وكن أول واحد في اللوحة.', lbOff: 'لوحة المتصدرين تحتاج إنترنت.',
     fbEmpty: 'أضف أصدقاء عشان تقارن تصنيفك معهم.', season: 'الموسم {n}', unranked: 'بدون تصنيف', placement: 'مباريات التصنيف {n}/5', placeNote: 'العب {n} مباريات تنافسية بعد وتاخذ تصنيفك',
     nextR: 'التالي: {r}', topRank: 'أعلى تصنيف', gamesT: 'مباريات', winsT: 'فوز', bestT: 'الأعلى', allRanks: 'كل التصنيفات',
-    rankInfo: 'العب التنافسي واجمع نقاط صدّة. إذا خلّصت فوق لاعبين أقوى منك تطلع أسرع. أول 5 مباريات تحدد تصنيفك.',
+    rankInfo: 'العب التنافسي واجمع نقاط صدّة. الأرواح والرصاصة كل واحد له تصنيف خاص. إذا خلّصت فوق لاعبين أقوى منك تطلع أسرع. أول 5 مباريات في كل واحد تحدد تصنيفك. وأعلى تصنيف توصله يصير لقبك.',
+    rankedT: 'مصنّف', titleT: 'لقبك', ttl: '{r} {p}', ttlU: '{r} في {p}', mLivesT: 'الأرواح', mBulletT: 'الرصاصة',
+    volume: 'مستوى الصوت', sounds: 'المؤثرات', voiceVol: 'المحادثة الصوتية',
     rRookie: 'مبتدئ', rBlocker: 'صدّاد', rWall: 'جدار', rGuard: 'حارس', rTitan: 'عملاق', rLegend: 'أسطورة', rUntouch: 'لا يُقهر',
-    casual: 'ودّي', compT: 'تنافسي', compRules: 'نفس القوانين للكل: الأرواح، 5 أرواح، سرعة عادية، القوى شغّالة، بدون بوتات. تصنيفك يطلع وينزل حسب ترتيبك قدام كل لاعب.',
+    casual: 'ودّي', compT: 'تنافسي', compRules: 'تصنيف الأرواح. نفس القوانين للكل: 5 أرواح، السرعة نارية، القوى شغّالة، بدون بوتات. تصنيفك يطلع وينزل حسب ترتيبك قدام كل لاعب.',
+    compRulesB: 'تصنيف الرصاصة. نفس القوانين للكل: لؤلؤة وحدة تسرع مع كل ضربة، 3 أرواح، القوى شغّالة، بدون بوتات. للرصاصة تصنيف خاص غير الأرواح.',
     comp2: 'التنافسي يحتاج لاعبين اثنين على الأقل', quitLoss: 'طلعت من مباراة تنافسية: {d} نقطة', rankUp: 'ترقية!', rankDown: 'نزلت تصنيف', placedT: 'تم تصنيفك!', srU: 'نقطة',
     addFriend: 'أضف صديق', isFriend: 'صديقك', pendingT: 'تم إرسال الطلب', kickRoom: 'أخرجه من الغرفة', inviteFr: 'الأصدقاء', youRank: 'تصنيفك', compTag: 'تنافسي', ranked: 'مصنّف',
     langTitle: 'اختر لغتك', settings: 'الإعدادات', language: 'اللغة', howBtn: 'طريقة اللعب',
@@ -2621,25 +2702,48 @@ function voSignal(from, m) {
       .then(function () { voSend(from, ['a', { type: p.pc.localDescription.type, sdp: p.pc.localDescription.sdp }]); }).catch(function () {});
   } else if (m[0] === 'a' && p) p.pc.setRemoteDescription(m[1]).catch(function () {});
 }
+/* How a friend's voice reaches the speaker. Normally it goes through the sound mixer (volume slider, louder for
+   the player next to you, from their side of the screen). An iPhone only plays a voice that way while its own
+   mic is open; with the mic off it stays silent there, so on iPhone a muted player hears everyone through a
+   plain audio player instead. Muting yourself never mutes the others. */
+var IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function voViaEl() { return IOS && !VO.mic; }
 function voAttach(id, stream) {
   var p = VO.peers[id]; if (!p) return;
-  if (p.el) { try { p.el.srcObject = null; } catch (e) {} }
-  var el = document.createElement('audio'); el.autoplay = true; el.setAttribute('playsinline', ''); el.srcObject = stream; p.el = el;
-  var ctx = AU.ctx;
-  if (ctx && ctx.createMediaStreamSource) {
-    try {
-      el.muted = true;                                           // the sound goes through the mixer below (needed on iPhone for volume and side)
-      var src = ctx.createMediaStreamSource(stream), g = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null, an = ctx.createAnalyser();
-      an.fftSize = 256; src.connect(an); src.connect(g); if (pan) { g.connect(pan); pan.connect(ctx.destination); } else g.connect(ctx.destination);
-      p.gain = g; p.pan = pan; p.an = an;
-    } catch (e) { el.muted = false; }
-  }
+  voUnhook(p);
+  var el = document.createElement('audio'); el.autoplay = true; el.setAttribute('playsinline', ''); el.srcObject = stream; p.el = el; p.stream = stream;
+  voRoute(p);
   el.play().catch(function () {});
+}
+function voGraph(p) {
+  var ctx = AU.ctx; if (p.src || p.nog || !ctx || !AU.vox || !ctx.createMediaStreamSource || !p.stream) return;
+  try {
+    var src = ctx.createMediaStreamSource(p.stream), g = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null, an = ctx.createAnalyser();
+    an.fftSize = 256; src.connect(an); if (pan) { g.connect(pan); pan.connect(AU.vox); } else g.connect(AU.vox);
+    p.src = src; p.gain = g; p.pan = pan; p.an = an; p.on = false;
+  } catch (e) { p.nog = true; }
+}
+function voRoute(p) {
+  if (!p.el) return;
+  voGraph(p);
+  var viaEl = !p.gain || voViaEl();
+  if (p.gain && p.on === viaEl) { try { if (viaEl) p.src.disconnect(p.gain); else p.src.connect(p.gain); } catch (e) {} p.on = !viaEl; }
+  p.el.muted = !viaEl || AU.vol.v <= 0;
+  try { p.el.volume = Math.min(1, volK(AU.vol.v)); } catch (e) {}       // an iPhone ignores this and plays at full volume
+  if (viaEl && p.el.paused) p.el.play().catch(function () {});
+}
+function voRouteAll() { for (var id in VO.peers) voRoute(VO.peers[id]); }
+/* an iPhone lets a voice start only from a tap: any tap starts the ones still waiting */
+function voKick() { for (var id in VO.peers) { var p = VO.peers[id]; if (p.el && p.el.paused) p.el.play().catch(function () {}); } }
+function voUnhook(p) {
+  try { if (p.src) p.src.disconnect(); if (p.gain) p.gain.disconnect(); if (p.pan) p.pan.disconnect(); } catch (e) {}
+  try { if (p.el) { p.el.pause(); p.el.srcObject = null; } } catch (e) {}
+  p.src = p.gain = p.pan = p.an = p.el = null; p.on = false;
 }
 function voDrop(id) {
   var p = VO.peers[id]; if (!p) return;
   try { p.pc.close(); } catch (e) {}
-  try { if (p.gain) p.gain.disconnect(); if (p.pan) p.pan.disconnect(); if (p.el) { p.el.pause(); p.el.srcObject = null; } } catch (e) {}
+  voUnhook(p);
   delete VO.peers[id]; delete VO.lvl[id];
 }
 function voiceClose(keepMic) {
@@ -2651,18 +2755,18 @@ function voMicOff() {
   if (VO.micStream) VO.micStream.getTracks().forEach(function (t) { t.stop(); });
   VO.mic = null; VO.micStream = null; VO.an = null; VO.myLvl = 0;
   for (var id in VO.peers) if (VO.peers[id].tr) VO.peers[id].tr.sender.replaceTrack(null).catch(function () {});
-  micButtons();
+  voRouteAll(); micButtons();
 }
 function voiceToggle() {
   auInit();
-  for (var id in VO.peers) if (VO.peers[id].el) VO.peers[id].el.play().catch(function () {});
+  voKick();
   if (VO.mic) { voMicOff(); return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast(T('micNo')); return; }
   navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (s) {
     VO.micStream = s; VO.mic = s.getAudioTracks()[0];
     for (var pid in VO.peers) if (VO.peers[pid].tr) VO.peers[pid].tr.sender.replaceTrack(VO.mic).catch(function () {});
     try { var src = AU.ctx.createMediaStreamSource(s); VO.an = AU.ctx.createAnalyser(); VO.an.fftSize = 256; src.connect(VO.an); } catch (e) {}
-    micButtons(); toast(T('micOn'), 1600);
+    voRouteAll(); micButtons(); toast(T('micOn'), 1600);
   }).catch(function () { toast(T('micNo'), 3600); });
 }
 function micButtons() {
@@ -2681,11 +2785,13 @@ function voiceTick(nowMs) {
     var p = VO.peers[id], g = 1, pn = 0;
     if (me) {
       var pl = null; for (var i = 0; i < S.players.length; i++) if (S.players[i].id === id) pl = S.players[i];
-      if (pl) { var r = angd(pl.a0, me.a0); g = 0.3 + 0.7 * (1 - Math.abs(r) / Math.PI); pn = clamp(-Math.sin(r) * 0.7, -0.7, 0.7); }
+      if (pl) { var r = angd(pl.a0, me.a0); g = 0.55 + 0.45 * (1 - Math.abs(r) / Math.PI); pn = clamp(-Math.sin(r) * 0.6, -0.6, 0.6); }   // far players a little softer, never hard to hear
     }
+    if (!p.src && !p.nog && p.el && AU.vox) voRoute(p);                                   // the sound engine started after this line opened
     if (p.gain && AU.ctx) { p.gain.gain.setTargetAtTime(g, AU.ctx.currentTime, 0.15); if (p.pan) p.pan.pan.setTargetAtTime(pn, AU.ctx.currentTime, 0.15); }
-    VO.lvl[id] = (VO.lvl[id] || 0) * 0.5 + level(p.an) * 0.5; if (VO.lvl[id] > 0.03) talking[id] = 1;
+    VO.lvl[id] = (VO.lvl[id] || 0) * 0.5 + level(p.an) * 0.5; if (VO.lvl[id] > 0.03) { talking[id] = 1; VO.heard = nowMs; }
   }
+  auDuck(AU.vol.v > 0 && nowMs - (VO.heard || -1e9) < 700);                      // someone is talking: music and sounds step back
   VO.myLvl = VO.myLvl * 0.5 + level(VO.an) * 0.5; if (VO.mic && VO.myLvl > 0.03) talking[ME.id] = 1;
   if (S && UI.hud) S.players.forEach(function (pl, i) { var h = UI.hud[i]; if (!h) return; var t = !!talking[pl.id]; if (h.talk !== t) { h.talk = t; h.el.classList.toggle('talk', t); } });
 }
@@ -2734,6 +2840,7 @@ function initComms() {
   $('b-chat').addEventListener('click', function () { auInit(); sfx('click'); chatOpen(!CHAT.open); });
   $('b-chatx').addEventListener('click', function () { chatOpen(false); });
   document.querySelectorAll('.b-mic').forEach(function (b) { b.addEventListener('click', function () { voiceToggle(); }); });
+  ['touchend', 'click'].forEach(function (k) { document.addEventListener(k, voKick, { passive: true, capture: true }); });
   $('chat-form').addEventListener('submit', function (e) { e.preventDefault(); var i = $('chat-in'); chatSend(i.value); i.value = ''; });
   $('chat-quick').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) chatSend(b.textContent); });
   // swipe in from the left or right edge of the screen to open the chat; swipe it away to close
@@ -2770,10 +2877,9 @@ var G = { S: null, role: 'none', me: -1, mid: 0, acc: 0, quiet: false, verdicts:
   offset: 0, lat: 0, synced: false, pings: [], lastTick: -1, lastHost: 0, stale: false, smashN: 0, inT: 0, snapT: 0, relT: 0, overTimer: null };
 var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
 
-/* Competitive: the same fair rules in every room, so ratings mean the same thing everywhere */
-var COMP = { mode: 0, lives: 5, sp: 1, pw: 1, core: 0, haz: 0, size: 1, balls: 0 };
+/* Competitive: each ranked playlist has fixed rules (PLAYLISTS), so ratings mean the same thing everywhere */
 function cfgObj() {
-  var c = ROOM.cfg.comp ? Object.assign({}, ROOM.cfg, COMP) : ROOM.cfg, m = MAPS[ROOM.mapNow] || MAPS[0];
+  var P = plOf(ROOM.cfg.comp), c = P ? Object.assign({}, ROOM.cfg, P.rules) : ROOM.cfg, m = MAPS[ROOM.mapNow] || MAPS[0];
   return { mode: c.mode | 0, lives: c.lives, target: (c.mode | 0) === 6 ? c.gpts || 15 : c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: SPEEDS[c.sp] || 1, pw: !!c.pw, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, map: ROOM.mapNow, layout: m.layout };
 }
 /* the map on show in the lobby: the chosen one, or the last one played when it is random */
@@ -2783,9 +2889,10 @@ function pickMap() {
   var m; do { m = (Math.random() * MAPS.length) | 0; } while (MAPS.length > 1 && m === ROOM.mapNow);
   return m;
 }
-function prof() { return { name: ME.name || T('guest'), ch: ME.ch, col: ME.col, lv: myLevel(), pid: ME.pid, sr: Math.round(UI.rk.sr), gp: UI.rk.gp }; }
-function seatRk(t, p) { t.pid = okPid(p.pid) ? p.pid : ''; t.sr = clamp(+p.sr || SR0, 0, 5000) | 0; t.gp = ci(p.gp, 0, 1e6); return t; }
-function mySeat(o) { return Object.assign({ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), bot: false, pid: ME.pid, sr: Math.round(UI.rk.sr), gp: UI.rk.gp }, o); }
+function prof() { return { name: ME.name || T('guest'), ch: ME.ch, col: ME.col, lv: myLevel(), pid: ME.pid, rk: rkWire() }; }
+function seatRk(t, p) { t.pid = okPid(p.pid) ? p.pid : ''; t.rk = rkClean(p.rk, p.sr, p.gp); return t; }
+function mySeat(o) { return Object.assign({ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), bot: false, pid: ME.pid, rk: rkWire() }, o); }
+function seatRks(s) { return s.id === ME.id ? rkWire() : s.rk || rkClean(); }
 function cleanName(s) { s = String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12); return s || T('guest'); }
 function ci(v, a, b) { v = v | 0; return v < a ? a : v > b ? b : v; }
 function humans() { return ROOM.seats.filter(function (s) { return !s.bot; }); }
@@ -2822,8 +2929,9 @@ function beginMatch(role) {
   });
   var S = newMatch(roster, cfgObj()), nowMs = performance.now();
   var hs = ROOM.seats.filter(function (s) { return !s.bot; });
-  G.rk = { comp: !!ROOM.cfg.comp && hs.length >= 2 && !ROOM.seats.some(function (s) { return s.bot; }), done: false,
-    list: hs.map(function (s) { var me = s.id === ME.id; return { id: s.id, pid: me ? ME.pid : s.pid, sr: me ? UI.rk.sr : s.sr || SR0, gp: me ? UI.rk.gp : s.gp | 0 }; }) };
+  var P = plOf(ROOM.cfg.comp), k = P ? P.k : 'l';
+  G.rk = { comp: !!P && hs.length >= 2 && !ROOM.seats.some(function (s) { return s.bot; }), k: k, done: false,
+    list: hs.map(function (s) { var x = rkAt(seatRks(s), k); return { id: s.id, pid: s.id === ME.id ? ME.pid : s.pid, sr: x.sr, gp: x.gp }; }) };
   G.S = S; G.log = []; G.role = role; G.quiet = false; G.acc = 0; G.lastEid = 0; G.vis = {}; G.lastTick = -1; G.smashN = 0; G.stale = false;
   G.me = -1; roster.forEach(function (r, i) { if (r.id === ME.id) G.me = i; });
   G.verdicts.clear(); G.seenV.clear(); G.early.clear();
@@ -2904,8 +3012,8 @@ function wallFx(b, soft) {
 }
 function lobbyMsg() {
   var c = ROOM.cfg, now = performance.now();
-  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15, c.comp ? 1 : 0], map: ROOM.mapNow, bots: ROOM.bots,
-    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1, s.bot || s.id === ME.id ? 0 : Math.min(999, s.rtt | 0), s.dir ? 1 : 0, s.bot ? '' : s.pid || '', s.bot ? 0 : s.sr | 0, s.bot ? 0 : s.gp | 0]; }),
+  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15, c.comp | 0], map: ROOM.mapNow, bots: ROOM.bots,
+    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1, s.bot || s.id === ME.id ? 0 : Math.min(999, s.rtt | 0), s.dir ? 1 : 0, s.bot ? '' : s.pid || '', s.bot ? 0 : seatRks(s)]; }),
     wait: ROOM.waiting.map(function (w) { return [w.id, w.name, w.ch, w.col]; }) }];
 }
 function sendLobby() { if (ROOM.role === 'host') hostBroadcast(lobbyMsg()); if (UI.screen === 'lobby') renderLobby(); }
@@ -2950,7 +3058,9 @@ function onHostMsg(id, m) {
     }
     sendLobby();
   } else if (k === 'prof') {
-    p = m[1] || {}; t = (ROOM.phase === 'lobby' ? seat : null) || w; if (!t) return;
+    p = m[1] || {};
+    if (seat && ROOM.phase !== 'lobby') { seatRk(seat, p); seat.lv = ci(p.lv, 1, LV_MAX); return; }   // after a match: the new level and rank, ready for the room
+    t = (ROOM.phase === 'lobby' ? seat : null) || w; if (!t) return;
     t.name = cleanName(p.name); seatRk(t, p); t.lv = ci(p.lv, 1, LV_MAX); t.ch = ci(p.ch, 0, CHARS.length - 1); t.col = freeCol(ci(p.col, 0, COLORS.length - 1), id);
     if (t === seat) syncBots(); sendLobby();
   } else if (k === 'p') {
@@ -3070,10 +3180,10 @@ function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
   ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
-  ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: q[16] ? 1 : 0, sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
+  ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: ci(q[16], 0, PLAYLISTS.length), sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000, before = {}; ROOM.seats.concat(ROOM.waiting).forEach(function (x) { was[x.id] = x.joinedAt; if (!x.bot) before[x.id] = x.name; });
-  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), rtt: a[7] | 0, dir: !!a[8], pid: okPid(a[9]) ? a[9] : '', sr: a[10] | 0, gp: a[11] | 0, joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
+  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), rtt: a[7] | 0, dir: !!a[8], pid: okPid(a[9]) ? a[9] : '', rk: rkClean(a[10], a[10], a[11]), joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
   ROOM.waiting = (d.wait || []).map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3] }; });
   if (ROOM.joined) {                                                  // who came in and who left, since the last update
     var after = {}, seatOf = {}; ROOM.seats.concat(ROOM.waiting).forEach(function (x) { if (!x.bot) { after[x.id] = x.name; seatOf[x.id] = x; } });
@@ -3227,7 +3337,7 @@ function openHost(r) {
     if (r) {
       if (r.cfg) for (var k in ROOM.cfg) if (typeof r.cfg[k] === 'number') ROOM.cfg[k] = r.cfg[k];
       ROOM.bots = ci(r.bots, 0, MAXP);
-      (r.seats || []).forEach(function (a) { if (a[0] !== ME.id && humans().length < MAXP) ROOM.seats.push({ id: String(a[0]), name: cleanName(a[1]), ch: ci(a[2], 0, CHARS.length - 1), col: ci(a[3], 0, COLORS.length - 1), lv: ci(a[4], 1, LV_MAX), bot: false, seen: now, joinedAt: now / 1000, pid: okPid(a[5]) ? a[5] : '', sr: a[6] | 0, gp: a[7] | 0 }); });
+      (r.seats || []).forEach(function (a) { if (a[0] !== ME.id && humans().length < MAXP) ROOM.seats.push({ id: String(a[0]), name: cleanName(a[1]), ch: ci(a[2], 0, CHARS.length - 1), col: ci(a[3], 0, COLORS.length - 1), lv: ci(a[4], 1, LV_MAX), bot: false, seen: now, joinedAt: now / 1000, pid: okPid(a[5]) ? a[5] : '', rk: rkClean(a[6], a[6], a[7]) }); });
       syncBots(); toast(T('reopened'));
     }
     stopTimers(); ROOM.timer = setInterval(hostTimer, 1500);
@@ -3242,7 +3352,7 @@ function lastRoom() { var l = store('sadda.last'); return l && /^[A-Z]{4}$/.test
 function saveLast() {
   if (ROOM.role === 'client' && ROOM.joined) store('sadda.last', { r: 'c', c: ROOM.code, id: ME.id, at: Date.now() });
   else if (ROOM.role === 'host') store('sadda.last', { r: 'h', c: ROOM.code, id: ME.id, at: Date.now(), cfg: ROOM.cfg, bots: ROOM.bots,
-    seats: humans().filter(function (s) { return s.id !== ME.id && !s.gone; }).map(function (s) { return [s.id, s.name, s.ch, s.col, s.lv || 1, s.pid || '', s.sr | 0, s.gp | 0]; }) });
+    seats: humans().filter(function (s) { return s.id !== ME.id && !s.gone; }).map(function (s) { return [s.id, s.name, s.ch, s.col, s.lv || 1, s.pid || '', s.rk || 0]; }) });
 }
 function forgetLast() { try { localStorage.removeItem('sadda.last'); } catch (e) {} }
 function useId(id) { ME.id = NET.id = String(id); try { sessionStorage.setItem('sadda.id', ME.id); } catch (e) {} }
@@ -3300,7 +3410,7 @@ function fail(msg) { teardown(); toast(msg, 4500); }
 function profLocal() {
   if (ROOM.role === 'none') return;
   var m = ROOM.seats.find(function (x) { return x.id === ME.id; });
-  if (m) { m.name = cleanName(ME.name); m.ch = ME.ch; m.lv = myLevel(); m.sr = Math.round(UI.rk.sr); m.gp = UI.rk.gp; if (UI.screen === 'lobby') renderLobby(); }
+  if (m) { m.name = cleanName(ME.name); m.ch = ME.ch; m.lv = myLevel(); m.rk = rkWire(); if (UI.screen === 'lobby') renderLobby(); }
 }
 /* competitive results: everyone's change, worked out the same way on every phone; mine is applied once */
 function rankResult(S) {
@@ -3308,8 +3418,8 @@ function rankResult(S) {
   if (K.res && K.res.mid === G.mid) return K.res;
   var list = K.list.map(function (r) { var pl = S.players.find(function (p) { return p.id === r.id; }); return { key: r.id, sr: r.sr, gp: r.gp, place: pl ? pl.place || S.players.length : S.players.length }; });
   var d = rateMatch(list), mine = null, me = S.players[G.me];
-  if (me && d[ME.id] != null && !K.done) { K.done = true; mine = rankApply(d[ME.id], me.place === 1); }
-  K.res = { mid: G.mid, d: d, mine: mine }; return K.res;
+  if (me && d[ME.id] != null && !K.done) { K.done = true; mine = rankApply(K.k, d[ME.id], me.place === 1); }
+  K.res = { mid: G.mid, k: K.k, d: d, mine: mine }; return K.res;
 }
 /* leaving a competitive match before it ends counts as finishing last */
 function rankQuit() {
@@ -3321,7 +3431,7 @@ function rankQuit() {
     return { key: r.id, sr: r.sr, gp: r.gp, place: r.id === ME.id ? (out ? me.place : 99) : (out && pl && !pl.alive && pl.place ? pl.place : 1) };
   });
   var d = rateMatch(list); K.done = true;
-  if (d[ME.id] != null) { var r = rankApply(d[ME.id], false); toast(T('quitLoss').replace('%d', String(r.d)), 3500); }
+  if (d[ME.id] != null) { var r = rankApply(K.k, d[ME.id], false); toast(T('quitLoss').replace('%d', String(r.d)), 3500); }
 }
 function profChanged() {
   clearTimeout(UI.presT); UI.presT = setTimeout(function () { socPresence(); socLeader(); }, 800);
@@ -3365,6 +3475,9 @@ frame.n = 0;
    (each I to III), then Untouchable, the player nobody scores on. A competitive match moves it by where you finished
    against each other player (the Elo idea, worked out pair by pair, so 2 to 10 players all count fairly).
    The first 5 competitive matches are placements: they move more and the rank shows once they are done.
+   Two ranked playlists, each with its own rating, like separate ranked modes in Rocket League: Lives (5 lives at
+   Wild speed) and Bullet (one pearl that speeds up every hit). The best rank ever reached in either one becomes
+   the player's title, for example "Bullet Titan".
 
    Friends and the leaderboard need no server of our own yet: they ride on the same free message relays as
    the rooms. "Retained" messages stay on the relay after the phone goes away, which gives each player a
@@ -3374,6 +3487,35 @@ frame.n = 0;
 
 /* ---------- ranks ---------- */
 var SEASON = 1, SR0 = 1000, PLACEMENTS = 5;
+var PLAYLISTS = [                                               // the same fair rules in every room, so a rating means the same thing everywhere
+  { k: 'l', t: 'L', n: 'mLives', rules: { mode: 0, lives: 5, sp: 2, pw: 1, core: 0, haz: 0, size: 1, balls: 0 } },   // Lives, Wild speed
+  { k: 'b', t: 'B', n: 'mBullet', rules: { mode: 4, lives: 3, sp: 1, pw: 1, core: 0, haz: 0, size: 1, balls: 0 } }   // Bullet, 3 lives
+];
+function plOf(comp) { return PLAYLISTS[(comp | 0) - 1] || null; }        // room setting: 0 casual, 1 ranked Lives, 2 ranked Bullet
+function plIdx(k) { for (var i = 0; i < PLAYLISTS.length; i++) if (PLAYLISTS[i].k === k) return i; return 0; }
+function newRk(o) { o = o && typeof o === 'object' ? o : {}; return { sr: clamp(+o.sr || SR0, 0, 5000), gp: ci(o.gp, 0, 1e6), w: ci(o.w, 0, 1e6), pk: o.pk == null ? null : clamp(+o.pk || 0, 0, 5000), s: SEASON }; }
+/* everyone's ratings travel as six numbers: rating, matches and best for Lives, then the same for Bullet */
+function rkWire() { var a = []; PLAYLISTS.forEach(function (P) { var R = UI.rks[P.k]; a.push(Math.round(R.sr), R.gp, R.pk == null ? 0 : Math.round(R.pk)); }); return a; }
+function rkClean(a, sr, gp) {
+  if (!Array.isArray(a)) a = [sr, gp, 0];                          // from an older phone: one rating, which was Lives
+  var o = []; for (var i = 0; i < PLAYLISTS.length; i++) o.push(clamp(+a[i * 3] || SR0, 0, 5000) | 0, ci(a[i * 3 + 1], 0, 1e6), ci(a[i * 3 + 2], 0, 5000));
+  return o;
+}
+function rkAt(a, k) { a = a || []; var i = plIdx(k) * 3; return { sr: a[i] || SR0, gp: a[i + 1] | 0, pk: a[i + 2] | 0 }; }
+/* the rank to show for someone outside a ranked room: their higher one */
+function bestOf(a) {
+  var b = null;
+  PLAYLISTS.forEach(function (P) { var x = rkAt(a, P.k), r = rankOf(x.sr, x.gp); if (r.tier >= 0 && (!b || r.idx > b.r.idx || (r.idx === b.r.idx && x.sr > b.sr))) b = { k: P.k, sr: x.sr, gp: x.gp, r: r }; });
+  return b;
+}
+function bestRank(a) { var b = bestOf(a); return b ? b.r : rankOf(SR0, 0); }
+/* a title: the highest rank ever reached, and where */
+function titleOf(a) {
+  var b = null;
+  PLAYLISTS.forEach(function (P) { var x = rkAt(a, P.k); if (x.pk > 0 && x.gp >= PLACEMENTS) { var r = rankOf(x.pk, PLACEMENTS); if (!b || r.tier > b.r.tier || (r.tier === b.r.tier && x.pk > b.pk)) b = { k: P.k, pk: x.pk, r: r }; } });
+  return b;
+}
+function titleName(t) { return t ? T(t.r.tier === 6 ? 'ttlU' : 'ttl', { r: T(RANKS[t.r.tier].k), p: T(PLAYLISTS[plIdx(t.k)].n + 'T') }) : ''; }
 var RANKS = [                                                   // from first game to nobody gets past you: a blocking game's ladder
   { k: 'rRookie', c1: '#ffd9b0', c2: '#d98a4a', c3: '#8f4f22' },     // bronze
   { k: 'rBlocker', c1: '#ffffff', c2: '#bcc6e2', c3: '#76809f' },    // silver
@@ -3400,9 +3542,10 @@ function nextRankName(r) {
 /* a rank's emblem, drawn as an inline picture: a metal crest that grows grander tier by tier (wings, horns,
    a crown), with the tier's sign in the middle. The little diamonds under it are the division: I, II or III. */
 function rankSVG(r, cls) {
-  var t = r.tier, ink = '#0b1b66', R = RANKS[t] || { c1: '#eef1ff', c2: '#b4bddb', c3: '#7c86a8' }, g = 'rkm' + t, s = '';
+  var u = (rankSVG.n = (rankSVG.n || 0) + 1) % 1e6;                // every emblem gets its own ids: a shared one breaks when the first copy sits in a hidden panel
+  var t = r.tier, ink = '#0b1b66', R = RANKS[t] || { c1: '#eef1ff', c2: '#b4bddb', c3: '#7c86a8' }, g = 'rkm' + t + 'u' + u, gold = 'rkg' + u, s = '';
   var defs = '<defs><linearGradient id="' + g + '" x1="0" y1="0" x2="' + (t === 6 ? '1' : '0') + '" y2="1"><stop offset="0" stop-color="' + R.c1 + '"/><stop offset=".55" stop-color="' + R.c2 + '"/><stop offset="1" stop-color="' + R.c3 + '"/></linearGradient>' +
-    (t === 6 ? '<linearGradient id="rkgold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6c2"/><stop offset="1" stop-color="#ffb81c"/></linearGradient>' : '') + '</defs>';
+    (t === 6 ? '<linearGradient id="' + gold + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6c2"/><stop offset="1" stop-color="#ffb81c"/></linearGradient>' : '') + '</defs>';
   var M = 'fill="url(#' + g + ')" stroke="' + ink + '" stroke-width="3.6" stroke-linejoin="round"';
   var W = 'fill="#fff" stroke="' + ink + '" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"';
   var shield = 'M32 6 54 13v17c0 14-9.5 22.5-22 28C19.5 52.5 10 44 10 30V13z';
@@ -3415,11 +3558,11 @@ function rankSVG(r, cls) {
   else if (t === 0) s = '<circle cx="32" cy="31" r="24" ' + M + '/><circle cx="32" cy="31" r="18.5" fill="none" stroke="#fff" stroke-width="2" opacity=".55"/><path d="M15 22a19 19 0 0 1 34 0" fill="none" stroke="#fff" stroke-width="3" opacity=".45" stroke-linecap="round"/><path d="M20 38 32 26l12 12-4.5 4.5L32 35l-7.5 7.5z" ' + W + '/>';
   else if (t === 1) s = '<path d="' + shield + '" ' + M + '/>' + shine + '<rect x="18" y="20" width="7.5" height="26" rx="3.75" ' + W + '/><circle cx="37" cy="33" r="6.5" ' + W + '/><path d="M46 27l4-2M47.5 33h4.5M46 39l4 2" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>';
   else if (t === 2) { var wall = 'M10 9h9v4h5V9h6v4h4V9h6v4h5V9h9v21c0 14-9.5 22.5-22 28C19.5 52.5 10 44 10 30z';
-    s = '<clipPath id="rkwc"><path d="' + wall + '"/></clipPath><path d="' + wall + '" ' + M + '/><g clip-path="url(#rkwc)" stroke="' + ink + '" stroke-width="2" opacity=".55" fill="none"><path d="M10 21h44M10 29h44M10 37h44M10 45h44M10 53h44"/><path d="M22 13v8M42 13v8M32 21v8M18 29v8M46 29v8M24 37v8M40 37v8M32 45v8"/></g><g clip-path="url(#rkwc)" fill="#fff" opacity=".35"><path d="M10 13h44v4H10z"/></g><path d="' + wall + '" fill="none" stroke="' + ink + '" stroke-width="3.6" stroke-linejoin="round"/>'; }
+    s = '<clipPath id="rkwc' + u + '"><path d="' + wall + '"/></clipPath><path d="' + wall + '" ' + M + '/><g clip-path="url(#rkwc' + u + ')" stroke="' + ink + '" stroke-width="2" opacity=".55" fill="none"><path d="M10 21h44M10 29h44M10 37h44M10 45h44M10 53h44"/><path d="M22 13v8M42 13v8M32 21v8M18 29v8M46 29v8M24 37v8M40 37v8M32 45v8"/></g><g clip-path="url(#rkwc' + u + ')" fill="#fff" opacity=".35"><path d="M10 13h44v4H10z"/></g><path d="' + wall + '" fill="none" stroke="' + ink + '" stroke-width="3.6" stroke-linejoin="round"/>'; }
   else if (t === 3) s = wings(R.c2) + '<path d="' + shield + '" ' + M + '/>' + shine + '<path d="M25 30v-5a7 7 0 0 1 14 0v5" fill="none" stroke="' + ink + '" stroke-width="7.5" stroke-linecap="round"/><path d="M25 30v-5a7 7 0 0 1 14 0v5" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><rect x="20" y="29" width="24" height="18" rx="4" ' + W + '/><path d="M32 35v5" stroke="' + ink + '" stroke-width="3.4" stroke-linecap="round"/>';
   else if (t === 4) s = '<path d="M14 15 7 1l15 9zM50 15 57 1 42 10z" fill="' + R.c3 + '" stroke="' + ink + '" stroke-width="2.8" stroke-linejoin="round"/><path d="' + shield + '" ' + M + '/>' + shine + '<path d="M36 13 21 35h10l-3.5 15L44 27H34z" ' + W + '/>';
   else if (t === 5) s = wings(R.c1) + '<path d="' + shield + '" ' + M + '/>' + shine + '<path d="m32 15 4.7 9.6 10.5 1.5-7.6 7.4 1.8 10.5L32 39l-9.4 5 1.8-10.5-7.6-7.4 10.5-1.5z" ' + W + '/>';
-  else s = wings('url(#rkgold)') + '<path d="M18 11 20 .5l6.5 5L32-1.5l5.5 7L44 .5 46 11z" fill="url(#rkgold)" stroke="' + ink + '" stroke-width="2.6" stroke-linejoin="round"/><path d="M32 10 54 16v15c0 13.5-9.5 21.5-22 27-12.5-5.5-22-13.5-22-27V16z" ' + M + '/>' +
+  else s = wings('url(#' + gold + ')') + '<path d="M18 11 20 .5l6.5 5L32-1.5l5.5 7L44 .5 46 11z" fill="url(#' + gold + ')" stroke="' + ink + '" stroke-width="2.6" stroke-linejoin="round"/><path d="M32 10 54 16v15c0 13.5-9.5 21.5-22 27-12.5-5.5-22-13.5-22-27V16z" ' + M + '/>' +
     '<path d="M16 19 32 14l16 5v4.5L32 18.5 16 23.5z" fill="#fff" opacity=".45"/><path d="M23 27h18l6 7-15 15-15-15z" ' + W + '/><path d="M23 27l4 7h10l4-7M17 34h30M27 34l5 15 5-15" fill="none" stroke="' + ink + '" stroke-width="1.8" stroke-linejoin="round" opacity=".7"/>';
   var pips = '';
   if (t >= 0 && t < 6) for (var d = 0; d <= r.div; d++) { var px = 32 + (d - r.div / 2) * 12; pips += '<path d="M' + px + ' 61.5l4.2 4.5-4.2 4.5-4.2-4.5z" fill="' + R.c2 + '" stroke="' + ink + '" stroke-width="2.2" stroke-linejoin="round"/>'; }
@@ -3442,15 +3585,16 @@ function rateMatch(list) {
   });
   return out;
 }
-function myRank() { return rankOf(UI.rk.sr, UI.rk.gp); }
-/* apply this match's result to my rating once; returns what changed for the results screen */
-function rankApply(d, won) {
-  var R = UI.rk, before = rankOf(R.sr, R.gp);
+function myRank(k) { var R = UI.rks[k || 'l']; return rankOf(R.sr, R.gp); }
+function myBest() { return bestRank(rkWire()); }
+/* apply this match's result to my rating in that playlist once; returns what changed for the results screen */
+function rankApply(k, d, won) {
+  var R = UI.rks[k], before = rankOf(R.sr, R.gp);
   R.sr = Math.max(0, Math.round(R.sr + d)); R.gp++; if (won) R.w++;
   var after = rankOf(R.sr, R.gp);
   if (after.tier >= 0 && (R.pk == null || R.sr > R.pk)) R.pk = R.sr;
   saveProfile(); socLeader(); socPresence();
-  return { d: d, before: before, after: after, up: after.idx > before.idx && before.tier >= 0, placed: before.tier < 0 && after.tier >= 0, down: after.idx < before.idx && before.tier >= 0 };
+  return { k: k, d: d, before: before, after: after, up: after.idx > before.idx && before.tier >= 0, placed: before.tier < 0 && after.tier >= 0, down: after.idx < before.idx && before.tier >= 0 };
 }
 
 /* ---------- my permanent player code (also my friend code) ---------- */
@@ -3468,11 +3612,16 @@ var SOC = { cl: [], friends: [], recent: [], out: {}, reqs: {}, pres: {}, inv: {
 function socRelays() { return /[?&]mq=/.test(location.search) ? RELAYS.filter(Boolean) : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt']; }
 function card(o, pid) {                                             // a player's public card, from anything that came in
   o = o && typeof o === 'object' ? o : {};
-  return { pid: pid, n: cleanName(o.n), ch: ci(o.ch, 0, CHARS.length - 1), col: ci(o.col, 0, COLORS.length - 1), lv: ci(o.lv, 1, LV_MAX), sr: clamp(+o.sr || SR0, 0, 5000) | 0, gp: ci(o.gp, 0, 1e6), w: ci(o.w, 0, 1e6), t: +o.t || 0 };
+  return { pid: pid, n: cleanName(o.n), ch: ci(o.ch, 0, CHARS.length - 1), col: ci(o.col, 0, COLORS.length - 1), lv: ci(o.lv, 1, LV_MAX), sr: clamp(+o.sr || SR0, 0, 5000) | 0, gp: ci(o.gp, 0, 1e6), w: ci(o.w, 0, 1e6), t: +o.t || 0, rk: rkClean(o.rk, o.sr, o.gp) };
 }
 /* the most anyone could have after gp matches (every one a win against stronger players); lines above it are fake */
 function plausible(c) { return c.sr <= SR0 + 75 * Math.min(c.gp, PLACEMENTS) + 37 * Math.max(0, c.gp - PLACEMENTS) && c.w <= c.gp; }
-function myCard() { return { n: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), sr: Math.round(UI.rk.sr), gp: UI.rk.gp, w: UI.rk.w, t: Date.now() }; }
+/* my public card: with a playlist, my line on that leaderboard; without, my status card with both ratings */
+function myCard(k) {
+  var R = UI.rks[k || 'l'], c = { n: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), sr: Math.round(R.sr), gp: R.gp, w: R.w, t: Date.now() };
+  if (!k) c.rk = rkWire();
+  return c;
+}
 function socLoad() {
   var d = store('sadda.social') || {};
   SOC.friends = (Array.isArray(d.f) ? d.f : []).filter(function (f) { return f && okPid(f.pid) && f.pid !== ME.pid; }).map(function (f) { return card(f, f.pid); }).slice(0, 200);
@@ -3494,7 +3643,7 @@ function socStart() {
       var c, off = myCard(); off.st = 0;
       try { c = mqConnect(url, { topic: SPRE + 'P/' + ME.pid, payload: JSON.stringify(off), qos: 0, retain: true }); } catch (e) { return; }
       c.options.reconnectPeriod = 6000;
-      c.on('connect', function () { socSubs(c); socPresence(); socLeader(); if (SOC.lbWait) c.subscribe(SPRE + 'L/+'); });
+      c.on('connect', function () { socSubs(c); socPresence(); socLeader(); if (SOC.lbWait) c.subscribe(SPRE + SOC.lbWait.t + '/+'); });
       c.on('message', function (tp, payload) { try { socMsg(tp, payload); } catch (e) {} });
       c.on('error', function () {});
       SOC.cl.push(c);
@@ -3515,19 +3664,19 @@ function socPresence(off) {
   c.st = off ? 0 : 1; c.rm = inRoom && !off ? ROOM.code : '';
   socPub('P/' + ME.pid, c, true);
 }
-/* my line on the leaderboard, once my placements are done */
-function socLeader() { if (UI.rk.gp >= PLACEMENTS && SOC.cl.length) socPub('L/' + ME.pid, myCard(), true); }
+/* my line on each playlist's leaderboard, once my placements there are done */
+function socLeader() { if (SOC.cl.length) PLAYLISTS.forEach(function (P) { if (UI.rks[P.k].gp >= PLACEMENTS) socPub(P.t + '/' + ME.pid, myCard(P.k), true); }); }
 function socMsg(tp, payload) {
   if (tp.indexOf(SPRE) !== 0) return;
   var parts = tp.slice(SPRE.length).split('/'), k = parts[0], raw = payload && payload.length ? String(payload) : '', d = null;
   if (raw) { if (raw.length > 2000) return; try { d = JSON.parse(raw); } catch (e) { return; } }
-  if (k === 'L') { if (SOC.lbWait && okPid(parts[1]) && d) SOC.lbWait[parts[1]] = card(d, parts[1]); return; }
+  if (k === 'L' || k === 'B') { var W = SOC.lbWait; if (W && W.t === k && okPid(parts[1]) && d) W.got[parts[1]] = card(d, parts[1]); return; }
   if (k === 'P') {
     var pid = parts[1]; if (!okPid(pid) || !d || !isFriend(pid)) return;
     var c = card(d, pid), old = SOC.pres[pid]; if (old && old.t > c.t) return;
     c.st = d.st ? 1 : 0; c.rm = typeof d.rm === 'string' && /^[A-Z]{4}$/.test(d.rm) ? d.rm : '';
     SOC.pres[pid] = c;
-    var f = friendOf(pid); if (f && c.t >= f.t) { f.n = c.n; f.ch = c.ch; f.col = c.col; f.lv = c.lv; f.sr = c.sr; f.gp = c.gp; f.t = c.t; }
+    var f = friendOf(pid); if (f && c.t >= f.t) { f.n = c.n; f.ch = c.ch; f.col = c.col; f.lv = c.lv; f.sr = c.sr; f.gp = c.gp; f.rk = c.rk; f.t = c.t; }
     socChanged(); return;
   }
   if (parts[1] !== ME.pid) return;
@@ -3596,18 +3745,21 @@ function socInvite(pid) {
 /* people I have played with, so they can be added with one tap */
 function socRecent(s) {
   if (!s || !okPid(s.pid) || s.pid === ME.pid || isFriend(s.pid)) return;
-  var c = card({ n: s.name, ch: s.ch, col: s.col, lv: s.lv, sr: s.sr, gp: s.gp, t: Date.now() }, s.pid);
+  var c = card({ n: s.name, ch: s.ch, col: s.col, lv: s.lv, rk: s.rk, t: Date.now() }, s.pid);
   SOC.recent = [c].concat(SOC.recent.filter(function (r) { return r.pid !== s.pid; })).slice(0, 20); socSave();
 }
-/* the leaderboard: every line the relays hold, merged, newest wins; cb(list sorted by SR) */
-function socBoard(cb) {
+/* a playlist's leaderboard: every line the relays hold, merged, newest wins; cb(list sorted by SR) */
+function socBoard(k, cb) {
   if (!SOC.cl.some(function (c) { return c.connected; })) { cb(null); return; }
-  SOC.lbWait = {}; socEach(function (c) { c.subscribe(SPRE + 'L/+'); });
+  var tp = SPRE + PLAYLISTS[plIdx(k)].t + '/+', W = SOC.lbWait;
+  if (W) socEach(function (c) { c.unsubscribe(SPRE + W.t + '/+'); });
+  W = SOC.lbWait = { t: PLAYLISTS[plIdx(k)].t, got: {} }; socEach(function (c) { c.subscribe(tp); });
   setTimeout(function () {
-    var got = SOC.lbWait || {}; SOC.lbWait = null; socEach(function (c) { c.unsubscribe(SPRE + 'L/+'); });
+    if (SOC.lbWait !== W) return;
+    var got = W.got; SOC.lbWait = null; socEach(function (c) { c.unsubscribe(tp); });
     var now = Date.now(), list = [];
     for (var pid in got) { var e = got[pid]; if (e.gp >= PLACEMENTS && plausible(e) && now - e.t < 90 * 864e5 && e.t < now + 864e5) list.push(e); }
-    if (UI.rk.gp >= PLACEMENTS) { var me = card(myCard(), ME.pid); list = list.filter(function (e) { return e.pid !== ME.pid; }); list.push(me); }
+    if (UI.rks[k].gp >= PLACEMENTS) { var me = card(myCard(k), ME.pid); list = list.filter(function (e) { return e.pid !== ME.pid; }); list.push(me); }
     list.sort(function (a, b) { return (b.sr - a.sr) || (b.gp - a.gp) || (a.pid < b.pid ? -1 : 1); });
     cb(list);
   }, 2600);
@@ -6386,14 +6538,16 @@ function matchXP(S, p) {
   return Math.min(150, xp);
 }
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} return null; }
-function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, snd: AU.on, mus: AU.musicOn, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', xp: UI.xp || 0, sv2: UI.srv == null ? -1 : UI.srv, th: UI.theme || 'auto', how: !!UI.howSeen, plays: UI.plays || 0, rk: UI.rk }); }
+function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, vol: AU.vol, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', xp: UI.xp || 0, sv2: UI.srv == null ? -1 : UI.srv, th: UI.theme || 'auto', how: !!UI.howSeen, plays: UI.plays || 0, rks: UI.rks }); }
 function loadProfile() {
   var p = store('sadda.profile') || {};
   ME.name = typeof p.name === 'string' ? p.name.slice(0, 12) : '';
   ME.ch = ci(p.ch == null ? Math.random() * CHARS.length : p.ch, 0, CHARS.length - 1); ME.col = ci(p.col == null ? Math.random() * 8 : p.col, 0, COLORS.length - 1);
-  AU.on = p.snd !== false; AU.musicOn = p.mus !== false; AU.vib = p.vib !== false; UI.gfx = p.gfx || 'auto'; UI.smashL = p.sm === 'l'; UI.xp = Math.max(0, +p.xp || 0); UI.srv = p.sv2 == null ? -1 : ci(p.sv2, -1, RELAYS.length - 1); UI.srv = -1; UI.theme = /^(light|dark)$/.test(p.th) ? p.th : 'auto'; applyTheme(); UI.howSeen = !!p.how; UI.plays = +p.plays || 0;
-  var rk = p.rk && typeof p.rk === 'object' ? p.rk : {};
-  UI.rk = { sr: clamp(+rk.sr || SR0, 0, 5000), gp: ci(rk.gp, 0, 1e6), w: ci(rk.w, 0, 1e6), pk: rk.pk == null ? null : +rk.pk, s: SEASON };
+  var vo = p.vol && typeof p.vol === 'object' ? p.vol : {};                 // older phones saved sound and music as on/off
+  AU.vol = { m: vo.m == null ? (p.mus === false ? 0 : 80) : ci(vo.m, 0, 100), s: vo.s == null ? (p.snd === false ? 0 : 100) : ci(vo.s, 0, 100), v: vo.v == null ? 100 : ci(vo.v, 0, 100) }; auVol();
+  AU.vib = p.vib !== false; UI.gfx = p.gfx || 'auto'; UI.smashL = p.sm === 'l'; UI.xp = Math.max(0, +p.xp || 0); UI.srv = p.sv2 == null ? -1 : ci(p.sv2, -1, RELAYS.length - 1); UI.srv = -1; UI.theme = /^(light|dark)$/.test(p.th) ? p.th : 'auto'; applyTheme(); UI.howSeen = !!p.how; UI.plays = +p.plays || 0;
+  var rks = p.rks && typeof p.rks === 'object' ? p.rks : { l: p.rk };      // one rating before Bullet had its own: that one was Lives
+  UI.rks = {}; PLAYLISTS.forEach(function (P) { UI.rks[P.k] = newRk(rks[P.k]); });
   LANG = p.lang === 'ar' || p.lang === 'en' ? p.lang : ((navigator.language || 'en').slice(0, 2) === 'ar' ? 'ar' : 'en');
   UI.langSet = !!p.langSet;
   var id = null; try { id = sessionStorage.getItem('sadda.id'); } catch (e) {}
@@ -6431,7 +6585,14 @@ function applyStrings() {
 }
 function setLang(l) { LANG = l === 'ar' ? 'ar' : 'en'; UI.langSet = true; saveProfile(); applyStrings(); }
 function soundButtons() {
-  [['t-snd', AU.on], ['t-mus', AU.musicOn], ['t-vib', AU.vib !== false]].forEach(function (t) { var e = $(t[0]); e.classList.toggle('on', !!t[1]); e.setAttribute('aria-pressed', t[1] ? 'true' : 'false'); e.lastChild.textContent = t[1] ? T('on') : T('off'); });
+  var vb = $('t-vib'), on = AU.vib !== false; vb.classList.toggle('on', on); vb.setAttribute('aria-pressed', on ? 'true' : 'false');
+  document.querySelectorAll('.mix').forEach(function (m) {
+    var k = m.getAttribute('data-k'), v = AU.vol[k], r = m.querySelector('input'), lb = T(m.querySelector('.mxl').getAttribute('data-t'));
+    if (+r.value !== v) r.value = v;
+    m.style.setProperty('--v', v + '%'); m.classList.toggle('off', !v);
+    m.querySelector('.mxv').textContent = v ? v + '%' : T('off');
+    r.setAttribute('aria-label', lb); var b = m.querySelector('.mxi'); b.setAttribute('aria-label', lb); b.setAttribute('aria-pressed', v ? 'false' : 'true');
+  });
   if (GFX.quality) seg('seg-gfx', GFX.quality);
   seg('seg-smash', UI.smashL ? 'l' : 'r'); seg('seg-theme', UI.theme || 'auto'); $('app').classList.toggle('smash-l', !!UI.smashL);
 }
@@ -6666,8 +6827,9 @@ function renderLobby() {
   // what everyone sees: the mode, target and map the host picked
   var sum = $('summary'); sum.hidden = host; sum.textContent = '';
   if (!host) {
-    if (c.comp) { c = Object.assign({}, c, COMP); mode = 0; var cp = document.createElement('span'); cp.className = 'pill comp'; cp.textContent = T('compTag'); sum.appendChild(cp); }
-    [T(MODE_NAMES[mode]) + ': ' + targetText(mode, cfgTarget(c), c.ck), mapName(c.map), T('size') + ': ' + T('sz' + (c.size | 0)), T('pw') + ': ' + T(c.pw ? 'on' : 'off')].concat(c.balls && mode !== 4 && mode !== 7 ? [T('balls') + ': ' + c.balls] : []).forEach(function (txt, k) {
+    var P = plOf(c.comp);
+    if (P) { c = Object.assign({}, c, P.rules); mode = c.mode; var cp = document.createElement('span'); cp.className = 'pill comp'; cp.textContent = T('compTag'); sum.appendChild(cp); }
+    [T(MODE_NAMES[mode]) + ': ' + targetText(mode, cfgTarget(c), c.ck), mapName(c.map), T('size') + ': ' + T('sz' + (c.size | 0)), T('pw') + ': ' + T(c.pw ? 'on' : 'off')].concat(c.sp !== 1 ? [T('speed') + ': ' + T('sp' + c.sp)] : []).concat(c.balls && mode !== 4 && mode !== 7 ? [T('balls') + ': ' + c.balls] : []).forEach(function (txt, k) {
       var p = document.createElement('span'); p.className = 'pill' + (k === 0 ? ' y' : ''); p.textContent = txt; sum.appendChild(p);
     });
   }
@@ -6999,8 +7161,14 @@ function initUI() {
   $('b-resume').addEventListener('click', function () { sfx('click'); closeMenu(); });
   $('b-close').addEventListener('click', function () { sfx('click'); closeMenu(); });
   $('menu').addEventListener('click', function (e) { if (e.target === this) closeMenu(); });
-  $('t-snd').addEventListener('click', function () { auInit(); AU.on = !AU.on; saveProfile(); soundButtons(); sfx('click'); });
-  $('t-mus').addEventListener('click', function () { auInit(); AU.musicOn = !AU.musicOn; saveProfile(); soundButtons(); sfx('click'); });
+  /* Settings: music, sounds and voice chat each have their own slider; tap the picture to mute or bring it back */
+  document.querySelectorAll('.mix').forEach(function (m) {
+    var k = m.getAttribute('data-k'), r = m.querySelector('input');
+    function set(v) { auInit(); AU.vol[k] = ci(v, 0, 100); if (AU.vol[k]) m.setAttribute('data-last', AU.vol[k]); auVol(); if (k === 'v') voRouteAll(); soundButtons(); }
+    r.addEventListener('input', function () { set(r.value); });
+    r.addEventListener('change', function () { saveProfile(); if (k === 's') sfx('click'); });
+    m.querySelector('.mxi').addEventListener('click', function () { set(AU.vol[k] ? 0 : +m.getAttribute('data-last') || (k === 'm' ? 80 : 100)); saveProfile(); sfx('click'); });
+  });
   $('t-vib').addEventListener('click', function () { AU.vib = AU.vib === false; saveProfile(); soundButtons(); sfx('click'); buzz(30); });
   $('seg-theme').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; sfx('click'); UI.theme = b.getAttribute('data-v'); saveProfile(); applyTheme(); soundButtons(); });
   try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); } catch (e) {}
@@ -7083,7 +7251,7 @@ function initUI() {
     else if (!hadProfile) openWelcome();
     else if (!UI.howSeen) setTimeout(function () { if (UI.screen === 'home') $('howto').hidden = false; }, 900);
   }
-  if (debug) window.__sadda = DBG = { ME: ME, SOC: SOC, socTab: socTab, rankSVG: rankSVG, rankOf: rankOf, rankName: rankName, AU: AU, BANK: BANK, SFX: SFX, VO: VO, CHAT: CHAT, chatSend: chatSend, G: G, ROOM: ROOM, NET: NET, INPUT: INPUT, GFX: GFX, VIEW: VIEW, UI: UI, auto: false, portrait: portraitURL, fx: fxEvent, title: showTitle, toast: toast, end: function () { if (G.S) skipToEnd(G.S); }, norender: /[?&]norender/.test(location.search) };
+  if (debug) window.__sadda = DBG = { ME: ME, SOC: SOC, socTab: socTab, PLAYLISTS: PLAYLISTS, rkWire: rkWire, titleOf: titleOf, titleName: titleName, voRouteAll: voRouteAll, renderLobby: renderLobby, openSoc: openSoc, openSeatMenu: openSeatMenu, joinCard: joinCard, rankSVG: rankSVG, rankOf: rankOf, rankName: rankName, AU: AU, BANK: BANK, SFX: SFX, VO: VO, CHAT: CHAT, chatSend: chatSend, G: G, ROOM: ROOM, NET: NET, INPUT: INPUT, GFX: GFX, VIEW: VIEW, UI: UI, auto: false, portrait: portraitURL, fx: fxEvent, title: showTitle, toast: toast, end: function () { if (G.S) skipToEnd(G.S); }, norender: /[?&]norender/.test(location.search) };
   requestAnimationFrame(frame);
 
   // opened from an invite link or QR: #CODE
@@ -7108,7 +7276,7 @@ function rkIcon(sr, gp, cls) { return rankSVG(rankOf(sr, gp), cls); }
 
 /* ---------- home: my rank on the profile chip and the Ranks button; the friends badge ---------- */
 function socHome() {
-  var r = myRank();
+  var r = myBest();
   $('pf-rk').innerHTML = r.tier >= 0 ? rankSVG(r) : ''; $('pf-rk').title = rankName(r);
   $('rail-rk').innerHTML = r.tier >= 0 ? rankSVG(r) : '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="#b07a00" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg>';
   var req = Object.keys(SOC.reqs).length, on = SOC.friends.filter(function (f) { return socOnline(f.pid); }).length;
@@ -7129,7 +7297,7 @@ function openSoc(tab) {
 function socTab(t) {
   UI.socTab = t; seg('soc-tabs', t);
   $('soc-f').hidden = t !== 'f'; $('soc-r').hidden = t !== 'r';
-  if (t === 'f') renderFriends(); else { renderMyRank(); renderLadder(); renderBoard(UI.lbMode || 'g'); }
+  if (t === 'f') renderFriends(); else ranksPane();
   $('socsheet').firstElementChild.scrollTop = 0;
 }
 function statusOf(pid) {
@@ -7143,7 +7311,7 @@ function personRow(c, kind) {
   var im = el('img'); im.alt = ''; setPortrait(im, c.ch, COLORS[c.col]); row.appendChild(im);
   var tx = el('div', 'ftx'), nm = el('b', null, c.n), lv = el('i', 'lvc'); lvChip(lv, c.lv); nm.appendChild(lv);
   var st = el('small'); tx.appendChild(nm); tx.appendChild(st); row.appendChild(tx);
-  var rk = el('i', 'frk'); var r = rankOf(c.sr, c.gp); if (r.tier >= 0) { rk.innerHTML = rankSVG(r); rk.title = rankName(r); } row.appendChild(rk);
+  var rk = el('i', 'frk'); var r = bestRank(c.rk); if (r.tier >= 0) { rk.innerHTML = rankSVG(r); rk.title = rankName(r); } row.appendChild(rk);
   var act = el('div', 'fact'); row.appendChild(act);
   function btn(label, a, cls) { var b = el('button', 'btn xs ' + (cls || ''), label); b.type = 'button'; b.setAttribute('data-act', a); act.appendChild(b); return b; }
   var inRoom = (ROOM.role === 'host' || ROOM.role === 'client') && ROOM.code;
@@ -7192,13 +7360,20 @@ function socListClick(e) {
   renderFriends();
 }
 
-/* ---------- ranks tab ---------- */
+/* ---------- ranks tab: my title, then one playlist at a time (Lives or Bullet), each with its own rank and board ---------- */
+function ranksPane() {
+  var k = UI.plTab || 'l'; seg('pl-tabs', k);
+  var t = titleOf(rkWire()), tb = $('my-title'); tb.hidden = !t;
+  if (t) { tb.className = 'titlebar t' + t.r.tier; tb.querySelector('i').innerHTML = rankSVG(t.r); tb.querySelector('b').textContent = titleName(t); }
+  document.querySelectorAll('#pl-tabs button').forEach(function (b) { var r = myRank(b.getAttribute('data-v')), e = b.querySelector('em'); e.innerHTML = r.tier >= 0 ? rankSVG(r) : ''; e.hidden = r.tier < 0; });
+  renderMyRank(); renderLadder(); renderBoard(UI.lbMode || 'g');
+}
 function renderMyRank() {
-  var R = UI.rk, r = myRank(), box = $('my-rank'); box.textContent = '';
+  var k = UI.plTab || 'l', R = UI.rks[k], r = myRank(k), box = $('my-rank'); box.textContent = '';
   box.className = 'rankcard t' + r.tier;
   var em = el('div', 'rc-em'); em.innerHTML = rankSVG(r); box.appendChild(em);
   var tx = el('div', 'rc-tx');
-  tx.appendChild(el('small', 'rc-season', T('season', { n: SEASON })));
+  tx.appendChild(el('small', 'rc-season', T('season', { n: SEASON }) + (LANG === 'ar' ? '، ' : ', ') + T(PLAYLISTS[plIdx(k)].n)));
   tx.appendChild(el('b', 'rc-name', rankName(r)));
   if (r.tier >= 0) tx.appendChild(el('span', 'rc-sr', fmtSR(R.sr) + ' ' + T('srU')));
   var bar = el('div', 'rc-bar'), fill = el('i'); fill.style.width = Math.round(r.prog * 100) + '%'; bar.appendChild(fill); tx.appendChild(bar);
@@ -7228,26 +7403,26 @@ function boardRow(c, pos, me) {
 }
 function renderBoard(mode) {
   UI.lbMode = mode; seg('lb-tabs', mode);
-  var box = $('lb-list'), meC = card(myCard(), ME.pid);
+  var k = UI.plTab || 'l', box = $('lb-list'), meC = card(myCard(k), ME.pid);
   if (mode === 'f') {
-    var list = SOC.friends.map(function (f) { var p = SOC.pres[f.pid]; return p && p.t > f.t ? p : f; }).concat([meC]);
+    var list = SOC.friends.map(function (f) { var p = SOC.pres[f.pid], c = p && p.t > f.t ? p : f, x = rkAt(c.rk, k); return Object.assign({}, c, { sr: x.sr, gp: x.gp }); }).concat([meC]);
     list.sort(function (a, b) { var ra = a.gp >= PLACEMENTS, rb = b.gp >= PLACEMENTS; return (rb - ra) || (b.sr - a.sr); });
     box.textContent = '';
     list.forEach(function (c, i) { box.appendChild(boardRow(c, c.gp >= PLACEMENTS ? i + 1 : 0, c.pid === ME.pid)); });
     if (list.length < 2) box.appendChild(el('p', 'empty', T('fbEmpty')));
     return;
   }
-  var stamp = UI.lbStamp = Date.now();
-  if (UI.lbCache && Date.now() - UI.lbCache.at < 30000) { draw(UI.lbCache.list); return; }
+  var stamp = UI.lbStamp = Date.now(), cache = UI.lbCache || (UI.lbCache = {});
+  if (cache[k] && Date.now() - cache[k].at < 30000) { draw(cache[k].list); return; }
   box.textContent = ''; box.appendChild(el('p', 'empty loading', PREVIEW ? T('preview') : T('lbLoading')));
   if (PREVIEW) return;
-  socBoard(function (list) {
+  socBoard(k, function (list) {
     if (UI.lbStamp !== stamp) return;
     if (!list) { box.textContent = ''; box.appendChild(el('p', 'empty', T('lbOff'))); return; }
-    UI.lbCache = { at: Date.now(), list: list }; draw(list);
+    cache[k] = { at: Date.now(), list: list }; draw(list);
   });
   function draw(list) {
-    if (UI.lbMode !== 'g') return;
+    if (UI.lbMode !== 'g' || (UI.plTab || 'l') !== k) return;
     box.textContent = '';
     if (!list.length) { box.appendChild(el('p', 'empty', T('lbEmpty'))); return; }
     var mine = -1; list.forEach(function (c, i) { if (c.pid === ME.pid) mine = i; });
@@ -7277,8 +7452,9 @@ function seatMenuFill() {
   if (!s) { closeSeatMenu(); return; }
   var m = $('seatmenu'), im = m.querySelector('img'); setPortrait(im, s.ch, COLORS[s.col]);
   m.querySelector('.sm-head b').textContent = s.name;
-  var r = rankOf(s.sr, s.gp); m.querySelector('.sm-head small').textContent = 'Lv ' + (s.lv || 1) + (r.tier >= 0 ? (LANG === 'ar' ? '، ' : ', ') + rankName(r) : '');
+  var r = roomRank(s); m.querySelector('.sm-head small').textContent = 'Lv ' + (s.lv || 1) + (r.tier >= 0 ? (LANG === 'ar' ? '، ' : ', ') + rankName(r) : '');
   m.querySelector('.sm-rk').innerHTML = r.tier >= 0 ? rankSVG(r) : '';
+  titleChip(m.querySelector('.sm-ttl'), s);
   var add = $('sm-add'), fr = s.pid && isFriend(s.pid), pend = s.pid && SOC.out[s.pid];
   add.hidden = !okPid(s.pid); add.disabled = !!(fr || pend);
   add.textContent = fr ? T('isFriend') : pend ? T('pendingT') : T('addFriend');
@@ -7292,12 +7468,13 @@ function renderRankRes(S) {
   var box = $('res-rank'), res = rankResult(S);
   box.hidden = !res || !res.mine; if (!res) return null;
   if (res.mine) {
-    var m = res.mine, r = m.after; box.textContent = ''; box.className = 'rankres t' + r.tier + (m.d >= 0 ? ' up' : ' dn');
+    var m = res.mine, r = m.after, R = UI.rks[m.k]; box.textContent = ''; box.className = 'rankres t' + r.tier + (m.d >= 0 ? ' up' : ' dn');
     var em = el('div', 'rr-em'); em.innerHTML = rankSVG(r); box.appendChild(em);
     var tx = el('div', 'rr-tx');
-    var big = m.placed || m.up || m.down, head = m.placed ? T('placedT') : m.up ? T('rankUp') : m.down ? T('rankDown') : r.tier < 0 ? T('placement', { n: UI.rk.gp }) : rankName(r);
+    var big = m.placed || m.up || m.down, head = m.placed ? T('placedT') : m.up ? T('rankUp') : m.down ? T('rankDown') : r.tier < 0 ? T('placement', { n: R.gp }) : rankName(r);
+    tx.appendChild(el('em', 'rr-pl', T('compTag') + (LANG === 'ar' ? '، ' : ', ') + T(PLAYLISTS[plIdx(m.k)].n)));
     tx.appendChild(el('b', null, head));
-    tx.appendChild(el('small', null, r.tier < 0 ? T('placeNote', { n: PLACEMENTS - UI.rk.gp }) : (big ? rankName(r) + (LANG === 'ar' ? '، ' : ', ') : '') + fmtSR(UI.rk.sr) + ' ' + T('srU')));
+    tx.appendChild(el('small', null, r.tier < 0 ? T('placeNote', { n: PLACEMENTS - R.gp }) : (big ? rankName(r) + (LANG === 'ar' ? '، ' : ', ') : '') + fmtSR(R.sr) + ' ' + T('srU')));
     var bar = el('div', 'rc-bar'), fill = el('i'); bar.appendChild(fill); tx.appendChild(bar); box.appendChild(tx);
     var d = el('span', 'rr-d', (m.d > 0 ? '+' : '') + m.d); box.appendChild(d);
     fill.style.width = Math.round((m.before.idx === r.idx ? m.before.prog : m.d >= 0 ? 0 : 1) * 100) + '%';
@@ -7313,19 +7490,30 @@ function rankDelta(res, id) {
 
 /* ---------- lobby: the competitive switch and the rank on each seat ---------- */
 function lobbyComp() {
-  var comp = !!ROOM.cfg.comp, host = ROOM.role === 'host', online = ROOM.role === 'host' || ROOM.role === 'client';
-  $('seg-comp').hidden = !host; seg('seg-comp', comp ? 1 : 0);
+  var P = plOf(ROOM.cfg.comp), comp = !!P, host = ROOM.role === 'host', online = ROOM.role === 'host' || ROOM.role === 'client';
+  $('seg-comp').hidden = !host; seg('seg-comp', ROOM.cfg.comp | 0);
   $('hostctl').classList.toggle('comp', comp);
   $('comp-rules').hidden = !comp || !host;
-  if (comp) $('cr-rk').innerHTML = rankSVG(myRank());
+  if (comp) { $('cr-rk').innerHTML = rankSVG(myRank(P.k)); $('cr-tx').textContent = T(P.k === 'b' ? 'compRulesB' : 'compRules'); }
   $('b-invfr').hidden = !online || PREVIEW;
   $('s-lobby').classList.toggle('compo', comp && online);
+}
+/* the rank to show for someone in this room: in a ranked room that playlist's, otherwise their higher one */
+function roomRank(s) {
+  var a = seatRks(s), P = plOf(ROOM.cfg.comp);
+  if (P) { var x = rkAt(a, P.k); return rankOf(x.sr, x.gp); }
+  return bestRank(a);
+}
+/* their title, as a small gold ribbon (nothing until they have one) */
+function titleChip(e, s) {
+  if (!e) return; var t = titleOf(seatRks(s));
+  e.hidden = !t; e.textContent = titleName(t); e.className = e.className.split(' ').slice(0, 2).join(' ') + (t ? ' t' + t.r.tier : '');
 }
 /* a seat's level and rank, big enough to read at a glance: the emblem sits on the picture, the rank's name
    beside the level chip (bots just say Bot) */
 function seatRank(cell, s) {
   var e = cell.querySelector('.srk'), n = cell.querySelector('.srn');
-  var me = s.id === ME.id, sr = me ? UI.rk.sr : s.sr, gp = me ? UI.rk.gp : s.gp, r = rankOf(sr, gp);
+  var r = s.bot ? rankOf(SR0, 0) : roomRank(s);
   var show = !s.bot && r.tier >= 0, key = show ? r.idx : -1;
   if (e.getAttribute('data-k') !== String(key)) { e.innerHTML = show ? rankSVG(r) : ''; e.setAttribute('data-k', key); }
   e.hidden = !show; if (show) e.title = rankName(r);
@@ -7339,8 +7527,9 @@ function joinCard(s) {
 }
 function joinNext() {
   var q = UI.jq, s = q && q[0], box = $('joincard'); if (!s) { box.hidden = true; return; }
-  var r = rankOf(s.sr, s.gp);
+  var r = roomRank(s);
   setPortrait(box.querySelector('img'), s.ch, COLORS[s.col]); setC(box, COLORS[s.col]);
+  titleChip(box.querySelector('.jc-t'), s);
   box.querySelector('.jc-n').textContent = s.name;
   lvChip(box.querySelector('.lvc'), s.lv || 1);
   box.querySelector('.jc-r').textContent = r.tier >= 0 ? rankName(r) : T('unranked');
@@ -7357,6 +7546,7 @@ function socUIInit() {
   $('b-invfr').addEventListener('click', function () { sfx('click'); openSoc('f'); });
   $('soc-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { sfx('click'); socTab(b.getAttribute('data-v')); } });
   $('lb-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { sfx('click'); renderBoard(b.getAttribute('data-v')); } });
+  $('pl-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { sfx('click'); UI.plTab = b.getAttribute('data-v'); ranksPane(); } });
   ['fr-req', 'fr-list', 'fr-recent'].forEach(function (id) { $(id).addEventListener('click', socListClick); });
   $('in-fcode').addEventListener('input', function () { this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6); });
   $('in-fcode').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('b-fadd').click(); });
@@ -7380,7 +7570,7 @@ function socUIInit() {
   });
   $('seg-comp').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b || ROOM.role !== 'host') return; sfx('click');
-    ROOM.cfg.comp = +b.getAttribute('data-v') ? 1 : 0; syncBots(); sendLobby(); renderLobby();
+    ROOM.cfg.comp = ci(b.getAttribute('data-v'), 0, PLAYLISTS.length); syncBots(); sendLobby(); renderLobby();
   });
   socHome();
   if (!PREVIEW) setTimeout(socStart, 1800);
