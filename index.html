@@ -1353,8 +1353,14 @@ function toTarget(m) { m = m | 0; return m === MODE_POINTS || m === MODE_GOLD; }
    purple 15-19, and black ("Unreal") from 20: far faster than anything before it. */
 var TIERS = [0, 3, 6, 10, 15, 20];
 function tierOf(n) { for (var i = TIERS.length - 1; i > 0; i--) if (n >= TIERS[i]) return i; return 0; }
+/* Bullet speed for each colour, from its first hit to its last (times the base pearl speed). Every colour moves
+   at the speed the next colour used to have, so a rally is tense from the first touch, and black (Unreal) tops
+   out about a fifth faster than before. Within a colour it still picks up a little with every hit. */
+var BUL_SP = [[1.39, 1.65], [1.78, 2.17], [2.3, 2.82], [3.3, 3.54], [4.2, 4.45], [5.2, 6]];
 function bulletSp(S, n) {
-  var m = n >= 20 ? Math.min(5, 4.2 + 0.05 * (n - 20)) : n >= 15 ? 3.3 + 0.06 * (n - 15) : 1 + 0.13 * n;   // purple and black jump up so you feel them
+  n = n | 0; var t = tierOf(n), a = BUL_SP[t], m;
+  if (t === TIERS.length - 1) m = Math.min(a[1], a[0] + 0.05 * (n - TIERS[t]));
+  else m = a[0] + (a[1] - a[0]) * (n - TIERS[t]) / Math.max(1, TIERS[t + 1] - 1 - TIERS[t]);
   return BASE_SP * (S.cfg.speed || 1) * m;
 }
 function bulletHit(S, b) { var t0 = tierOf(b.hits | 0); b.hits = (b.hits | 0) + 1; var t1 = tierOf(b.hits); if (t1 > t0) ev(S, ['tier', b.id, t1]); }
@@ -1923,7 +1929,10 @@ function advance(S, dt, M, mode) {
   if (mode === 2) return;
   if (S.lay.k === 'orbit') S.posts = S.corners.concat(S.lay.obs(S));
   if (S.phase !== 'over') {
-    for (i = 0; i < S.balls.length; i++) stepBall(S, S.balls[i], dt, M);
+    for (i = 0; i < S.balls.length; i++) {
+      var bb = S.balls[i], sub = bb.st === LIVE ? Math.min(4, Math.ceil(Math.hypot(bb.vx, bb.vy) * dt / 0.03)) : 1;   // a very fast pearl moves in smaller steps, so it never skips past a bumper or post
+      for (var k = 0; k < sub && !bb.dead; k++) stepBall(S, bb, dt / sub, M);
+    }
     for (i = S.balls.length - 1; i >= 0; i--) {
       var b = S.balls[i];
       if (b.dead || (b.st !== PEND && Math.hypot(b.x, b.y) > 1.9)) S.balls.splice(i, 1);
@@ -2326,8 +2335,8 @@ var STR = {
     mCrown: 'Crown', mCrownS: 'Steal it, keep it', tgtCrown: 'Crown points to win', sec: 's', secS: 's', pts: 'pts', crownCol: 'Crown pts',
     crownBy: 'Win by', ckPts: 'Points', ckTime: 'Time', auto: 'Auto', balls: 'Pearls',
     mBullet: 'Bullet', mBulletS: 'One pearl, faster every hit', mBomb: 'Bomb', mBombS: "Don't let it blow on you",
-    fast1: 'FAST!', fast2: 'FASTER!', fast3: 'FASTEST!', fast4: 'INSANE!', fast5: 'UNREAL!', fastS: 'Keep it out of your goal',
-    spd0: 'Speed: normal', spd1: 'Speed: fast', spd2: 'Speed: faster', spd3: 'Speed: FASTEST', spd4: 'Speed: INSANE', spd5: 'Speed: UNREAL',
+    fast1: 'FASTER!', fast2: 'FASTEST!', fast3: 'INSANE!', fast4: 'EXTREME!', fast5: 'UNREAL!', fastS: 'Keep it out of your goal',
+    spd0: 'Speed: fast', spd1: 'Speed: faster', spd2: 'Speed: FASTEST', spd3: 'Speed: INSANE', spd4: 'Speed: EXTREME', spd5: 'Speed: UNREAL',
     bombIn: 'BOMB!', bombInS: 'Keep it away from your side', boomSafe: 'Shield!',
     koLog: 'Knockouts', hitLog: 'Who scored on who', koBy: 'knocked out', scoredOn: 'scored {n} on', wild: 'Wild pearl',
     crownTo: 'Crown: first to {n} points', crownT: 'CROWN STOLEN!', crownGot2: 'THE KING!', crownGot: '{n} has the crown', youCrown: 'YOUR CROWN!',
@@ -2398,8 +2407,8 @@ var STR = {
     mCrown: 'التاج', mCrownS: 'اسرقه واثبت فيه', tgtCrown: 'نقاط التاج للفوز', sec: 'ث', secS: 'ث', pts: 'نقطة', crownCol: 'نقاط التاج',
     crownBy: 'الفوز بـ', ckPts: 'النقاط', ckTime: 'الوقت', auto: 'تلقائي', balls: 'عدد اللؤلؤ',
     mBullet: 'رصاصة', mBulletS: 'لؤلؤة وحدة، تسرع مع كل ضربة', mBomb: 'قنبلة', mBombS: 'لا تخليها تنفجر عندك',
-    fast1: 'سريعة!', fast2: 'أسرع!', fast3: 'صاروخ!', fast4: 'جنون!', fast5: 'خيالي!', fastS: 'لا تخليها تدخل عليك',
-    spd0: 'السرعة: عادية', spd1: 'السرعة: سريعة', spd2: 'السرعة: أسرع', spd3: 'السرعة: صاروخ', spd4: 'السرعة: جنون', spd5: 'السرعة: خيالية',
+    fast1: 'أسرع!', fast2: 'صاروخ!', fast3: 'جنون!', fast4: 'رهيب!', fast5: 'خيالي!', fastS: 'لا تخليها تدخل عليك',
+    spd0: 'السرعة: سريعة', spd1: 'السرعة: أسرع', spd2: 'السرعة: صاروخ', spd3: 'السرعة: جنون', spd4: 'السرعة: رهيبة', spd5: 'السرعة: خيالية',
     bombIn: 'قنبلة!', bombInS: 'بعّدها عن جهتك', boomSafe: 'درع!',
     koLog: 'مين طلّع مين', hitLog: 'مين سجّل على مين', koBy: 'طلّع', scoredOn: 'سجّل {n} على', wild: 'لؤلؤة طايشة',
     crownTo: 'التاج: أول من يوصل {n} نقطة', crownT: 'انسرق التاج!', crownGot2: 'الملك!', crownGot: 'التاج مع {n}', youCrown: 'التاج معك!',
