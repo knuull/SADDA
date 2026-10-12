@@ -879,6 +879,28 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
 .btn.play::before { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(105deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0) 65%); transform: translateX(-120%); animation: playSweep 3.6s ease-in-out 1.2s infinite; pointer-events: none; }
 @keyframes playSweep { 0%, 62% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
 @media (prefers-reduced-motion: reduce) { .btn.play::before, .hclock.final, .hclock.ot { animation: none !important; } .seg.has::before { transition: none; } }
+
+/* room settings, grouped: Mode, Map, Bots, then everything else folded away */
+.grp { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 22px; background: var(--soft); }
+.grp-h { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 800; color: var(--ink-2); }
+.grp .seg, .grp .step button { background: var(--card); }
+.grp .step button { box-shadow: 0 4px 0 var(--soft-3); }
+.grp .kv { gap: 8px; }
+.modes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.modes button { flex-direction: row; justify-content: flex-start; gap: 6px; min-height: 42px; padding: 6px 9px; border-radius: 14px; background: var(--card); box-shadow: 0 3px 0 var(--soft-3); }
+.modes button small { display: none; }
+.modes i.mi { flex: none; width: 22px; height: 22px; }
+.modes i.mi svg { width: 22px; height: 22px; }
+.modes b { font-size: 0.9rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.modes button.on { color: #fff; background: linear-gradient(180deg, #6f9dff, var(--b2)); box-shadow: 0 3px 0 var(--b4); }
+.modes button.on i.mi, .modes button.on b { color: #fff; }
+.mode-desc { margin: 0; padding: 0 2px; font-size: 0.88rem; font-weight: 700; color: var(--muted); }
+.grp .maps { margin: -4px -12px -6px; padding: 4px 12px 10px; }
+#fold-more .foldbody { gap: 10px; }
+.resmore .foldbody { display: flex; flex-direction: column; gap: 10px; }
+.resmore .awards { margin: 0; }
+.modes b { white-space: normal; overflow: visible; font-size: 0.86rem; line-height: 1.05; }
+.modes button { gap: 5px; padding: 6px 7px; }
 </style>
 </head>
 <body>
@@ -1035,8 +1057,9 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
       <div id="hostctl" class="setup">
         <div id="seg-comp" class="seg compseg"><button type="button" data-v="0"><span data-t="casual"></span></button><button type="button" data-v="1"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span data-t="compT"></span></button></div>
         <div id="comp-rules" class="comprules" hidden><i id="cr-rk"></i><p data-t="compRules"></p></div>
-        <div class="lbl casual-only" data-t="mode"></div>
-        <div id="modes" class="modes casual-only">
+        <section class="grp casual-only">
+          <div class="grp-h"><span data-t="mode"></span></div>
+        <div id="modes" class="modes">
           <button type="button" data-v="0"><i class="mi" data-m="0"></i><b data-t="mLives"></b><small data-t="mLivesS"></small></button>
           <button type="button" data-v="1"><i class="mi" data-m="1"></i><b data-t="mPoints"></b><small data-t="mPointsS"></small></button>
           <button type="button" data-v="2"><i class="mi" data-m="2"></i><b data-t="mTime"></b><small data-t="mTimeS"></small></button>
@@ -1047,15 +1070,21 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
           <button type="button" data-v="7"><i class="mi" data-m="7"></i><b data-t="mFrenzy"></b><small data-t="mFrenzyS"></small></button>
           <button type="button" data-v="8"><i class="mi" data-m="8"></i><b data-t="mFort"></b><small data-t="mFortS"></small></button>
         </div>
-        <div class="kv casual-only" id="kv-ck" hidden><span class="lbl" data-t="crownBy"></span><div id="seg-ck" class="seg"><button type="button" data-v="0" data-t="ckPts"></button><button type="button" data-v="1" data-t="ckTime"></button></div></div>
-        <div class="kv casual-only"><span id="tgt-lbl" class="lbl"></span><div id="seg-tgt" class="seg"><button type="button"></button><button type="button"></button><button type="button"></button></div></div>
-        <div class="lbl" data-t="map"></div>
-        <div id="maps" class="maps"></div>
-        <div class="kv casual-only"><span class="lbl" data-t="size"></span><div id="seg-size" class="seg"><button type="button" data-v="0" data-t="sz0"></button><button type="button" data-v="1" data-t="sz1"></button><button type="button" data-v="2" data-t="sz2"></button></div></div>
-        <div class="kv casual-only" id="kv-balls"><span class="lbl" data-t="balls"></span><div class="step"><button id="balls-minus" type="button" aria-label="Fewer pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="balls-n" class="wide">0</b><button id="balls-plus" type="button" aria-label="More pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
-        <div class="kv casual-only"><span class="lbl" data-t="bots"></span><div class="step"><button id="bots-minus" type="button" aria-label="Fewer bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="bots-n">0</b><button id="bots-plus" type="button" aria-label="More bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
+          <p id="mode-desc" class="mode-desc"></p>
+        <div class="kv" id="kv-ck" hidden><span class="lbl" data-t="crownBy"></span><div id="seg-ck" class="seg"><button type="button" data-v="0" data-t="ckPts"></button><button type="button" data-v="1" data-t="ckTime"></button></div></div>
+        <div class="kv"><span id="tgt-lbl" class="lbl"></span><div id="seg-tgt" class="seg"><button type="button"></button><button type="button"></button><button type="button"></button></div></div>
+        </section>
+        <section class="grp">
+          <div class="grp-h"><span data-t="map"></span></div>
+          <div id="maps" class="maps"></div>
+        </section>
+        <section class="grp casual-only">
+        <div class="kv"><span class="lbl" data-t="bots"></span><div class="step"><button id="bots-minus" type="button" aria-label="Fewer bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="bots-n">0</b><button id="bots-plus" type="button" aria-label="More bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
+        </section>
         <details class="fold casual-only" id="fold-more"><summary data-t="moreSet"></summary>
           <div class="foldbody kvs">
+            <div class="kv wide"><span class="lbl" data-t="size"></span><div id="seg-size" class="seg"><button type="button" data-v="0" data-t="sz0"></button><button type="button" data-v="1" data-t="sz1"></button><button type="button" data-v="2" data-t="sz2"></button></div></div>
+            <div class="kv wide" id="kv-balls"><span class="lbl" data-t="balls"></span><div class="step"><button id="balls-minus" type="button" aria-label="Fewer pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="balls-n" class="wide">0</b><button id="balls-plus" type="button" aria-label="More pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
             <span class="lbl" data-t="level"></span>
             <div id="seg-level" class="seg"><button type="button" data-v="0" data-t="lv0"></button><button type="button" data-v="1" data-t="lv1"></button><button type="button" data-v="2" data-t="lv2"></button></div>
             <span class="lbl" data-t="speed"></span>
@@ -1160,9 +1189,8 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
       <div id="podium" class="podium"></div>
       <div id="res-rank" class="rankres" hidden></div>
       <div id="res-xp" class="xpbox res" hidden><div class="xprow"><b id="rx-lv"></b><span id="rx-gain" class="xpgain"></span><small id="rx-txt"></small></div><div class="xpbar"><i id="rx-fill"></i></div></div>
-      <div id="res-log" class="klog" hidden></div>
       <div id="res-list" class="reslist"></div>
-      <div id="res-awards" class="awards"></div>
+      <details id="res-more" class="fold resmore"><summary data-t="matchDetails"></summary><div class="foldbody"><div id="res-awards" class="awards"></div><div id="res-log" class="klog" hidden></div></div></details>
       <p id="res-note" class="note"></p>
       <div class="actions row foot">
         <button id="b-res-leave" class="btn soft" type="button" data-t="leave"></button>
@@ -2122,7 +2150,7 @@ function auWarm() {
 /* ================= WORDS (English + Arabic) ================= */
 var STR = {
   en: {
-    otShort: 'OT', mostWins: 'Most points wins', holdWins: 'Hold the crown at the end', pvTag: 'On your link', addMeMsg: 'Add me on Sadda! My friend code: {c}', friendsT: 'Friends', ranksT: 'Ranks', myCode: 'Your friend code', shareT: 'Share', fcodePh: 'Friend code', addF: 'Add', reqsT: 'Friend requests', accept: 'Accept', decline: 'Decline',
+    matchDetails: 'Match details', otShort: 'OT', mostWins: 'Most points wins', holdWins: 'Hold the crown at the end', pvTag: 'On your link', addMeMsg: 'Add me on Sadda! My friend code: {c}', friendsT: 'Friends', ranksT: 'Ranks', myCode: 'Your friend code', shareT: 'Share', fcodePh: 'Friend code', addF: 'Add', reqsT: 'Friend requests', accept: 'Accept', decline: 'Decline',
     recentT: 'Played with recently', noFriends: 'No friends yet. Share your code, or add the people you play with.', stOnline: 'Online', stRoom: 'In room {c}', stOff: 'Offline', stPending: 'Request sent',
     inviteB: 'Invite', removeF: 'Remove', wantsFriend: 'wants to be your friend', acceptedYou: 'accepted your friend request', badCode: 'That code is not right. Friend codes have 6 letters and numbers.',
     selfCode: 'That is your own code', already: 'You are already friends', socOff: 'Not connected. Check your internet.', reqSent: 'Friend request sent', invSent: 'Invite sent', invited: 'invited you to play',
@@ -2191,7 +2219,7 @@ var STR = {
     crownFirst: 'Steal the crown and keep it!'
   },
   ar: {
-    otShort: 'إضافي', mostWins: 'الأكثر نقاط يفوز', holdWins: 'اللي معه التاج بالنهاية يفوز', pvTag: 'على رابطك', addMeMsg: 'أضفني في صدّة! رمز الصداقة حقي: {c}', friendsT: 'الأصدقاء', ranksT: 'التصنيف', myCode: 'رمز الصداقة حقك', shareT: 'شارك', fcodePh: 'رمز صديقك', addF: 'أضف', reqsT: 'طلبات الصداقة', accept: 'قبول', decline: 'رفض',
+    matchDetails: 'تفاصيل المباراة', otShort: 'إضافي', mostWins: 'الأكثر نقاط يفوز', holdWins: 'اللي معه التاج بالنهاية يفوز', pvTag: 'على رابطك', addMeMsg: 'أضفني في صدّة! رمز الصداقة حقي: {c}', friendsT: 'الأصدقاء', ranksT: 'التصنيف', myCode: 'رمز الصداقة حقك', shareT: 'شارك', fcodePh: 'رمز صديقك', addF: 'أضف', reqsT: 'طلبات الصداقة', accept: 'قبول', decline: 'رفض',
     recentT: 'لعبت معهم مؤخرًا', noFriends: 'ما عندك أصدقاء للحين. شارك رمزك أو أضف اللي تلعب معهم.', stOnline: 'متصل', stRoom: 'في غرفة {c}', stOff: 'غير متصل', stPending: 'تم إرسال الطلب',
     inviteB: 'ادعُه', removeF: 'حذف', wantsFriend: 'يبي يصير صديقك', acceptedYou: 'قبل طلب الصداقة', badCode: 'الرمز مو صحيح. رمز الصداقة ٦ حروف وأرقام.',
     selfCode: 'هذا رمزك أنت', already: 'أنتم أصدقاء من قبل', socOff: 'غير متصل. تأكد من الإنترنت.', reqSent: 'تم إرسال طلب الصداقة', invSent: 'تم إرسال الدعوة', invited: 'يدعوك تلعب معه',
@@ -6593,7 +6621,7 @@ function renderLobby() {
   }
   if (host) {
     $('bots-n').textContent = String(ROOM.seats.filter(function (x) { return x.bot; }).length);
-    seg('modes', mode);
+    seg('modes', mode); $('mode-desc').textContent = T(MODE_NAMES[mode] + 'S');
     $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', c.ck ? 'tgtTime' : 'tgtCrown', 'tgtLives', 'tgtLives', 'tgtPoints', 'tgtLives', 'tgtLives'][mode]);
     var tb = $('seg-tgt').querySelectorAll('button');
     targetsFor(c).forEach(function (v, k) { tb[k].setAttribute('data-v', v); tb[k].textContent = targetText(mode, v, c.ck); });
@@ -6651,6 +6679,7 @@ function showResults() {
     t.appendChild(b1); t.appendChild(b2); c.appendChild(im); c.appendChild(t); aw.appendChild(c);
   });
   resXP(S);
+  $('res-more').hidden = !aw.childNodes.length && $('res-log').hidden; $('res-more').open = false;
   var host = ROOM.role === 'host' || ROOM.role === 'solo';
   $('b-again').hidden = !host; $('b-res-room').hidden = !host;
   $('res-note').textContent = host ? '' : T('waitHost'); $('res-note').hidden = host;
