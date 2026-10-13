@@ -1140,6 +1140,9 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
 .gpic svg { width: 30px; height: 30px; margin-inline: -7px; filter: drop-shadow(0 2px 1px rgba(122, 15, 69, 0.3)); }
 .gpack b { font-size: 1rem; }
 .gusd { padding: 3px 14px; border-radius: 99px; font-weight: 800; color: #fff; background: var(--green-2); box-shadow: 0 2px 0 var(--green-lip); }
+.gpack.soon .gusd { color: var(--muted); background: var(--soft-2); box-shadow: none; }
+.gpack.soon:active { transform: none; }
+.gsoon { font-size: 0.7rem; font-weight: 800; color: var(--muted); }
 .gtag { position: absolute; top: -8px; padding: 2px 9px; border-radius: 99px; font-style: normal; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; color: #fff; background: #ff3d6b; }
 .gpack.best .gtag { background: #7a3fe0; }
 /* season pass */
@@ -2572,7 +2575,7 @@ var STR = {
     shopT: 'Shop', lockerT: 'Locker', gemsN: 'Gems', coinsN: 'Coins', passT: 'Pass', chalT: 'Challenges', dailyT: "Today's items", newIn: 'New items in {t}', allItems: 'All items',
     owned: 'Owned', equip: 'Equip', equipped: 'Equipped', buyQ: 'Tap again to buy', notEnough: 'Not enough {c}', unlocked: 'Unlocked!', getIt: 'Get it in the season pass',
     catb: 'Bumpers', catt: 'Trails', catn: 'Nets', cata: 'Auras', catg: 'Goal FX', cate: 'Taunts', rar0: 'Common', rar1: 'Rare', rar2: 'Epic', rar3: 'Legendary',
-    testBuy: 'Test purchase: no money is charged. Real payments come with the App Store and Google Play apps.', gemsAdded: '+{n} gems added', popular: 'Popular', bestV: 'Best value',
+    testBuy: 'Test purchase: no money is charged. Real payments come with the App Store and Google Play apps.', gemsAdded: '+{n} gems added', soonT: 'Coming soon', gemsSoon: 'Gem packs open when SmashBo launches on the App Store and Google Play', gemsLater: 'Gem packs open when SmashBo launches on the App Store and Google Play. Until then you earn gems from the season pass, weekly challenges and every 5th level.', popular: 'Popular', bestV: 'Best value',
     seasonT: 'Season 1: {n}', tierT: 'Tier {n}', premT: 'Premium', freeT: 'Free', getPrem: 'Unlock Premium', premOn: 'Premium unlocked', claim: 'Claim', claimAll: 'Claim all',
     passNote: 'Earn pass XP from every match and from challenges.', xpTo: '{a} / {b} XP to tier {n}', passDone: 'All tiers reached',
     dailyCh: 'Daily challenges', weeklyCh: 'Weekly challenges', resetIn: 'New ones in {t}', chDone: 'Challenge complete!', hm: '{h}h {m}m', dh: '{d}d {h}h',
@@ -2658,7 +2661,7 @@ var STR = {
     shopT: 'المتجر', lockerT: 'الخزانة', gemsN: 'الجواهر', coinsN: 'العملات', passT: 'التذكرة', chalT: 'التحديات', dailyT: 'عروض اليوم', newIn: 'عروض جديدة بعد {t}', allItems: 'كل الأغراض',
     owned: 'عندك', equip: 'استخدم', equipped: 'مستخدم', buyQ: 'اضغط مرة ثانية للشراء', notEnough: '{c} ما تكفي', unlocked: 'صار لك!', getIt: 'تحصله في تذكرة الموسم',
     catb: 'الصدّامات', catt: 'الذيول', catn: 'الشباك', cata: 'الهالات', catg: 'تأثير الهدف', cate: 'الحركات', rar0: 'عادي', rar1: 'نادر', rar2: 'ملحمي', rar3: 'أسطوري',
-    testBuy: 'شراء تجريبي: ما ينخصم أي مبلغ. الدفع الحقيقي يجي مع تطبيق آب ستور وقوقل بلاي.', gemsAdded: 'انضافت {n} جوهرة', popular: 'الأكثر طلب', bestV: 'أفضل قيمة',
+    testBuy: 'شراء تجريبي: ما ينخصم أي مبلغ. الدفع الحقيقي يجي مع تطبيق آب ستور وقوقل بلاي.', gemsAdded: 'انضافت {n} جوهرة', soonT: 'قريبًا', gemsSoon: 'باقات الجواهر تفتح لما ينزل سماش بو على آب ستور وقوقل بلاي', gemsLater: 'باقات الجواهر تفتح لما ينزل سماش بو على آب ستور وقوقل بلاي. لين ذاك الوقت تحصل جواهر من تذكرة الموسم والتحديات الأسبوعية وكل خامس مستوى.', popular: 'الأكثر طلب', bestV: 'أفضل قيمة',
     seasonT: 'الموسم 1: {n}', tierT: 'المرحلة {n}', premT: 'المميزة', freeT: 'مجانية', getPrem: 'افتح المميزة', premOn: 'المميزة مفتوحة', claim: 'استلم', claimAll: 'استلم الكل',
     passNote: 'اجمع نقاط التذكرة من كل مباراة ومن التحديات.', xpTo: '{a} / {b} نقطة للمرحلة {n}', passDone: 'وصلت كل المراحل',
     dailyCh: 'تحديات اليوم', weeklyCh: 'تحديات الأسبوع', resetIn: 'جديدة بعد {t}', chDone: 'خلّصت التحدي!', hm: '{h}س {m}د', dh: '{d}ي {h}س',
@@ -4175,7 +4178,8 @@ function addGems(n) { ECO.gems = Math.max(0, ECO.gems + (n | 0)); }
 
 /* ---------- test purchases (real payments come with the store apps) ---------- */
 var GEM_PACKS = [{ g: 100, usd: '0.99' }, { g: 550, usd: '4.99', tag: 'pop' }, { g: 1200, usd: '9.99' }, { g: 2600, usd: '19.99', tag: 'best' }];
-function buyGems(i) { var p = GEM_PACKS[i]; if (!p) return 0; addGems(p.g); ecoSave(); return p.g; }
+var GEMS_LIVE = false;   // gem packs stay closed until real App Store / Google Play payments are wired in
+function buyGems(i) { var p = GEM_PACKS[i]; if (!p || !GEMS_LIVE) return 0; addGems(p.g); ecoSave(); return p.g; }
 
 /* ---------- the shop's daily picks: the same four for everyone on the same day ---------- */
 function dayKey(d) { d = d || new Date(); return d.getUTCFullYear() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCDate(); }
@@ -8380,17 +8384,18 @@ var CUR_SVG = {
 function curIcon(k) { return '<i class="cur ' + (k === 'g' ? 'gem' : 'coin') + '"></i>'; }
 
 /* ---------- a picture of each item ---------- */
+var ARTN = 0;
 function itemArt(it) {
-  var L = it.L || {}, cat = it.cat, ink = '#0b1b66', s = '<svg class="art" viewBox="0 0 64 64" aria-hidden="true">';
+  var L = it.L || {}, cat = it.cat, ink = '#0b1b66', s = '<svg class="art" viewBox="0 0 64 64" aria-hidden="true">', uid = it.k + 'x' + (ARTN++);   // ids unique per drawing: iPhone shows nothing if the first copy of a gradient sits in a hidden tab
   if (cat === 'e') return EMO_SVG[L.s] || EMO_SVG[0];
   if (cat === 'b') {
     var fill = L.own ? vivid(COLORS[ME.col] || COLORS[0]) : L.c || '#f6efe6', defs = '';
-    if (L.tex === 'candy') { defs = '<pattern id="pc' + it.k + '" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="10" height="10" fill="#fff"/><rect width="5" height="10" fill="#ff4f8b"/></pattern>'; fill = 'url(#pc' + it.k + ')'; }
-    else if (L.tex === 'lava') { defs = '<linearGradient id="pc' + it.k + '"><stop offset="0" stop-color="#2a1410"/><stop offset=".5" stop-color="#5a1a0a"/><stop offset="1" stop-color="#2a1410"/></linearGradient>'; fill = 'url(#pc' + it.k + ')'; }
-    else if (L.tex === 'galaxy') { defs = '<linearGradient id="pc' + it.k + '" x2="1"><stop offset="0" stop-color="#2a1060"/><stop offset=".5" stop-color="#6a2fd0"/><stop offset="1" stop-color="#1b2a8a"/></linearGradient>'; fill = 'url(#pc' + it.k + ')'; }
-    else if (L.m) { defs = '<linearGradient id="pc' + it.k + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="' + L.c + '"/><stop offset="1" stop-color="' + shade(L.c, -0.35) + '"/></linearGradient>'; fill = 'url(#pc' + it.k + ')'; }
+    if (L.tex === 'candy') { defs = '<pattern id="pc' + uid + '" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="10" height="10" fill="#fff"/><rect width="5" height="10" fill="#ff4f8b"/></pattern>'; fill = 'url(#pc' + uid + ')'; }
+    else if (L.tex === 'lava') { defs = '<linearGradient id="pc' + uid + '"><stop offset="0" stop-color="#2a1410"/><stop offset=".5" stop-color="#5a1a0a"/><stop offset="1" stop-color="#2a1410"/></linearGradient>'; fill = 'url(#pc' + uid + ')'; }
+    else if (L.tex === 'galaxy') { defs = '<linearGradient id="pc' + uid + '" x2="1"><stop offset="0" stop-color="#2a1060"/><stop offset=".5" stop-color="#6a2fd0"/><stop offset="1" stop-color="#1b2a8a"/></linearGradient>'; fill = 'url(#pc' + uid + ')'; }
+    else if (L.m) { defs = '<linearGradient id="pc' + uid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="' + L.c + '"/><stop offset="1" stop-color="' + shade(L.c, -0.35) + '"/></linearGradient>'; fill = 'url(#pc' + uid + ')'; }
     var glow = L.em && L.em !== 'own' ? L.em : L.em === 'own' ? '#ff3dbb' : null;
-    s += '<defs>' + defs + '</defs>' + (glow ? '<rect x="4" y="22" width="56" height="20" rx="10" fill="' + glow + '" opacity=".45" filter="blur(0)"/>' : '') +
+    s += '<defs>' + defs + '</defs>' + (glow ? '<rect x="4" y="22" width="56" height="20" rx="10" fill="' + glow + '" opacity=".4"/>' : '') +
       '<rect x="6" y="24" width="52" height="16" rx="8" fill="' + fill + '" stroke="' + (L.em === 'own' ? '#ff3dbb' : ink) + '" stroke-width="3"/>' +
       (L.tex === 'lava' ? '<path d="M14 28l6 4 5-3 7 5M36 30l5 4 6-3 5 4" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round"/>' : '') +
       (L.tex === 'galaxy' ? '<circle cx="18" cy="29" r="1.2" fill="#fff"/><circle cx="30" cy="35" r="1" fill="#9fe8ff"/><circle cx="42" cy="28" r="1.4" fill="#fff"/><circle cx="50" cy="34" r=".9" fill="#fff"/>' : '') +
@@ -8400,14 +8405,14 @@ function itemArt(it) {
   if (cat === 't') {
     var cs = L.c === 'rainbow' ? ['#ff4f6d', '#ffd23f', '#2fd18a', '#2f9bff', '#a463ff'] : L.c || ['#9fb6ff'], st = '';
     cs.forEach(function (c, i) { st += '<stop offset="' + (i / Math.max(1, cs.length - 1)) + '" stop-color="' + c + '"/>'; });
-    s += '<defs><linearGradient id="tg' + it.k + '" x1="0" x2="1">' + st + '</linearGradient></defs><path d="M6 36 Q24 28 44 32 L44 40 Q24 44 6 36z" fill="url(#tg' + it.k + ')" opacity=".9"/>';
+    s += '<defs><linearGradient id="tg' + uid + '" x1="0" x2="1">' + st + '</linearGradient></defs><path d="M6 36 Q24 28 44 32 L44 40 Q24 44 6 36z" fill="url(#tg' + uid + ')" opacity=".9"/>';
     if (L.fx === 'star' || L.fx === 'gold' || L.fx === 'neon') s += '<circle cx="14" cy="27" r="1.6" fill="' + cs[0] + '"/><circle cx="24" cy="44" r="1.4" fill="' + cs[cs.length - 1] + '"/><circle cx="32" cy="25" r="1.2" fill="#fff"/>';
     if (L.fx === 'fire') s += '<path d="M14 30q2-5 4-1M22 42q3 4 5 0" fill="none" stroke="#ffd23f" stroke-width="2" stroke-linecap="round"/>';
     return s + '<circle cx="48" cy="36" r="9" fill="#f8efe2" stroke="' + ink + '" stroke-width="3"/><path d="M43.5 33a5 5 0 0 1 5-3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
   }
   if (cat === 'n') {
-    var nc = L.c === 'rainbow' ? 'url(#nr' + it.k + ')' : L.c || '#2f9bff';
-    s += '<defs><linearGradient id="nr' + it.k + '" x2="1"><stop offset="0" stop-color="#ff4f6d"/><stop offset=".33" stop-color="#ffd23f"/><stop offset=".66" stop-color="#2fd18a"/><stop offset="1" stop-color="#a463ff"/></linearGradient></defs>';
+    var nc = L.c === 'rainbow' ? 'url(#nr' + uid + ')' : L.c || '#2f9bff';
+    s += '<defs><linearGradient id="nr' + uid + '" x2="1"><stop offset="0" stop-color="#ff4f6d"/><stop offset=".33" stop-color="#ffd23f"/><stop offset=".66" stop-color="#2fd18a"/><stop offset="1" stop-color="#a463ff"/></linearGradient></defs>';
     s += '<path d="M8 46 Q32 6 56 46" fill="' + (L.pulse || nc) + '" opacity=".22"/><path d="M8 46 Q32 6 56 46" fill="none" stroke="' + nc + '" stroke-width="3.4"/>';
     for (var q = 0; q < 5; q++) { var xq = 14 + q * 9; s += '<path d="M' + xq + ' 46 L' + (xq + 8) + ' 22" stroke="' + nc + '" stroke-width="2" opacity=".85"/><path d="M' + (xq + 8) + ' 46 L' + xq + ' 22" stroke="' + nc + '" stroke-width="2" opacity=".85"/>'; }
     return s + '<rect x="4" y="45" width="56" height="5" rx="2.5" fill="' + ink + '"/></svg>';
@@ -8497,9 +8502,11 @@ function renderGems() {
     var b = el('button', 'gpack' + (p.tag ? ' ' + p.tag : '')); b.type = 'button'; b.setAttribute('data-pack', i);
     if (p.tag) b.appendChild(el('em', 'gtag', T(p.tag === 'pop' ? 'popular' : 'bestV')));
     var ic = el('i', 'gpic'); for (var k = 0; k <= i; k++) ic.innerHTML += CUR_SVG.g; b.appendChild(ic);
-    b.appendChild(el('b', null, fmtN(p.g) + ' ' + T('gemsN'))); b.appendChild(el('span', 'gusd', '$' + p.usd)); grid.appendChild(b);
+    b.appendChild(el('b', null, fmtN(p.g) + ' ' + T('gemsN'))); b.appendChild(el('span', 'gusd', '$' + p.usd));
+    if (!GEMS_LIVE) { b.classList.add('soon'); b.setAttribute('aria-disabled', 'true'); b.appendChild(el('small', 'gsoon', T('soonT'))); }
+    grid.appendChild(b);
   });
-  box.appendChild(grid); box.appendChild(el('p', 'note info', T('testBuy')));
+  box.appendChild(grid); box.appendChild(el('p', 'note info', T(GEMS_LIVE ? 'testBuy' : 'gemsLater')));
 }
 function shopClick(e) {
   var b = e.target.closest('button'); if (!b) return;
@@ -8518,7 +8525,8 @@ function shopClick(e) {
     if (buyItem(k2, cur)) { sfx('crown', true); buzz([20, 30, 20]); equip(k2); tauntTray(); toast(T('unlocked') + ' ' + itemName(it2), 1800); walletUI(); if (UI.shopTab === 'l') renderLocker(UI.lockCat); else renderShop(); }
     return;
   }
-  if (b.hasAttribute('data-pack')) { var g = buyGems(+b.getAttribute('data-pack')); sfx('orb'); buzz(30); toast(T('gemsAdded', { n: g }), 2000); walletUI(); return; }
+  if (b.hasAttribute('data-pack') && !GEMS_LIVE) { sfx('click'); toast(T('gemsSoon'), 2200); return; }
+  if (b.hasAttribute('data-pack')) { var g = buyGems(+b.getAttribute('data-pack')); if (!g) return; sfx('orb'); buzz(30); toast(T('gemsAdded', { n: g }), 2000); walletUI(); return; }
 }
 
 /* ---------- the season pass sheet ---------- */
