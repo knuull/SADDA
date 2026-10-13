@@ -58,8 +58,8 @@ img { -webkit-user-drag: none; }
 .app { position: fixed; inset: 0; overflow: hidden; overflow: clip; background: var(--b2); }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 /* in a match: the edges of the screen fall off a little, so the eye stays on the arena (one static layer, costs nothing per frame) */
-.vig { position: absolute; inset: 0; pointer-events: none; display: none; background: radial-gradient(120% 85% at 50% 58%, rgba(0, 0, 0, 0) 55%, rgba(4, 8, 30, 0.34) 100%); }
-#app[data-screen="game"] .vig, #app[data-screen="results"] .vig { display: block; }
+.focusvig { position: absolute; inset: 0; pointer-events: none; display: none; background: radial-gradient(120% 85% at 50% 58%, rgba(0, 0, 0, 0) 55%, rgba(4, 8, 30, 0.34) 100%); }
+#app[data-screen="game"] .focusvig, #app[data-screen="results"] .focusvig { display: block; }
 .fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
 /* ---- the blue stage behind the menus: spotlights and a faint dot pattern ---- */
@@ -1205,6 +1205,50 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
 /* a practice match with bots: no rewards, and a line that says where they come from */
 .rchip.prac { padding: 7px 12px; border-radius: 14px; font-size: 0.8rem; line-height: 1.3; color: var(--ink-2); background: var(--soft); white-space: normal; }
 .practice .rx-fill, .practice #rx-fill { opacity: 0.45; }
+
+/* ================= MOTION =================
+   One feel everywhere: things arrive with a quick ease-out (fast start, soft landing) and leave faster than they came.
+   Only transform and opacity move, so the phone's graphics chip does the work and nothing re-lays out mid-animation. */
+:root { --ease-out: cubic-bezier(0.2, 1, 0.3, 1); --ease-in: cubic-bezier(0.5, 0, 0.9, 0.4); --spring: cubic-bezier(0.3, 1.4, 0.5, 1); }
+/* every button answers the finger at once: a small, springy press (buttons with their own press look keep it) */
+:where(button) { transition: transform 0.16s var(--spring); }
+:where(button):not(:disabled):active { transform: scale(0.95); transition-duration: 0.06s; }
+/* screens */
+.screen.enter .panel { animation: panelIn 0.42s var(--ease-out) both; }
+.screen.home.enter .home-pick { animation: riseIn 0.4s var(--ease-out) both; }
+.screen.home.enter .home-cta { animation: riseIn 0.42s 0.05s var(--ease-out) both; }
+.screen.home.enter .home-logo { animation: logoIn 0.5s var(--ease-out) both; }
+.hud.enter .hud-top { animation: dropIn 0.4s var(--ease-out) both; }
+.hud.enter .smash, .hud.enter .hud-left { animation: riseIn 0.4s 0.08s var(--ease-out) both; }
+@keyframes panelIn { from { opacity: 0; transform: translateY(70px); } to { opacity: 1; transform: none; } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes dropIn { from { opacity: 0; transform: translateY(-22px); } to { opacity: 1; transform: none; } }
+/* sheets leave by sliding back down (or out to the side on a wide screen) */
+.sheet-ov.out { pointer-events: none; animation: fadeOut 0.24s ease-in both; }
+.sheet-ov.out .sheet { animation: sheetDown 0.24s var(--ease-in) both; }
+@keyframes sheetDown { to { transform: translateY(105%); } }
+@keyframes fadeOut { to { opacity: 0; } }
+@media (orientation: landscape) and (min-width: 700px) { .sheet-ov.out .sheet { animation: sideOut 0.22s var(--ease-in) both; } }
+@keyframes sideOut { to { opacity: 0; transform: translateX(var(--dx, 40px)); } }
+.sheet { will-change: transform; }
+/* tabs: the new content slides in from the side of the tab you came from, and its cards follow one after another */
+.tabin { animation: tabIn 0.3s var(--ease-out) both; }
+@keyframes tabIn { from { opacity: 0; transform: translateX(calc(var(--dir, 1) * 28px)); } to { opacity: 1; transform: none; } }
+.tabin :is(.icard, .gpack, .chrow, .frow, .lrow) { animation: cardIn 0.34s var(--ease-out) both; }
+.tabin :is(.icard, .gpack, .chrow, .frow, .lrow):nth-child(2) { animation-delay: 0.03s; }
+.tabin :is(.icard, .gpack, .chrow, .frow, .lrow):nth-child(3) { animation-delay: 0.06s; }
+.tabin :is(.icard, .gpack, .chrow, .frow, .lrow):nth-child(4) { animation-delay: 0.09s; }
+.tabin :is(.icard, .gpack, .chrow, .frow, .lrow):nth-child(5) { animation-delay: 0.12s; }
+.tabin :is(.icard, .gpack, .chrow, .frow, .lrow):nth-child(6) { animation-delay: 0.15s; }
+.tabin :is(.icard, .gpack, .chrow, .frow, .lrow):nth-child(n+7) { animation-delay: 0.18s; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+/* a toast glides up instead of popping */
+.toast:not([hidden]) { animation: toastIn 0.32s var(--ease-out) both; }   /* keeps its centring while it glides up (the old pop slid it sideways) */
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 14px) scale(0.96); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .screen.enter *, .hud.enter *, .sheet-ov.out, .sheet-ov.out .sheet, .tabin, .tabin *, .toast { animation: none !important; }
+  :where(button):not(:disabled):active { transform: none; }
+}
 </style>
 </head>
 <body>
@@ -1225,7 +1269,7 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
 <div id="app" class="app" data-screen="home">
   <div class="bg" aria-hidden="true"><i class="beam b1"></i><i class="beam b2"></i><i class="beam b3"></i><i class="glow"></i></div>
   <canvas id="cv" aria-label="SmashBo arena"></canvas>
-  <div id="vig" class="vig" aria-hidden="true"></div>
+  <div class="focusvig" aria-hidden="true"></div>
   <div id="vig" class="vig" hidden></div>
   <div id="flash" class="flash"></div>
   <div id="fx" class="fx">
@@ -1525,7 +1569,7 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
       <div id="res-xp" class="xpbox res" hidden><div class="xprow"><b id="rx-lv"></b><span id="rx-gain" class="xpgain"></span><small id="rx-txt"></small></div><div class="xpbar"><i id="rx-fill"></i></div></div>
       <div id="res-eco" class="reseco" hidden></div>
       <div id="res-list" class="reslist"></div>
-      <details id="res-more" class="fold resmore"><summary data-t="matchDetails"></summary><div class="foldbody"><div id="res-awards" class="awards"></div><div id="res-log" class="klog" hidden></div></div></details>
+      <details id="res-more" class="fold resmore"><summary data-t="matchDetails"></summary><div class="foldbody"><div id="res-log" class="klog" hidden></div></div></details>
       <p id="res-note" class="note"></p>
       <div class="actions row foot">
         <button id="b-res-leave" class="btn soft" type="button" data-t="leave"></button>
@@ -6886,8 +6930,9 @@ function gfxResize() {
   var pr = GFX.pr;                                              // the home stage is a close-up at 30 fps: draw it extra sharp
   if (UI.screen === 'home' && GFX.quality !== 'low') pr = Math.max(pr, Math.min(window.devicePixelRatio || 1, 2.5));
   if (UI.screen === 'game' && GFX.quality === 'auto') pr = Math.max(1, Math.min(pr, Math.sqrt(2.4e6 / Math.max(1, VIEW.W * VIEW.H))));   // big tablet screens: cap the pixels drawn each frame
-  if (GFX.r.getPixelRatio() !== pr) GFX.r.setPixelRatio(pr);
-  GFX.r.setSize(VIEW.W, VIEW.H, false); GFX.fit = {}; PT.mat.uniforms.sc.value = VIEW.H * pr * 0.9;
+  var szk = VIEW.W + 'x' + VIEW.H + '@' + pr;                     // only touch the canvas when its size really changes: a resize to the same size still costs a hitch
+  if (GFX.szk !== szk) { GFX.szk = szk; if (GFX.r.getPixelRatio() !== pr) GFX.r.setPixelRatio(pr); GFX.r.setSize(VIEW.W, VIEW.H, false); }
+  GFX.fit = {}; PT.mat.uniforms.sc.value = VIEW.H * pr * 0.9;
 }
 function arenaPts() {
   var K = GFX.stageK || 4;
@@ -7356,7 +7401,20 @@ function soundButtons() {
   seg('seg-smash', UI.smashL ? 'l' : 'r'); seg('seg-theme', UI.theme || 'auto'); $('app').classList.toggle('smash-l', !!UI.smashL);
 }
 
+/* ---------- motion: everything moves with transform and opacity only, so it stays smooth on any phone ---------- */
+function enterAnim(el, cls) {
+  if (!el || REDUCE) return; cls = cls || 'enter';
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+  clearTimeout(el['_t' + cls]); el['_t' + cls] = setTimeout(function () { el.classList.remove(cls); }, 700);
+}
+/* a tab's content slides in from the side of the tab you came from */
+function paneIn(el, from, to, order) {
+  if (!el || from == null || from === to) return;
+  var d = order.indexOf(to) > order.indexOf(from) ? 1 : -1; if (document.documentElement.dir === 'rtl') d = -d;
+  el.style.setProperty('--dir', d); enterAnim(el, 'tabin');
+}
 function showScreen(n) {
+  var was = UI.screen;
   UI.drag = null; UI.screen = n; UI.full = n === 'game' || n === 'results';
   $('s-home').hidden = n !== 'home'; $('s-lobby').hidden = n !== 'lobby'; $('s-results').hidden = n !== 'results';
   $('hud').hidden = n !== 'game';
@@ -7374,6 +7432,7 @@ function showScreen(n) {
   if (n !== 'home' && n !== 'lobby') { closeSheet('profsheet'); closeSheet('socsheet'); }
   if (n !== 'lobby') closeSeatMenu();
   if (n === 'lobby') renderLobby();
+  if (was !== n) enterAnim(n === 'game' ? $('hud') : $('s-' + n));
   commsUI();
   if (n === 'home' || n === 'lobby') refreshPickers();
   gfxResize(); setTimeout(gfxResize, 60);
@@ -7457,21 +7516,47 @@ function refreshPickers() {
   lvChip($('pf-lv'), myLevel()); xpShow($('xp-lv').parentNode.parentNode, $('xp-lv'), $('xp-txt'), $('xp-fill'), UI.xp || 0);
 }
 /* ---------- bottom sheets on the home screen: how to play, and your player ---------- */
+var SHEETS = ['playsheet', 'profsheet', 'socsheet', 'shopsheet', 'passsheet'];
+function sheetReset(o) { clearTimeout(o._outT); o.classList.remove('out'); var sh = o.querySelector('.sheet'); if (sh) { sh.style.transform = ''; sh.style.transition = ''; } }
 function openSheet(id) {
-  ['playsheet', 'profsheet', 'socsheet', 'shopsheet', 'passsheet'].forEach(function (s) { if (s !== id) $(s).hidden = true; });
-  $(id).hidden = false; UI.sheet = id; $('app').setAttribute('data-sheet', id);
+  SHEETS.forEach(function (s) { if (s !== id) { sheetReset($(s)); $(s).hidden = true; } });
+  sheetReset($(id)); $(id).hidden = false; UI.sheet = id; $('app').setAttribute('data-sheet', id);
   if (id === 'profsheet') refreshPickers();
   gfxResize(); setTimeout(gfxResize, 360);
 }
-function closeSheet(id) {
-  if (!$(id) || $(id).hidden) return;
-  $(id).hidden = true; if (UI.sheet === id) { UI.sheet = null; $('app').removeAttribute('data-sheet'); }
+function closeSheet(id, now) {
+  var o = $(id); if (!o || o.hidden || o.classList.contains('out')) return;
+  if (UI.sheet === id) { UI.sheet = null; $('app').removeAttribute('data-sheet'); }
+  if (now || REDUCE || UI.screen !== 'home' && UI.screen !== 'lobby') { sheetReset(o); o.hidden = true; }
+  else { o.classList.add('out'); o._outT = setTimeout(function () { sheetReset(o); o.hidden = true; }, 240); }   // slides down, then goes
   if (id === 'profsheet' && UI.afterProfile) { var a = UI.afterProfile; UI.afterProfile = null; if (a === 'join' && UI.screen === 'home') { auInit(); joinRoom($('in-code').value); } }   // came from an invite: straight into the room
   gfxResize(); setTimeout(gfxResize, 60);
 }
 
 /* ---------- lobby ---------- */
 /* a room code from whatever was typed or pasted: CODE, an invite link (...#CODE) or a whole invite message */
+/* pull a sheet down by its top to close it, like any phone app */
+function sheetDrag() {
+  SHEETS.forEach(function (id) {
+    var o = $(id), sh = o.querySelector('.sheet'), y0 = 0, t0 = 0, dy = 0, on = false, live = false;
+    sh.addEventListener('touchstart', function (e) {
+      if (VIEW.wide || e.touches.length !== 1 || sh.scrollTop > 0 || e.target.closest('input, textarea, .track, .catchips')) { on = false; return; }
+      on = true; live = false; y0 = e.touches[0].clientY; t0 = performance.now(); dy = 0;
+    }, { passive: true });
+    sh.addEventListener('touchmove', function (e) {
+      if (!on) return; dy = e.touches[0].clientY - y0;
+      if (!live) { if (dy < 6) { if (dy < -4) on = false; return; } live = true; sh.style.transition = 'none'; }
+      e.preventDefault(); sh.style.transform = 'translateY(' + Math.max(0, dy - 6) + 'px)';
+    }, { passive: false });
+    function end() {
+      if (!on || !live) { on = false; return; } on = false;
+      var v = dy / Math.max(1, performance.now() - t0);
+      if (dy > Math.min(140, sh.offsetHeight * 0.28) || (dy > 40 && v > 0.55)) { sfx('click'); closeSheet(id); }
+      else { sh.style.transition = 'transform 0.28s cubic-bezier(0.2, 1, 0.3, 1)'; sh.style.transform = ''; setTimeout(function () { sh.style.transition = ''; }, 300); }
+    }
+    sh.addEventListener('touchend', end); sh.addEventListener('touchcancel', end);
+  });
+}
 function codeFrom(t) {
   t = String(t || ''); var m = /#([A-Za-z]{4})(?![A-Za-z])/.exec(t);
   if (m) return m[1].toUpperCase();
@@ -7921,6 +8006,7 @@ function hostSet(fn) { return function (e) { var b = e.target.closest('button');
 function initUI() {
   var hadProfile = loadProfile();
   socUIInit(); shopUIInit();
+  sheetDrag(); document.addEventListener('touchstart', function () {}, { passive: true });   // iPhone only shows a button's pressed look with a touch listener on the page
   var sp = $('splash'); sp.classList.add('out'); setTimeout(function () { sp.hidden = true; }, 380);
   if (!window.THREE || !gfxInit()) { $('nogl').hidden = false; $('nogl').firstChild.textContent = T('nogl'); return; }
   gfxQuality(UI.gfx);
@@ -8147,7 +8233,7 @@ function openSoc(tab) {
   openSheet('socsheet'); socTab(tab || UI.socTab || 'f');
 }
 function socTab(t) {
-  UI.socTab = t; seg('soc-tabs', t);
+  var was = UI.socTab; UI.socTab = t; seg('soc-tabs', t); paneIn($('soc-' + t), was, t, ['f', 'r']);
   $('soc-f').hidden = t !== 'f'; $('soc-r').hidden = t !== 'r';
   if (t === 'f') renderFriends(); else ranksPane();
   $('socsheet').firstElementChild.scrollTop = 0;
@@ -8513,7 +8599,7 @@ function railBadges() {
 /* ---------- the shop sheet ---------- */
 function openShop(tab) { if (!ECO) return; openSheet('shopsheet'); shopTab(tab || UI.shopTab || 's'); }
 function shopTab(t) {
-  UI.shopTab = t; seg('shop-tabs', t);
+  var was = UI.shopTab; UI.shopTab = t; seg('shop-tabs', t); paneIn($('shop-' + t), was, t, ['s', 'l', 'g']);
   ['s', 'l', 'g'].forEach(function (k) { $('shop-' + k).hidden = k !== t; });
   if (t === 's') { ECO.seen.shop = dayKey(); ecoSave(); renderShop(); } else if (t === 'l') renderLocker(UI.lockCat || 'b'); else renderGems();
   walletUI(); $('shopsheet').firstElementChild.scrollTop = 0;
@@ -8572,8 +8658,8 @@ function renderGems() {
 }
 function shopClick(e) {
   var b = e.target.closest('button'); if (!b) return;
-  if (b.hasAttribute('data-cat')) { sfx('click'); UI.shopCat = b.getAttribute('data-cat'); renderShop(); return; }
-  if (b.hasAttribute('data-lcat')) { sfx('click'); UI.tSlot = null; renderLocker(b.getAttribute('data-lcat')); return; }
+  if (b.hasAttribute('data-cat')) { sfx('click'); var c0 = UI.shopCat || 'b'; UI.shopCat = b.getAttribute('data-cat'); renderShop(); paneIn($('shop-s').lastElementChild, c0, UI.shopCat, CATS); return; }
+  if (b.hasAttribute('data-lcat')) { sfx('click'); UI.tSlot = null; var l0 = UI.lockCat || 'b'; renderLocker(b.getAttribute('data-lcat')); paneIn($('shop-l').lastElementChild, l0, b.getAttribute('data-lcat'), CATS); return; }
   if (b.hasAttribute('data-slot')) { sfx('click'); var s = +b.getAttribute('data-slot'); UI.tSlot = UI.tSlot === s ? null : s; renderLocker('e'); return; }
   if (b.hasAttribute('data-eq')) {
     var k = b.getAttribute('data-eq'), it = ITEM[k]; sfx('click');
@@ -8594,7 +8680,7 @@ function shopClick(e) {
 /* ---------- the season pass sheet ---------- */
 function openPass(tab) { if (!ECO) return; openSheet('passsheet'); passTab(tab || UI.passTab || 'p'); }
 function passTab(t) {
-  UI.passTab = t; seg('pass-tabs', t); $('pass-p').hidden = t !== 'p'; $('pass-c').hidden = t !== 'c';
+  var was = UI.passTab; UI.passTab = t; seg('pass-tabs', t); paneIn($('pass-' + t), was, t, ['p', 'c']); $('pass-p').hidden = t !== 'p'; $('pass-c').hidden = t !== 'c';
   if (t === 'p') renderPass(); else { renderChallenges(); ECO.ch.d.concat(ECO.ch.w).forEach(function (c) { if (c.done) c.seen = 1; }); ecoSave(); }
   railBadges(); $('passsheet').firstElementChild.scrollTop = 0;
 }
