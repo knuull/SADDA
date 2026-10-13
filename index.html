@@ -248,7 +248,7 @@ button.opt.locked:active { transform: none; background: var(--soft); }
   .sheet-ov { justify-content: center; align-items: flex-end; padding: calc(var(--st) + 10px) calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px); background: rgba(8, 18, 80, 0.16); }
   .sheet { width: min(440px, 54%); max-height: 100%; margin: 0; border-radius: 30px; padding-bottom: 16px; animation: sideIn 0.32s cubic-bezier(0.2, 1, 0.3, 1); }
   .sheet::before { display: none; }
-  .pick-ch { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; }
+  .pick-ch { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
   .chb span { display: none; }
   .chb { padding-bottom: 0; }
   .chb img { border-radius: 18px; }
@@ -1028,7 +1028,8 @@ button.opt.locked:active { transform: none; background: var(--soft); }
 .sc .hd.dn { background: #ff3b5c; box-shadow: 0 2px 0 #a3122f; }
 .sc .hd.up { background: #1fbf63; box-shadow: 0 2px 0 #0f7a3e; }
 @keyframes hdUp { 0% { opacity: 0; transform: translate(-50%, 6px) scale(0.6); } 18% { opacity: 1; transform: translate(-50%, -6px) scale(1.15); } 70% { opacity: 1; transform: translate(-50%, -18px) scale(1); } 100% { opacity: 0; transform: translate(-50%, -26px) scale(0.95); } }
-.gfeed { display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; min-height: 0; }
+/* the KO feed sits on its own at the side (under the FPS chip), outside the score row, so a new line never moves the camera */
+.gfeed { position: absolute; z-index: 3; top: 46px; inset-inline-end: 8px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; pointer-events: none; max-width: 46vw; }
 .gf { display: flex; align-items: center; gap: 5px; padding: 3px 4px 3px 3px; border-radius: 99px; background: rgba(255, 255, 255, 0.94); color: var(--navy); box-shadow: 0 2px 0 rgba(11, 27, 102, 0.25), 0 6px 14px rgba(11, 27, 102, 0.18); animation: gfIn 0.32s cubic-bezier(0.2, 1.3, 0.4, 1); transition: opacity 0.3s, transform 0.3s; }
 :root[data-theme="dark"] .gf { background: rgba(28, 38, 96, 0.94); color: #fff; }
 .gf img { width: 24px; height: 24px; border-radius: 50%; background: radial-gradient(circle at 50% 30%, #fff, #dfe5ff); box-shadow: inset 0 0 0 2px var(--c); flex: none; }
@@ -1042,8 +1043,10 @@ button.opt.locked:active { transform: none; background: var(--soft); }
 .gf.bad em.lv { background: #fff; color: #d0213f; }
 .gf.bad i { color: rgba(255, 255, 255, 0.8); }
 .gf.good { box-shadow: 0 2px 0 rgba(11, 27, 102, 0.25), 0 0 0 2px #1fbf63; }
-.gf.bye { opacity: 0; transform: translateY(-6px) scale(0.96); }
-@keyframes gfIn { 0% { opacity: 0; transform: translateY(-8px) scale(0.85); } 100% { opacity: 1; transform: none; } }
+.gf.bye { opacity: 0; transform: scale(0.94); }
+@keyframes gfIn { 0% { opacity: 0; transform: translateX(14px) scale(0.9); } 100% { opacity: 1; transform: none; } }
+@keyframes gfInR { 0% { opacity: 0; transform: translateX(-14px) scale(0.9); } 100% { opacity: 1; transform: none; } }
+[dir="rtl"] .gf { animation-name: gfInR; }
 
 /* superpowers: the picker in the room, the signs on the guests' summary, my chips in play */
 .pwi { display: block; width: 100%; height: 100%; }
@@ -1144,6 +1147,39 @@ button.opt.locked:active { transform: none; background: var(--soft); }
 .r3 .iart { background: radial-gradient(circle at 50% 40%, #fff6cf, #ffd36a 60%, #ffb000); }
 :root[data-theme="dark"] .r3 .iart { background: radial-gradient(circle at 50% 40%, #6a5410, #3a2c08); }
 .feat .icard { box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--rc) 70%, transparent), 0 8px 20px color-mix(in srgb, var(--rc) 22%, transparent); }
+/* characters in the shop, the pass and the reveal: their portrait, in your colour */
+.iart img.cport { width: 84px; height: 84px; margin-top: 2px; }
+.rv-art img.cport { width: 150px; height: 150px; }
+.rw.item img.cport { width: 56px; height: 56px; }
+/* OG: Season 1's own legend, never sold again once the season ends */
+.iog, .rw.og::after, .chog .plate-name b::after, .chb.og.lock::before {
+  font: 900 0.62rem/1 var(--font); letter-spacing: 0.06em; color: #1b1035; padding: 3px 6px 3px; border-radius: 7px;
+  background: linear-gradient(100deg, #9ff3ff, #ffd36a 45%, #ff9ad5); box-shadow: 0 1px 0 rgba(27, 16, 53, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+.iog { position: absolute; top: 8px; inset-inline-start: 8px; }
+.rw.og::after { content: "OG"; position: absolute; top: -6px; inset-inline-end: -4px; font-size: 0.56rem; padding: 2px 5px; }
+.chog .plate-name b::after { content: "OG"; display: inline-block; vertical-align: 0.5em; margin-inline-start: 8px; -webkit-text-stroke: 0; text-shadow: none; font-size: 0.7rem; }
+.icard.spot { animation: spot 1.4s var(--ease-out) 2; }
+.rw.spot { animation: rwSpot 1.2s var(--ease-out) 3; }
+@keyframes rwSpot { 40% { transform: scale(1.1); box-shadow: inset 0 0 0 2px var(--rc, var(--soft-3)), 0 0 0 3px #fff, 0 0 0 6px var(--rc, var(--accent)); } }
+@keyframes spot { 0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--rc) 20%, var(--line)), var(--e1); } 40% { box-shadow: 0 0 0 3px var(--rc), 0 10px 26px color-mix(in srgb, var(--rc) 45%, transparent); } }
+/* a character you don't own: the picker tile is dimmed with a lock, and the home stage says how to get it */
+.chlk { position: absolute; top: 5px; inset-inline-end: 5px; z-index: 1; width: 20px; height: 20px; border-radius: 50%; display: none; place-items: center; color: #fff; background: rgba(11, 27, 102, 0.72); box-shadow: 0 1px 3px rgba(11, 27, 102, 0.3); }
+.chb.lock .chlk { display: grid; }
+.chb.lock img { opacity: 0.5; }
+.chb.lock span { color: var(--muted); }
+.chb.og.lock::before { content: "OG"; position: absolute; top: 6px; inset-inline-start: 5px; z-index: 1; font-size: 0.52rem; padding: 2px 4px; }
+.chlock .plate-name span { display: inline-flex; align-items: center; gap: 6px; color: #fff; background: rgba(8, 20, 90, 0.5); }
+.chlock .plate-name span span { margin: 0; padding: 0; background: none; box-shadow: none; }
+.btn.getch {
+  --eh: 4px; min-width: min(66vw, 268px); min-height: 64px; padding: 6px 28px; border-radius: 22px; gap: 10px; font-size: 1.45rem;
+  animation: playIn 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.btn.getch small { font-size: 0.85rem; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: rgba(255, 255, 255, 0.22); }
+.btn.getch b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.btn.getch .cur { transform: scale(1.25); }
+.btn.getch.og { background: linear-gradient(100deg, #5b2bd6, #c03ad9 55%, #ff6aa8); --edge: #3b1592; }
+.btn.getch[hidden], .btn.play[hidden] { display: none; }
 .tslots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .tslot { min-width: 0; }
 .tslot { aspect-ratio: 1; border: 0; border-radius: 16px; padding: 8px; background: var(--soft); box-shadow: inset 0 0 0 2px var(--soft-3); }
@@ -1212,6 +1248,26 @@ button.opt.locked:active { transform: none; background: var(--soft); }
 .chrw .rw { width: 50px; height: 44px; }
 .chrw .rw .cur { width: 18px; height: 18px; }
 .chrw .rw b { font-size: 0.74rem; }
+/* a finished challenge waits for you to collect it; once collected it settles down with a tick */
+.chget { flex: none; min-height: 40px; padding: 0 14px; animation: armPulse 1.4s ease-in-out infinite; }
+.chrow.done { flex-wrap: wrap; }
+.chrow.got { opacity: 0.7; }
+.chrow.got .chrw { display: none; }
+.chok { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 99px; font-size: 0.78rem; font-weight: 800; color: #0f7a3e; background: #dcf8e6; }
+:root[data-theme="dark"] .chok { color: #9ff3c0; background: #10402a; }
+.chall { width: 100%; margin-bottom: 4px; }
+.cur.flyc { position: fixed; z-index: 60; width: 22px; height: 22px; pointer-events: none; transition: transform 0.62s cubic-bezier(0.5, 0, 0.75, 0.4), opacity 0.62s ease-in; }
+@keyframes bump { 40% { transform: scale(1.18); } }
+b.bump { display: inline-block; animation: bump 0.35s ease-out; }
+/* results: each payout on its own chip, then your coins counting up to the new total */
+.rchip small { font-size: 0.7rem; font-weight: 800; opacity: 0.75; }
+.rchip.coin .cur { width: 18px; height: 18px; }
+button.rchip.done { border: 0; font: inherit; font-size: 0.84rem; font-weight: 800; gap: 8px; padding-inline-end: 5px; }
+button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px; color: #fff; background: var(--green-2); }
+.rwal { flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 2px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.rwal small { font-size: 0.78rem; color: var(--muted); }
+.rwal b { font-size: 1.05rem; }
+
 /* results: what the match paid */
 .reseco { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 8px; }
 .rchip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px 4px 6px; border-radius: 99px; font-size: 0.84rem; font-weight: 800; background: var(--soft); animation: awIn 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) 0.4s backwards; }
@@ -1354,6 +1410,7 @@ button.opt.locked:active { transform: none; background: var(--soft); }
       <button id="b-next" class="arrow" type="button" aria-label="Next character"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
     </div>
     <div class="home-cta">
+      <button id="b-getch" class="btn pink getch" type="button" hidden></button>
       <button id="b-play" class="btn primary play" type="button"><span data-t="play"></span><svg class="fwd" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M8 4.8c0-1.2 1.3-1.9 2.3-1.3l9.4 6.9c.9.7.9 2 0 2.6l-9.4 6.9c-1 .7-2.3-.1-2.3-1.3z"/></svg></button>
     </div>
   </section>
@@ -1521,9 +1578,10 @@ button.opt.locked:active { transform: none; background: var(--soft); }
   <div id="hud" class="hud" hidden>
     <div class="hud-top">
       <button id="b-menu" class="ibtn" type="button" aria-label="Menu"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.6" fill="currentColor"/></svg></button>
-      <div class="hud-mid"><div id="score" class="score"></div><div class="hud-row"><div id="hud-clock" class="hclock up"><svg class="hc-ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="14" class="hc-bg"/><circle cx="18" cy="18" r="14" class="hc-fg" pathLength="100" transform="rotate(-90 18 18)"/><path class="hc-hand" d="M18 18V9.5"/></svg><b dir="ltr">0:00</b></div><div id="hud-info" class="hud-info" hidden></div></div><div id="gfeed" class="gfeed" aria-live="polite"></div></div>
+      <div class="hud-mid"><div id="score" class="score"></div><div class="hud-row"><div id="hud-clock" class="hclock up"><svg class="hc-ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="14" class="hc-bg"/><circle cx="18" cy="18" r="14" class="hc-fg" pathLength="100" transform="rotate(-90 18 18)"/><path class="hc-hand" d="M18 18V9.5"/></svg><b dir="ltr">0:00</b></div><div id="hud-info" class="hud-info" hidden></div></div></div>
       <span id="hud-stat" class="hud-stat" aria-hidden="true"><b id="st-ping" hidden></b><b id="st-fps"></b></span>
     </div>
+    <div id="gfeed" class="gfeed" aria-live="polite"></div>
     <div class="hud-sub"><span id="hud-code" class="hud-code" dir="ltr"></span><span id="hud-net" class="hud-net" hidden></span></div>
     <div class="hud-left">
       <div id="emotray" class="emotray" hidden><button type="button" data-k="0"></button><button type="button" data-k="1"></button><button type="button" data-k="2"></button><button type="button" data-k="3"></button></div>
@@ -1999,8 +2057,14 @@ function cross(S, b, si, M) {
   // Someone else's bumper: this phone cannot know exactly where their bumper is right now, so guessing the bounce
   // sends the pearl the wrong way until the host's answer arrives (left, then suddenly right). Instead the pearl waits
   // right at their bumper for that answer (a few hundredths of a second), then flies off the way it really went.
-  if (safe) { reflectSide(b, sd, u); b.seq++; }
-  else if (!brickBlock(S, b, seat, true)) { var hp = sidePt(sd, u, RC); b.x = hp.x; b.y = hp.y; b.st = HOLD; b.pendSeat = seat; b.pendUntil = t + 2; }
+  // Where this phone is sure (the pearl lands well inside their bumper, or well clear of it) it shows the outcome at
+  // once; only a pearl right at the edge of their bumper waits for the host.
+  var mg = M.margin ? M.margin(pl) : 9, edge = padHalf(pl) + 0.042, dd = Math.abs(u - padU(pl));
+  if (dd <= edge - mg) { sm = doHit(S, b, pl, sd, u); if (M.onPredHit) M.onPredHit(b, pl, sm); }
+  else if (safe) { reflectSide(b, sd, u); b.seq++; }
+  else if (brickBlock(S, b, seat, true)) {}
+  else if (dd > edge + mg) { b.st = PEND; b.pendSeat = seat; b.pendUntil = t + 2; if (M.onPredMiss) M.onPredMiss(b); }
+  else { var hp = sidePt(sd, u, RC); b.x = hp.x; b.y = hp.y; b.st = HOLD; b.pendSeat = seat; b.pendUntil = t + 2; }
 }
 
 function stepBall(S, b, dt, M) {
@@ -2259,13 +2323,13 @@ function advance(S, dt, M, mode) {
       pl = S.players[i]; if (!pl.alive) continue;
       var span = padSpan(pl), old = pl.p;
       if (M.host) {
-        if (pl.remote && pl.conn) continue;                 // their phone sends the position
+        if (pl.remote && pl.conn) { if (M.netP) pl.p = M.netP(pl, dt); pl.p = clamp(pl.p, -1, 1); pl.pv = (pl.p - old) * span / dt; continue; }   // their phone sends where it is: carried forward to now
         if (pl.bot || pl.remote) { if (S.phase !== 'over') botThink(S, pl, dt); }
         var ai = pl.bot || pl.remote;
         glide(pl, span, ai ? [0.62, 0.82, 1, 1][S.cfg.bot] || 0.82 : 1, ai ? ((S.cfg.bot | 0) >= 3 ? 16 : 9) : 40, dt, ai ? 16 : 30);   // your own bumper follows your finger tightly
       } else if (i === M.me) {
         glide(pl, span, 1, 40, dt, 30);
-      } else pl.p = pl.pn;
+      } else if (M.netP) pl.p = M.netP(pl, dt);
       pl.p = clamp(pl.p, -1, 1);
       pl.pv = (pl.p - old) * span / dt;
     }
@@ -2315,8 +2379,14 @@ var CHARS = [                                                   // name, then a 
   { k: 'najm', en: 'Cosmo', ar: 'كوزمو', sen: 'The Alien', sar: 'الفضائي' },
   { k: 'bushanab', en: 'Mr. Stache', ar: 'مستر ستاش', sen: 'The Champ', sar: 'البطل' },
   { k: 'dallou', en: 'Bibo', ar: 'بيبو', sen: 'The Crybaby', sar: 'الدلّوع' },
-  { k: 'falta', en: 'Dr. Wizz', ar: 'دكتور ويز', sen: 'The Mad Genius', sar: 'العبقري المجنون' }
+  { k: 'falta', en: 'Dr. Wizz', ar: 'دكتور ويز', sen: 'The Mad Genius', sar: 'العبقري المجنون' },
+  // characters to unlock: two in the Shop, two only from Season 1's pass (Nova never goes on sale)
+  { k: 'bolt', en: 'Bolt', ar: 'بولت', sen: 'The Robot', sar: 'الروبوت' },
+  { k: 'remix', en: 'Remix', ar: 'ريمكس', sen: 'The Party DJ', sar: 'دي جي الحفلة' },
+  { k: 'chefo', en: 'Chefo', ar: 'شيفو', sen: 'The Hungry Chef', sar: 'الطبّاخ الجوعان', pass: 1 },
+  { k: 'nova', en: 'Nova', ar: 'نوفا', sen: 'Season 1 Legend', sar: 'أسطورة الموسم 1', pass: 1, og: 1 }
 ];
+var BASE_CH = 10;                                               // the first ten are everyone's from the start
 var INK = '#1b0b16', CREAM = '#fff6e8';
 var _shade = {};
 function shade(hex, f) {
@@ -2668,10 +2738,14 @@ var STR = {
     pd4: 'Everyone else gets a small bumper for 7 seconds', pd5: 'Your next 3 hits are smashes', pd6: 'The pearl blinks out of sight for a moment',
     shopT: 'Shop', lockerT: 'Locker', gemsN: 'Gems', coinsN: 'Coins', passT: 'Pass', chalT: 'Challenges', dailyT: "Today's items", newIn: 'New items in {t}', allItems: 'All items',
     owned: 'Owned', equip: 'Equip', equipped: 'Equipped', buyQ: 'Tap again to buy', notEnough: 'Not enough {c}', unlocked: 'Unlocked!', later: 'Later', getIt: 'Get it in the season pass',
+    catc: 'Characters', ogT: 'OG', chShop: 'Unlock in the Shop', chPassF: 'Season Pass, tier {n}', chPassP: 'Premium Pass, tier {n}', chPassBtn: 'Season Pass', chUnlock: 'Unlock',
+    laNow: 'Active just now', laAgo: 'Active {t} ago',
     catb: 'Bumpers', catt: 'Trails', catn: 'Nets', cata: 'Auras', catg: 'Goal FX', cate: 'Taunts', rar0: 'Common', rar1: 'Rare', rar2: 'Epic', rar3: 'Legendary',
     testBuy: 'Test purchase: no money is charged. Real payments come with the App Store and Google Play apps.', gemsAdded: '+{n} gems added', practiceT: 'Practice', practiceNote: 'Practice with bots. Play with friends to earn XP, coins and pass rewards.', soonT: 'Coming soon', gemsSoon: 'Gem packs open when SmashBo launches on the App Store and Google Play', gemsLater: 'Gem packs open when SmashBo launches on the App Store and Google Play. Until then you earn gems from the season pass, weekly challenges and every 5th level.', popular: 'Popular', bestV: 'Best value',
     seasonT: 'Season 1: {n}', tierT: 'Tier {n}', premT: 'Premium', freeT: 'Free', getPrem: 'Unlock Premium', premOn: 'Premium unlocked', claim: 'Claim', claimAll: 'Claim all',
     passNote: 'Earn pass XP from every match and from challenges.', xpTo: '{a} / {b} XP to tier {n}', passDone: 'All tiers reached',
+    collect: 'Collect', collectAll: 'Collect all', collected: 'Collected', gotC: '+{c} coins, +{x} pass XP', gotCG: '+{c} coins, +{g} gems, +{x} pass XP', passTierUp: 'Season Pass tier {n} reached!',
+    matchT: 'Match', lvShort: 'Level {n}', walletT: 'Your coins',
     dailyCh: 'Daily challenges', weeklyCh: 'Weekly challenges', resetIn: 'New ones in {t}', chDone: 'Challenge complete!', hm: '{h}h {m}m', dh: '{d}d {h}h',
     ch_play: 'Play {n} matches', ch_win: 'Win {n} matches', ch_win1: 'Win a match', ch_friends1: 'Play a match with friends', ch_goals: 'Score {n} goals', ch_saves: 'Make {n} saves', ch_smash: 'Land {n} smash hits', ch_pw: 'Pick up {n} superpowers',
     ch_bullet: 'Play {n} Bullet matches', ch_podium: 'Finish in the top 3, {n} times', ch_friends: 'Play {n} matches with friends',
@@ -2754,10 +2828,14 @@ var STR = {
     pd4: 'صدّامات الباقين تصغر ٧ ثواني', pd5: 'ضرباتك الثلاث الجاية كلها قوية', pd6: 'اللؤلؤة تختفي وتطلع لحظات',
     shopT: 'المتجر', lockerT: 'الخزانة', gemsN: 'الجواهر', coinsN: 'العملات', passT: 'التذكرة', chalT: 'التحديات', dailyT: 'عروض اليوم', newIn: 'عروض جديدة بعد {t}', allItems: 'كل الأغراض',
     owned: 'عندك', equip: 'استخدم', equipped: 'مستخدم', buyQ: 'اضغط مرة ثانية للشراء', notEnough: '{c} ما تكفي', unlocked: 'صار لك!', later: 'بعدين', getIt: 'تحصله في تذكرة الموسم',
+    catc: 'الشخصيات', ogT: 'OG', chShop: 'تفتحه من المتجر', chPassF: 'تذكرة الموسم، المرحلة {n}', chPassP: 'التذكرة المميزة، المرحلة {n}', chPassBtn: 'تذكرة الموسم', chUnlock: 'افتح',
+    laNow: 'نشط الحين', laAgo: 'آخر ظهور قبل {t}',
     catb: 'الصدّامات', catt: 'الذيول', catn: 'الشباك', cata: 'الهالات', catg: 'تأثير الهدف', cate: 'الحركات', rar0: 'عادي', rar1: 'نادر', rar2: 'ملحمي', rar3: 'أسطوري',
     testBuy: 'شراء تجريبي: ما ينخصم أي مبلغ. الدفع الحقيقي يجي مع تطبيق آب ستور وقوقل بلاي.', gemsAdded: 'انضافت {n} جوهرة', practiceT: 'تمرين', practiceNote: 'تمرين مع البوتات. العب مع ربعك عشان تحصل خبرة وعملات وجوائز التذكرة.', soonT: 'قريبًا', gemsSoon: 'باقات الجواهر تفتح لما ينزل سماش بو على آب ستور وقوقل بلاي', gemsLater: 'باقات الجواهر تفتح لما ينزل سماش بو على آب ستور وقوقل بلاي. لين ذاك الوقت تحصل جواهر من تذكرة الموسم والتحديات الأسبوعية وكل خامس مستوى.', popular: 'الأكثر طلب', bestV: 'أفضل قيمة',
     seasonT: 'الموسم 1: {n}', tierT: 'المرحلة {n}', premT: 'المميزة', freeT: 'مجانية', getPrem: 'افتح المميزة', premOn: 'المميزة مفتوحة', claim: 'استلم', claimAll: 'استلم الكل',
     passNote: 'اجمع نقاط التذكرة من كل مباراة ومن التحديات.', xpTo: '{a} / {b} نقطة للمرحلة {n}', passDone: 'وصلت كل المراحل',
+    collect: 'استلم', collectAll: 'استلم الكل', collected: 'تم الاستلام', gotC: '+{c} عملة، +{x} نقطة تذكرة', gotCG: '+{c} عملة، +{g} جوهرة، +{x} نقطة تذكرة', passTierUp: 'وصلت المرحلة {n} في التذكرة!',
+    matchT: 'المباراة', lvShort: 'المستوى {n}', walletT: 'رصيدك',
     dailyCh: 'تحديات اليوم', weeklyCh: 'تحديات الأسبوع', resetIn: 'جديدة بعد {t}', chDone: 'خلّصت التحدي!', hm: '{h}س {m}د', dh: '{d}ي {h}س',
     ch_play: 'العب {n} مباريات', ch_win: 'اربح {n} مباريات', ch_win1: 'اربح مباراة', ch_friends1: 'العب مباراة مع ربعك', ch_goals: 'سجّل {n} أهداف', ch_saves: 'صدّ {n} مرات', ch_smash: 'اضرب {n} ضربات قوية', ch_pw: 'خذ {n} قوى خارقة',
     ch_bullet: 'العب {n} مباريات رصاصة', ch_podium: 'خلّص بين أول ثلاثة {n} مرات', ch_friends: 'العب {n} مباريات مع ربعك',
@@ -3297,7 +3375,8 @@ function syncBots() {
   });
   while (bots.length < want) {
     var ch = 0, col = 0, tries = 0;
-    do { ch = (Math.random() * CHARS.length) | 0; } while (uc[ch] && ++tries < 60);
+    do { ch = (Math.random() * CHARS.length) | 0; } while ((uc[ch] || CHARS[ch].pass) && ++tries < 60);   // never a Season Pass character: those stay rare
+    if (CHARS[ch].pass) ch = (Math.random() * BASE_CH) | 0;
     for (i = 0; i < COLORS.length; i++) if (!u[i]) { col = i; break; }
     u[col] = 1; uc[ch] = 1;
     bots.push({ id: 'bot' + rid(5), name: '', ch: ch, col: col, bot: true, seen: 0, joinedAt: performance.now() / 1000, cos: botCos() });
@@ -3316,7 +3395,7 @@ function beginMatch(role) {
   var P = plOf(ROOM.cfg.comp), k = P ? P.k : 'l';
   G.rk = { comp: !!P && hs.length >= 2 && !ROOM.seats.some(function (s) { return s.bot; }), k: k, done: false,
     list: hs.map(function (s) { var x = rkAt(seatRks(s), k); return { id: s.id, pid: s.id === ME.id ? ME.pid : s.pid, sr: x.sr, gp: x.gp }; }) };
-  G.S = S; G.log = []; G.role = role; G.stat = { smash: 0, pw: 0 }; G.quiet = false; G.acc = 0; G.lastEid = 0; G.vis = {}; G.lastTick = -1; G.smashN = 0; G.stale = false;
+  G.S = S; G.log = []; G.role = role; G.stat = { smash: 0, pw: 0 }; G.quiet = false; G.acc = 0; G.lastEid = 0; G.vis = {}; G.predFx = {}; G.lastTick = -1; G.smashN = 0; G.stale = false;
   G.me = -1; roster.forEach(function (r, i) { if (r.id === ME.id) G.me = i; });
   G.verdicts.clear(); G.seenV.clear(); G.early.clear();
   clearTimeout(G.overTimer);
@@ -3351,33 +3430,49 @@ function humansIn(S) { return S.players.some(function (p) { return p.alive && !p
 function hostSkip() { var S = G.S; if (!S || (ROOM.role !== 'host' && ROOM.role !== 'solo') || S.phase !== 'play' || humansIn(S)) return; skipToEnd(S); }
 function onMatchOver() {
   if (G.role === 'demo') { setTimeout(function () { if (G.role === 'demo') startDemo(); }, 2600); return; }
-  clearTimeout(G.overTimer);
+  clearTimeout(G.overTimer); if (G.S && G.S.phase === 'over') payMatch(G.S);
   G.overTimer = setTimeout(function () { if (G.S && G.S.phase === 'over' && G.role !== 'demo') showResults(); }, 1900);
 }
 
-/* ---------- smooth motion for players whose positions arrive over the network ----------
-   Every update is kept with its time; the player is drawn a little in the past, sliding between
-   two real updates, so uneven network timing never shows as stutter. */
-function rpush(pl, p, tS, nowMs) {
-  var h = pl.hist || (pl.hist = []), last = h[h.length - 1];
-  if (last && tS <= last.t) { if (tS < last.t - 400) h.length = 0; else return; }
-  var dl = nowMs - tS;
-  if (last) {
-    var gap = tS - last.t; if (gap < 400) { pl.gA = (pl.gA || gap) * 0.9 + gap * 0.1; pl.gJ = (pl.gJ || 4) * 0.9 + Math.abs(gap - pl.gA) * 0.1; }
-    pl.dJ = (pl.dJ || 6) * 0.92 + Math.abs(dl - (pl.dA == null ? dl : pl.dA)) * 0.08;
+/* ---------- bumpers that move on another phone ----------
+   Each update says where a bumper was at a known moment (on the host's clock), how fast it was moving and where
+   its player's finger was. From that, every phone runs the same easing the owner's phone runs, forward to this very
+   moment, so a bumper is drawn (and pearls bounce off it) where it really is now, not where it was a moment ago.
+   When an update shows the guess was a little off, the difference is blended out over a few frames, never a jump.
+   Each bumper also keeps score of how good the guesses are, so a joined phone knows when a bounce is a sure thing. */
+var _gl = { p: 0, pvel: 0, pt: 0, king: false, slow: false }, NET_H = 0.25;
+function fwdP(S, pl, s, h) {
+  var o = _gl; o.p = s.p; o.pvel = s.v; o.pt = s.pt; o.king = pl.king; o.slow = pl.slow;
+  if (!(h > 0)) return o.p;
+  var ai = pl.bot || !pl.conn, lv = S.cfg.bot | 0, f = ai ? [0.62, 0.82, 1, 1][lv] || 0.82 : 1, acc = ai ? (lv >= 3 ? 16 : 9) : 40, gain = ai ? 16 : 30;
+  var n = Math.min(32, Math.ceil(h / STEP)), d = h / n, span = padSpan(pl);
+  for (var i = 0; i < n; i++) glide(o, span, f, acc, d, gain);
+  return o.p;
+}
+function netSample(S, pl, p, v, pt, tMs, nowMs) {
+  var s = pl.smp, H = pl.smpH || (pl.smpH = []);
+  if (s && tMs <= s.t) return;                                            // older than what we already have
+  if (!(v === v && v != null)) v = s ? (p - s.p) / Math.max(0.005, (tMs - s.t) / 1000) : 0;
+  if (!(pt === pt && pt != null)) pt = clamp(p + v * 0.08, -1, 1);
+  var before = s ? fwdP(S, pl, s, clamp((nowMs - s.t) / 1000, 0, NET_H)) : p;
+  for (var k = H.length - 1; k >= 0; k--) if ((tMs - H[k].t) / 1000 >= (pl.hOp || 0.08)) {         // how far off was the guess, as far ahead as we really look
+    var e = Math.abs(fwdP(S, pl, H[k], Math.min(NET_H, (tMs - H[k].t) / 1000)) - p) * padSpan(pl);
+    pl.eU = pl.eU == null ? e : pl.eU * 0.9 + e * 0.1; pl.eP = Math.max(e, (pl.eP || 0) * 0.93); break;
   }
-  pl.dA = pl.dA == null ? dl : pl.dA * 0.92 + dl * 0.08;
-  h.push({ t: tS, p: p }); if (h.length > 24) h.shift();
+  pl.smp = { p: p, v: clamp(v, -40, 40), pt: clamp(pt, -1, 1), t: tMs }; H.push(pl.smp); if (H.length > 24) H.shift();
+  pl.pOff = s && tMs - s.t < 1000 ? clamp((pl.pOff || 0) + before - fwdP(S, pl, pl.smp, clamp((nowMs - tMs) / 1000, 0, NET_H)), -0.5, 0.5) : 0;   // after a long gap (they were away) it simply starts again
 }
-function visP(pl, nowMs) {
-  var h = pl.hist; if (!h || h.length < 2 || !pl.alive) return pl.p;
-  var D = clamp((pl.dA || 0) + 2.2 * (pl.dJ || 6) + (pl.gA || 33) + (pl.gJ || 4), 35, 260), t = nowMs - D, i;
-  pl.visD = pl.visD == null ? D : pl.visD + (D - pl.visD) * 0.02; t = nowMs - pl.visD;   // the delay itself changes slowly
-  var b = h[h.length - 1];
-  if (t >= b.t) { var a0 = h[h.length - 2], v = (b.p - a0.p) / Math.max(1, b.t - a0.t); return clamp(b.p + v * Math.min(t - b.t, 70), -1, 1); }
-  for (i = h.length - 1; i > 0; i--) { var a = h[i - 1]; if (a.t <= t) { var c = h[i]; return a.p + (c.p - a.p) * (t - a.t) / Math.max(1, c.t - a.t); } }
-  return h[0].p;
+function netNow(S, pl, nowMs, dt) {
+  var s = pl.smp; if (!s) return pl.p;
+  var h = clamp((nowMs - s.t) / 1000, 0, NET_H);
+  if (dt > 0) { pl.pOff = (pl.pOff || 0) * Math.exp(-dt * 16); pl.hOp = pl.hOp == null ? h : pl.hOp + (h - pl.hOp) * Math.min(1, dt * 2); }
+  var p = fwdP(S, pl, s, h); pl.pvel = _gl.pvel; pl.pt = s.pt;
+  return clamp(p + (pl.pOff || 0), -1, 1);
 }
+/* how sure this phone is about where someone else's bumper is (in arena units): a bounce off it is only shown
+   straight away when the pearl lands well inside or well outside it by more than this */
+function netMargin(pl) { return pl.eU == null ? padHalf(pl) * 0.4 : clamp(0.012 + 1.6 * pl.eU + 0.25 * (pl.eP || 0), 0.012, padHalf(pl) * 0.7); }
+function drawP(p) { return p.p; }                                    // a bumper is drawn exactly where pearls bounce off it
 
 /* ---------- host ---------- */
 var HM = {
@@ -3388,7 +3483,8 @@ var HM = {
     if (G.S.t - e.at > 0.6) return null;
     e.v.age += G.S.t - e.at; return e.v;
   },
-  onWall: wallFx
+  onWall: wallFx,
+  netP: function (pl, dt) { return netNow(G.S, pl, HM.nowMs || performance.now(), dt); }
 };
 function wallFx(b, soft) {
   if (G.quiet) return; var now = performance.now();
@@ -3475,8 +3571,8 @@ function hostInput(id, m, now) {
   if (!pl) return;
   var np = clamp(+m[1] || 0, -1, 1), dtIn = (now - pl.lastIn) / 1000;
   if (pl.alive) {
-    if (dtIn > 0.005 && dtIn < 0.3) pl.pv = (np - pl.p) * padSpan(pl) / dtIn;
-    pl.p = np; pl.pt = np; rpush(pl, np, now, now);
+    var tS = +m[7]; tS = tS > 0 && isFinite(tS) ? clamp(tS, now - 500, now) : now - pl.lat * 1000;
+    netSample(S, pl, np, m[5] == null ? null : +m[5], m[6] == null ? null : clamp(+m[6], -1, 1), tS, now);
     if ((m[2] | 0) > pl.smashN) { pl.smashN = m[2] | 0; trySmash(S, pl); }
   }
   pl.lastIn = now; pl.conn = true; pl.lat = clamp((+m[3] || 0) / 1000, 0, 0.4);
@@ -3510,7 +3606,7 @@ function hostVerdict(pl, v) {
 function flagsOf(p) { return (p.alive ? 1 : 0) | (p.smashOn ? 2 : 0) | (p.wide ? 4 : 0) | (p.shield ? 8 : 0) | (p.guard ? 16 : 0) | ((p.conn || !p.remote) ? 32 : 0) | (p.king ? 64 : 0) | (p.slow ? 128 : 0) | (p.small ? 256 : 0); }
 function packSnap(S, hc) {
   return JSON.stringify(['s', G.mid, S.tick, r3(S.t), hc, S.phase === 'cd' ? 0 : S.phase === 'play' ? 1 : 2,
-    S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1, p.bricks, p.fireN > 0 ? p.fireN : 0, p.slow ? r3(p.slowUntil - S.t) : 0, p.small ? r3(p.smallUntil - S.t) : 0, p.wide ? r3(p.wideUntil - S.t) : 0]; }),
+    S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1, p.bricks, p.fireN > 0 ? p.fireN : 0, p.slow ? r3(p.slowUntil - S.t) : 0, p.small ? r3(p.smallUntil - S.t) : 0, p.wide ? r3(p.wideUntil - S.t) : 0, r3(p.pvel || 0), r3(p.pt == null ? p.p : p.pt)]; }),
     S.balls.map(function (b) { return [b.id, r3(b.x), r3(b.y), r3(b.vx), r3(b.vy), b.owner, b.seq, b.st, b.tent, b.hotUntil > S.t ? 1 : 0, b.hits | 0, b.bomb ? Math.max(0.01, r3(b.fuseAt - S.t)) : 0, b.gold ? 1 : 0, b.ghostUntil > S.t ? r3(b.ghostUntil - S.t) : 0]; }),
     S.orbs.map(function (o) { return [o.id, r3(o.x), r3(o.y), o.ty]; }),
     [S.core.tele === null ? null : r3(S.core.tele), S.core.next < 0 ? -1 : r3(S.core.next - S.t)],
@@ -3534,7 +3630,7 @@ function hostFrame(dt, nowMs) {
   INPUT.smashQ = false;
   // run the rules right up to this frame's time (small last step), so pearls move evenly every frame
   G.acc += dt; var n = 0;
-  while (G.acc > 1e-5 && n < 80) { var h = Math.min(G.acc, STEP); advance(S, h, HM, 0); G.acc -= h; n++; }
+  while (G.acc > 1e-5 && n < 80) { var h = Math.min(G.acc, STEP); HM.nowMs = nowMs - (G.acc - h) * 1000; advance(S, h, HM, 0); G.acc -= h; n++; }
   if (n === 80) G.acc = 0;
   for (i = 0; i < S.ev.length; i++) if (S.ev[i][0] > G.lastEid) { G.lastEid = S.ev[i][0]; fxEvent(S.ev[i].slice(2)); }
   AU.heat = S.balls.length;
@@ -3558,6 +3654,10 @@ var CM = {
   host: false, me: -1, verdicts: G.verdicts, flush: false,
   now: function () { return performance.now() / 1000; },
   onLocalHit: function (b, sm) { var pl = G.S.players[G.me]; if (pl) hitFx(pl, b.x, b.y, sm); },
+  netP: function (pl, dt) { return netNow(G.S, pl, CM.nowMs || performance.now(), dt); },
+  margin: netMargin,
+  onPredHit: function (b, pl, sm) { if (DBG) (DBG.predH = DBG.predH || {})[b.id] = b.seq; var k = b.id + ':' + b.seq; if (G.predFx[k]) return; G.predFx[k] = G.S.t; hitFx(pl, b.x, b.y, sm); },
+  onPredMiss: function (b) { if (DBG) (DBG.predM = DBG.predM || {})[b.id] = b.seq; },
   onWall: wallFx
 };
 function applyLobby(d) {
@@ -3629,7 +3729,7 @@ function applySnap(m, nowMs) {
     pl.lives = a[1]; pl.alive = !!(f & 1); pl.wide = !!(f & 4); pl.shield = !!(f & 8); pl.guard = !!(f & 16); pl.conn = !!(f & 32); pl.king = !!(f & 64); pl.slow = !!(f & 128); pl.small = !!(f & 256);
     pl.fireN = a[11] | 0; pl.fireUntil = pl.fireN ? S.t + 30 : -1; pl.slowUntil = S.t + (+a[12] || 0); pl.smallUntil = S.t + (+a[13] || 0); pl.wideUntil = S.t + (+a[14] || 0);   // timers, for the power chips on screen
     pl.pts = a[3]; pl.score = a[4]; pl.conc = a[5]; pl.saves = a[6]; pl.place = a[7]; pl.lat = a[8] / 1000; pl.kw = a[9] || 1; if (a[10] != null) pl.bricks = a[10];
-    if (i !== G.me) { pl.pn = a[0]; pl.p = a[0]; rpush(pl, a[0], G.synced ? m[4] - G.offset : nowMs, nowMs); pl.smashOn = !!(f & 2); pl.smashUntil = pl.smashOn ? S.t + 0.15 : -1; }
+    if (i !== G.me) { netSample(S, pl, a[0], a[15], a[16], G.synced ? m[4] - G.offset : nowMs - 60, nowMs); pl.smashOn = !!(f & 2); pl.smashUntil = pl.smashOn ? S.t + 0.15 : -1; }
   }
   S.balls = m[7].map(function (q) { return { id: q[0], x: q[1], y: q[2], vx: q[3], vy: q[4], owner: q[5], seq: q[6], st: q[7], tent: q[8],
     hotUntil: q[9] ? S.t + 0.5 : -1, born: -9, pendSeat: -1, pendUntil: S.t + 2, tentUntil: 0, hits: q[10] | 0, bomb: q[11] > 0 ? 1 : 0, fuseAt: S.t + (+q[11] || 0), gold: q[12] ? 1 : 0, ghostUntil: q[13] ? S.t + q[13] : -1 }; });
@@ -3656,6 +3756,12 @@ function applySnap(m, nowMs) {
     nv[b.id] = { x: ox, y: oy };
   }
   G.vis = nv;
+  if (DBG) {                                            // how often a guess about someone else's bumper was overruled
+    for (i = 0; i < S.balls.length; i++) { b = S.balls[i];
+      if (DBG.predH && DBG.predH[b.id] === b.seq + 1 && b.st === PEND) { DBG.wrongHit = (DBG.wrongHit || 0) + 1; delete DBG.predH[b.id]; }
+      if (DBG.predM && DBG.predM[b.id] != null && b.seq > DBG.predM[b.id]) { DBG.wrongMiss = (DBG.wrongMiss || 0) + 1; delete DBG.predM[b.id]; } }
+    DBG.predN = DBG.predN || 0;
+  }
   if (DBG) {
     var mx = 0; for (var kk in nv) mx = Math.max(mx, Math.hypot(nv[kk].x, nv[kk].y)); DBG.corr = (DBG.corr || 0) + mx; DBG.corrN = (DBG.corrN || 0) + 1; DBG.corrMax = Math.max(DBG.corrMax || 0, mx); }
   var ex = m[11] || [0, 0]; S.endT = ex[0] ? S.t + ex[0] : 0; S.ot = !!ex[1];
@@ -3670,7 +3776,7 @@ function sendInput() {
     var age = now - v.tl; if (age > 0.9) { G.verdicts.delete(key); return; }
     if (age < 0.5) vs.push(v.hit ? [v.b, v.s, 1, r3(v.x), r3(v.y), r3(v.vx), r3(v.vy), v.sm, Math.round(age * 1000)] : [v.b, v.s, 0]);
   });
-  clientSend(['i', r3(me.p), G.smashN, Math.round(G.lat * 1000), vs]);
+  clientSend(['i', r3(me.p), G.smashN, Math.round(G.lat * 1000), vs, r3(me.pvel || 0), r3(me.pt == null ? me.p : me.pt), G.synced ? Math.round(performance.now() + G.offset) : 0]);
 }
 function clientFrame(dt, nowMs) {
   var S = G.S, me = S.players[G.me];
@@ -3683,7 +3789,7 @@ function clientFrame(dt, nowMs) {
   }
   INPUT.smashQ = false;
   if (INPUT.emoQ >= 0) { clientSend(['emo', INPUT.emoQ]); INPUT.emoQ = -1; }
-  advance(S, dt, CM, 2);
+  CM.nowMs = nowMs; advance(S, dt, CM, 2);
   var rem = clamp((nowMs - G.simClock) / 1000, 0, 0.1); G.simClock = nowMs;
   while (rem > 1e-6) { var h = Math.min(rem, STEP); advance(S, h, CM, 1); rem -= h; }
   var k = Math.exp(-dt * 10); for (var id in G.vis) { G.vis[id].x *= k; G.vis[id].y *= k; }
@@ -3695,6 +3801,7 @@ function clientFrame(dt, nowMs) {
 function clientTimer() {
   var now = performance.now(), gap = now - (ROOM.tickAt || now); ROOM.tickAt = now;
   if (gap > 3000) G.lastHost = now;                      // this phone was asleep or in another app: give the host time to be heard again
+  if (G.S && G.predFx) for (var pk in G.predFx) if (G.S.t - G.predFx[pk] > 3) delete G.predFx[pk];
   if (!ROOM.joined) {
     if (++ROOM.helloN > 9) { fail(T('notFound')); return; }
     clientRelay(['hello', prof()]); return;
@@ -3997,7 +4104,7 @@ var SOC = { cl: [], friends: [], recent: [], out: {}, reqs: {}, pres: {}, inv: {
 function socRelays() { return /[?&]mq=/.test(location.search) ? RELAYS.filter(Boolean) : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt']; }
 function card(o, pid) {                                             // a player's public card, from anything that came in
   o = o && typeof o === 'object' ? o : {};
-  return { pid: pid, n: cleanName(o.n), ch: ci(o.ch, 0, CHARS.length - 1), col: ci(o.col, 0, COLORS.length - 1), lv: ci(o.lv, 1, LV_MAX), sr: clamp(+o.sr || SR0, 0, 5000) | 0, gp: ci(o.gp, 0, 1e6), w: ci(o.w, 0, 1e6), t: +o.t || 0, rk: rkClean(o.rk, o.sr, o.gp) };
+  return { pid: pid, n: cleanName(o.n), ch: ci(o.ch, 0, CHARS.length - 1), col: ci(o.col, 0, COLORS.length - 1), lv: ci(o.lv, 1, LV_MAX), sr: clamp(+o.sr || SR0, 0, 5000) | 0, gp: ci(o.gp, 0, 1e6), w: ci(o.w, 0, 1e6), t: +o.t || 0, la: Math.min(+o.la || 0, Date.now()), rk: rkClean(o.rk, o.sr, o.gp) };
 }
 /* the most anyone could have after gp matches (every one a win against stronger players); lines above it are fake */
 function plausible(c) { return c.sr <= SR0 + 75 * Math.min(c.gp, PLACEMENTS) + 37 * Math.max(0, c.gp - PLACEMENTS) && c.w <= c.gp; }
@@ -4016,6 +4123,12 @@ function socLoad() {
 function socSave() { store('sadda.social', { f: SOC.friends, r: SOC.recent, o: SOC.out }); }
 function isFriend(pid) { return SOC.friends.some(function (f) { return f.pid === pid; }); }
 function friendOf(pid) { for (var i = 0; i < SOC.friends.length; i++) if (SOC.friends[i].pid === pid) return SOC.friends[i]; return null; }
+/* when a friend was last around: the newest time on anything they sent, kept with the friend so it survives a restart */
+function seenAt(pid, t) {
+  var f = friendOf(pid); t = Math.min(+t || 0, Date.now()); if (!f || !(t > (f.la || 0))) return false;
+  f.la = t; clearTimeout(SOC.laT); SOC.laT = setTimeout(socSave, 2000); return true;
+}
+function lastSeen(pid) { var f = friendOf(pid), p = SOC.pres[pid]; return Math.max(f && f.la || 0, p && p.t || 0); }
 function socOnline(pid) { var p = SOC.pres[pid]; return !!(p && p.st && Date.now() - p.t < 150000); }
 function socPub(topic, obj, retain) {
   var s = obj == null ? '' : JSON.stringify(obj);
@@ -4038,7 +4151,7 @@ function socStart() {
 }
 function socSubs(c) {
   var me = SPRE + '%/' + ME.pid, t = ['R', 'A', 'U'].map(function (k) { return me.replace('%', k) + '/+'; }).concat([me.replace('%', 'I')]);
-  SOC.friends.forEach(function (f) { t.push(SPRE + 'P/' + f.pid); });
+  SOC.friends.forEach(function (f) { t.push(SPRE + 'P/' + f.pid, SPRE + 'S/' + f.pid); });
   c.subscribe(t, { qos: 0 });
 }
 function socEach(fn) { SOC.cl.forEach(function (c) { if (c.connected) { try { fn(c); } catch (e) {} } }); }
@@ -4048,6 +4161,7 @@ function socPresence(off) {
   var c = myCard(), inRoom = (ROOM.role === 'host' || ROOM.role === 'client') && ROOM.code;
   c.st = off ? 0 : 1; c.rm = inRoom && !off ? ROOM.code : '';
   socPub('P/' + ME.pid, c, true);
+  socPub('S/' + ME.pid, { t: c.t }, true);     // 'last seen' on its own topic: the drop notice the server sends for a lost connection only replaces P, never this
 }
 /* my line on each playlist's leaderboard, once my placements there are done */
 function socLeader() { if (SOC.cl.length) PLAYLISTS.forEach(function (P) { if (UI.rks[P.k].gp >= PLACEMENTS) socPub(P.t + '/' + ME.pid, myCard(P.k), true); }); }
@@ -4056,9 +4170,10 @@ function socMsg(tp, payload) {
   var parts = tp.slice(SPRE.length).split('/'), k = parts[0], raw = payload && payload.length ? String(payload) : '', d = null;
   if (raw) { if (raw.length > 2000) return; try { d = JSON.parse(raw); } catch (e) { return; } }
   if (k === 'L' || k === 'B') { var W = SOC.lbWait; if (W && W.t === k && okPid(parts[1]) && d) W.got[parts[1]] = card(d, parts[1]); return; }
+  if (k === 'S') { if (okPid(parts[1]) && d && isFriend(parts[1]) && seenAt(parts[1], +d.t || 0)) socChanged(); return; }
   if (k === 'P') {
     var pid = parts[1]; if (!okPid(pid) || !d || !isFriend(pid)) return;
-    var c = card(d, pid), old = SOC.pres[pid]; if (old && old.t > c.t) return;
+    var c = card(d, pid), old = SOC.pres[pid]; seenAt(pid, c.t); if (old && old.t > c.t) return;
     c.st = d.st ? 1 : 0; c.rm = typeof d.rm === 'string' && /^[A-Z]{4}$/.test(d.rm) ? d.rm : '';
     SOC.pres[pid] = c;
     var f = friendOf(pid); if (f && c.t >= f.t) { f.n = c.n; f.ch = c.ch; f.col = c.col; f.lv = c.lv; f.sr = c.sr; f.gp = c.gp; f.rk = c.rk; f.t = c.t; }
@@ -4095,7 +4210,7 @@ function socMsg(tp, payload) {
 function socAddLocal(c) {
   if (isFriend(c.pid) || c.pid === ME.pid) return;
   SOC.friends.push(c); SOC.recent = SOC.recent.filter(function (r) { return r.pid !== c.pid; });
-  socSave(); socEach(function (cl) { cl.subscribe(SPRE + 'P/' + c.pid); });
+  socSave(); socEach(function (cl) { cl.subscribe([SPRE + 'P/' + c.pid, SPRE + 'S/' + c.pid]); });
 }
 /* add a friend by code: sends a request, or says yes if they already asked me */
 function socAdd(code, hint) {
@@ -4119,7 +4234,7 @@ function socDecline(from) { socPub('R/' + ME.pid + '/' + from, null, true); dele
 function socRemove(pid) {
   socPub('U/' + pid + '/' + ME.pid, { t: Date.now() }, true);
   SOC.friends = SOC.friends.filter(function (f) { return f.pid !== pid; }); delete SOC.pres[pid];
-  socEach(function (c) { c.unsubscribe(SPRE + 'P/' + pid); });
+  socEach(function (c) { c.unsubscribe([SPRE + 'P/' + pid, SPRE + 'S/' + pid]); });
   socSave(); socChanged();
 }
 function socInvite(pid) {
@@ -4163,6 +4278,11 @@ function socBoard(k, cb) {
 var RARE = ['common', 'rare', 'epic', 'legend'];
 var RARE_C = ['#9aa6c8', '#2f9bff', '#a24bff', '#ffb000'];
 var ITEMS = [
+  // characters to unlock (the first ten are everyone's): two for sale, two only from the season pass
+  { k: 'c10', r: 3, p: { g: 1200 }, n: ['Bolt', 'بولت'], L: {} },
+  { k: 'c11', r: 2, p: { c: 9000, g: 650 }, n: ['Remix', 'ريمكس'], L: {} },
+  { k: 'c12', r: 2, pass: 1, n: ['Chefo', 'شيفو'], L: {} },
+  { k: 'c13', r: 3, pass: 1, og: 1, n: ['Nova', 'نوفا'], L: {} },
   // bumper skins
   { k: 'b0', r: 0, n: ['Classic', 'كلاسيك'], L: { own: 1 } },
   { k: 'b1', r: 1, p: { c: 450 }, n: ['Candy', 'حلاوة'], L: { c: '#ffffff', tex: 'candy', ro: 0.3 } },
@@ -4243,7 +4363,7 @@ var ITEMS = [
   { k: 'e14', r: 2, p: { c: 900, g: 200 }, n: ['Hmm', 'امممم'], L: { s: 14 } },
   { k: 'e15', r: 3, p: { g: 600 }, n: ['Trophy', 'الكأس'], L: { s: 15 } }
 ];
-var CATS = ['b', 't', 'n', 'a', 'g', 'e'];
+var CATS = ['b', 't', 'n', 'a', 'g', 'e'], SHOP_CATS = ['c'].concat(CATS);   // CATS are what you wear (sent to everyone); characters come first in the Shop
 var ITEM = {}; ITEMS.forEach(function (it) { it.cat = it.k.charAt(0); it.i = +it.k.slice(1); ITEM[it.k] = it; });
 // shown in order of rarity (pass items last in their rarity), whatever order they were added in
 var ITEMS_SORTED = ITEMS.map(function (it, n) { return [it, n]; }).sort(function (a, b) { return a[0].r - b[0].r || (a[0].pass ? 1 : 0) - (b[0].pass ? 1 : 0) || a[1] - b[1]; }).map(function (x) { return x[0]; });
@@ -4278,6 +4398,7 @@ function ecoLoad() {
     ECO.eq = cosClean(d.eq); ECO.gift = !!d.gift; ECO.seen = d.seen && typeof d.seen === 'object' ? d.seen : {};
     if (d.pass && typeof d.pass === 'object') ECO.pass = { xp: ci(d.pass.xp, 0, 1e7), prem: !!d.pass.prem, got: d.pass.got && typeof d.pass.got === 'object' ? d.pass.got : {} };
     if (d.ch && typeof d.ch === 'object') ECO.ch = { day: String(d.ch.day || ''), d: Array.isArray(d.ch.d) ? d.ch.d : [], wk: String(d.ch.wk || ''), w: Array.isArray(d.ch.w) ? d.ch.w : [] };
+    ECO.ch.d.concat(ECO.ch.w).forEach(function (c) { if (c && c.done && c.got == null) c.got = true; });   // finished before collecting existed: those were paid at the time
   }
   if (!ECO.gift) { ECO.gift = true; ECO.coins += 500; ECO.gems += 50; }      // a welcome gift, so the shop is fun from day one
   ITEMS.forEach(function (it) { if (it.r === 0) ECO.own[it.k] = 1; });
@@ -4286,6 +4407,7 @@ function ecoLoad() {
 }
 function ecoSave() { store('sadda.eco1', ECO); }
 function owns(k) { return !!(ECO && ECO.own[k]); }
+function chOwned(k) { return k < BASE_CH || owns('c' + k); }
 function myCos() { return ECO ? ECO.eq.slice() : COS0.slice(); }
 function canAfford(p) { return p && ((p.c && ECO.coins >= p.c) || (p.g && ECO.gems >= p.g)); }
 function buyItem(k, cur) {
@@ -4295,6 +4417,7 @@ function buyItem(k, cur) {
 }
 function equip(k, slot) {
   var it = ITEM[k]; if (!it || !owns(k)) return;
+  if (it.cat === 'c') { UI.viewCh = null; pickChar(it.i); return; }        // a character: play as them
   if (it.cat === 'e') {                                                     // taunts: four slots
     var at = ECO.eq.indexOf(it.i, 5);
     if (slot == null) { if (at >= 5) return; ECO.tNext = ((ECO.tNext | 0) + 1) % 4; slot = ECO.tNext; }
@@ -4330,7 +4453,7 @@ var CH_POOL = [
 var CH_REW = { d: { c: 120, xp: 200 }, w: { c: 400, g: 30, xp: 600 } };
 function challengesFresh() {
   var dk = dayKey(), wk = weekKey();
-  function pick(seed, n, kind) { var rnd = seeded(seed), pool = CH_POOL.slice(), out = []; while (out.length < n) { var i = (rnd() * pool.length) | 0, c = pool.splice(i, 1)[0]; out.push({ k: c.k, n: kind === 'd' ? c.d : c.w, v: 0, done: false }); } return out; }
+  function pick(seed, n, kind) { var rnd = seeded(seed), pool = CH_POOL.slice(), out = []; while (out.length < n) { var i = (rnd() * pool.length) | 0, c = pool.splice(i, 1)[0]; out.push({ k: c.k, n: kind === 'd' ? c.d : c.w, v: 0, done: false, got: false }); } return out; }
   if (ECO.ch.day !== dk) { ECO.ch.day = dk; ECO.ch.d = pick('d' + dk + (ME.pid || ''), 3, 'd'); }
   if (ECO.ch.wk !== wk) { ECO.ch.wk = wk; ECO.ch.w = pick('w' + wk + (ME.pid || ''), 3, 'w'); }
 }
@@ -4339,11 +4462,11 @@ function challengesFresh() {
 var SEASON_NAME = ['Neon Night', 'ليل النيون'];
 // what each tier gives on the free track and the premium track
 var PASS_FREE = [{ c: 150 }, null, { c: 150 }, { it: 'e4' }, { c: 200 }, null, { g: 20 }, { c: 200 }, null, { it: 't4' },
-  { c: 250 }, null, { c: 250 }, { g: 30 }, null, { it: 'n1' }, { c: 300 }, null, { c: 300 }, { g: 40 },
-  null, { c: 350 }, { it: 'a3' }, null, { c: 400 }, { g: 50 }, null, { c: 500 }, { it: 'g3' }, { g: 100 }];
+  { c: 250 }, null, { c: 250 }, { g: 30 }, null, { it: 'n1' }, { c: 300 }, null, { c: 300 }, { it: 'c12' },
+  { g: 40 }, { c: 350 }, { it: 'a3' }, null, { c: 400 }, { g: 50 }, null, { c: 500 }, { it: 'g3' }, { g: 100 }];
 var PASS_PREM = [{ it: 'b7' }, { c: 200 }, { g: 50 }, { c: 250 }, { it: 't6' }, { c: 250 }, { g: 50 }, { it: 'e7' }, { c: 300 }, { g: 75 },
   { it: 'n4' }, { c: 300 }, { g: 75 }, { it: 'b3' }, { c: 400 }, { g: 100 }, { it: 'a5' }, { c: 400 }, { g: 100 }, { it: 't1' },
-  { c: 500 }, { g: 100 }, { it: 'e9' }, { c: 500 }, { g: 150 }, { it: 'g2' }, { c: 600 }, { g: 150 }, { it: 'n2' }, { it: 'g5' }];
+  { c: 500 }, { g: 100 }, { it: 'e9' }, { c: 500 }, { g: 150 }, { it: 'g2' }, { c: 600 }, { g: 150 }, { it: 'g5' }, { it: 'c13' }];
 function passTier() { return Math.min(PASS_TIERS, Math.floor(ECO.pass.xp / PASS_XP)); }
 function passGive(r) { if (!r) return; if (r.c) addCoins(r.c); if (r.g) addGems(r.g); if (r.it) ECO.own[r.it] = 1; }
 function passClaim(i, prem) {
@@ -4374,13 +4497,22 @@ function ecoMatch(S, xpGain) {
   [['d', ECO.ch.d], ['w', ECO.ch.w]].forEach(function (L) {
     L[1].forEach(function (c) {
       if (c.done) return; c.v = Math.min(c.n, c.v + (prog[c.k] | 0));
-      if (c.v >= c.n) { c.done = true; var rw = CH_REW[L[0]]; addCoins(rw.c); if (rw.g) addGems(rw.g); pxp += rw.xp; done.push({ kind: L[0], c: c, rw: rw }); }
+      if (c.v >= c.n) { c.done = true; c.got = false; done.push({ kind: L[0], c: c, rw: CH_REW[L[0]] }); }      // ready to collect from the Challenges tab
     });
   });
   var t0 = passTier(); ECO.pass.xp += pxp; var t1 = passTier();
   ecoSave();
   return { coins: coins, pxp: pxp, done: done, tierUp: t1 > t0 ? t1 : 0 };
 }
+/* a finished challenge pays when you collect it: coins (and gems for a weekly one) plus pass XP */
+function chList(kind) { return kind === 'w' ? ECO.ch.w : ECO.ch.d; }
+function chClaim(kind, i) {
+  var c = chList(kind)[i]; if (!c || !c.done || c.got) return null;
+  var rw = CH_REW[kind], t0 = passTier(); c.got = true;
+  addCoins(rw.c); if (rw.g) addGems(rw.g); ECO.pass.xp += rw.xp; ecoSave();
+  return { c: rw.c, g: rw.g || 0, xp: rw.xp, tierUp: passTier() > t0 ? passTier() : 0 };
+}
+function chClaimable() { var n = 0; if (ECO) ECO.ch.d.concat(ECO.ch.w).forEach(function (c) { if (c.done && !c.got) n++; }); return n; }
 /* a level up pays out too */
 function ecoLevelUp(lv) { var c = 150, g = lv % 5 === 0 ? 50 : 0; addCoins(c); addGems(g); ecoSave(); return { c: c, g: g }; }
 
@@ -5658,7 +5790,15 @@ var CRE = [
   { W: 0.66, H: 1.42, nk: 0.52, n: 2.0, pear: 0.2, D: 0.92, legL: 0.3, legT: 0.12, armL: 0.42, armT: 0.08,
     eyes: [[-0.21, 0.27, 0.2], [0.21, 0.27, 0.2]], mouth: [0.02, 0.11], lid: -1.2, grin: 0, lashes: 1 , iris: 'i1' },              // Bibo: the crybaby
   { W: 0.58, H: 1.84, nk: 0.5, n: 2.3, pear: 0.1, D: 0.9, legL: 0.42, legT: 0.11, armL: 0.55, armT: 0.075,
-    eyes: [[-0.18, 0.32, 0.17], [0.18, 0.32, 0.17]], mouth: [0.05, 0.12], lid: -0.9, grin: 0, hand: 'w' , iris: 'i2' }            // Dr. Wizz: the mad genius
+    eyes: [[-0.18, 0.32, 0.17], [0.18, 0.32, 0.17]], mouth: [0.05, 0.12], lid: -0.9, grin: 0, hand: 'w' , iris: 'i2' },           // Dr. Wizz: the mad genius
+  { W: 0.66, H: 1.68, nk: 0.5, n: 3.8, pear: 0.0, D: 0.86, legL: 0.38, legT: 0.13, armL: 0.5, armT: 0.085,
+    eyes: [[-0.2, 0.27, 0.17], [0.2, 0.27, 0.17]], mouth: [-0.03, 0.15], lid: -1.2, grin: 0, hand: 'sv', leg: 'sv', iris: 'i5' },   // Bolt: the robot
+  { W: 0.64, H: 1.74, nk: 0.5, n: 2.2, pear: 0.1, D: 0.9, legL: 0.4, legT: 0.12, armL: 0.52, armT: 0.08,
+    eyes: [[-0.2, 0.28, 0.17], [0.2, 0.28, 0.17]], mouth: [0.0, 0.16], lid: -0.55, grin: 1, iris: 'i4' },                          // Remix: the party DJ
+  { W: 0.72, H: 1.58, nk: 0.5, n: 2.0, pear: 0.2, D: 0.92, legL: 0.34, legT: 0.13, armL: 0.48, armT: 0.09,
+    eyes: [[-0.21, 0.24, 0.17], [0.21, 0.24, 0.17]], mouth: [-0.05, 0.18], lid: -1.0, grin: 1, hand: 'w', iris: 'i0' },            // Chefo: the hungry chef
+  { W: 0.6, H: 1.8, nk: 0.5, n: 2.4, pear: 0.04, D: 0.88, legL: 0.42, legT: 0.115, armL: 0.55, armT: 0.078,
+    eyes: [[-0.19, 0.3, 0.16], [0.19, 0.3, 0.16]], mouth: [0.02, 0.14], lid: -0.75, grin: 0, hand: 'k', leg: 'k', iris: 'i6' }    // Nova: the Season 1 legend
 ];
 function creR(S, y) {                                          // bean radius at height y (0..H)
   var t = clamp(y / S.H, 0, 1), u = Math.abs(2 * t - 1), base = Math.pow(Math.max(0, 1 - Math.pow(u, S.n)), 1 / S.n);
@@ -5811,6 +5951,57 @@ var CRE_ACC = [
     var by = f - 0.2, bz = creZ(S, 0, by);
     for (s = -1; s <= 1; s += 2) pt(b, gCone(), 'x', s * 0.08, by, bz + 0.02, 0.07, 0.15, 0.04, 0, 0, s * Math.PI / 2);
     pt(b, gSph(), 'x', 0, by, bz + 0.03, 0.04);
+  },
+  function (S, b, f, R) {                                      // Bolt: ear bolts, an antenna with a glowing tip, a chest panel of lights
+    var ey = f + 0.24, er = creR(S, ey);
+    for (var s = -1; s <= 1; s += 2) {
+      pt(b, gCyl(), 'sv', s * (er + 0.01), ey, 0, 0.12, 0.1, 0.12, 0, 0, Math.PI / 2);
+      pt(b, gCyl(), 'dd', s * (er + 0.07), ey, 0, 0.075, 0.05, 0.075, 0, 0, Math.PI / 2);
+    }
+    var sy = f + 0.55, sr = creR(S, sy) * 1.005; pt(b, gTor(1, 0.06), 'sv', 0, sy, 0, sr, sr * S.D, sr, Math.PI / 2);   // a seam round the head
+    var an = new THREE.Group(); an.position.set(0, S.H - 0.02, 0); b.add(an);
+    pt(an, gCyl(), 'sv', 0, 0.13, 0, 0.024, 0.26, 0.024); pt(an, gSph(), 'rd', 0, 0.29, 0, 0.07); pt(an, gCyl(), 'sv', 0, 0.01, 0, 0.08, 0.04, 0.08);
+    bakeVC(an, NEUTRAL, 1, true); R.sway.push({ g: an, k: 2.2, ax: 'z' });
+    ptOn(b, gBox(), 'sv', S, 0, f * 0.52, 0.0, 0.36, 0.22, 0.06);
+    ['rd', 'y', 'i2'].forEach(function (c, i) { ptOn(b, gSph(), c, S, (i - 1) * 0.095, f * 0.52, 0.04, 0.036, 0.036, 0.03); });
+  },
+  function (S, b, f, R) {                                      // Remix: big headphones, a gold chain with a medallion
+    var hy = f + 0.3, hr = creR(S, hy);
+    pt(b, gSmile(), 'k', 0, hy, 0, hr * 1.1, (S.H - hy) * 1.12, 0.5);
+    for (var s = -1; s <= 1; s += 2) {
+      pt(b, gCyl(), 'k', s * (hr + 0.05), hy, 0, 0.18, 0.13, 0.18, 0, 0, Math.PI / 2);
+      pt(b, gCyl(), 'tg', s * (hr + 0.12), hy, 0, 0.14, 0.03, 0.14, 0, 0, Math.PI / 2);
+    }
+    for (var i = 0; i < 20; i++) { var a = i / 20 * TAU, ny = f - 0.3 - Math.cos(a) * 0.07, rn = creR(S, ny); pt(b, gSphL(), 'g', Math.sin(a) * rn, ny, Math.cos(a) * rn * S.D, 0.042); }
+    ptOn(b, gSph(), 'g', S, 0, f - 0.46, 0.02, 0.1, 0.1, 0.035);
+  },
+  function (S, b, f, R) {                                      // Chefo: a tall chef's hat, a red neckerchief, a wooden spoon
+    var top = S.H;
+    pt(b, gCyl(), 'w', 0, top + 0.1, 0, 0.36, 0.36, 0.36);
+    pt(b, gTor(1, 0.14), 'w', 0, top - 0.06, 0, 0.36, 0.36, 0.36, Math.PI / 2);
+    [[-0.18, 0], [0.18, 0], [0, -0.14], [0, 0.14], [0, 0]].forEach(function (q, i) { pt(b, gSph(), 'w', q[0], top + 0.34 + (i === 4 ? 0.08 : 0), q[1], 0.24, 0.2, 0.24); });
+    var ny = f - 0.08, rn = creR(S, ny) * 1.01; pt(b, gTor(1, 0.055), 'rd', 0, ny, 0, rn, rn * S.D, rn, Math.PI / 2);   // a thin collar
+    ptOn(b, gCone(), 'rd', S, 0, ny - 0.13, 0.03, 0.17, 0.2, 0.035, Math.PI);                                       // the kerchief's point, hanging in front
+    ptOn(b, gSph(), 'rd', S, 0.11, ny - 0.01, 0.05, 0.06, 0.05, 0.045); ptOn(b, gSph(), 'rd', S, -0.11, ny - 0.01, 0.05, 0.06, 0.05, 0.045);
+    var sx = creR(S, f + 0.15);
+    pt(b, gCyl(), 'hd', -(sx + 0.03), f + 0.18, -0.06, 0.03, 0.66, 0.03, 0, 0, 0.12);
+    pt(b, gSph(), 'hd', -(sx + 0.07), f + 0.56, -0.06, 0.09, 0.13, 0.05, 0, 0, 0.12);
+  },
+  function (S, b, f, R) {                                      // Nova: a neon mohawk, a glowing headband, a star on the chest
+    var cy = f + (S.H - f) * 0.35, ry = S.H - cy, rz = creR(S, cy) * S.D;
+    for (var i = 0; i < 7; i++) {
+      var a = (i - 3) * 0.3, len = 0.44 - Math.abs(i - 3) * 0.045, y = cy + Math.cos(a) * ry, z = Math.sin(a) * rz;
+      pt(b, gCone(), i % 2 ? 'gl' : 'tg', 0, y + Math.cos(a) * len * 0.42, z + Math.sin(a) * len * 0.42, 0.085, len, 0.12, a, 0, 0);
+    }
+    var hb = f + 0.52, hr = creR(S, hb) * 1.02; pt(b, gTor(1, 0.08), 'gl', 0, hb, 0, hr, hr * S.D, hr, Math.PI / 2);
+    S.eyes.forEach(function (e) {                                             // two streaks of face paint under each eye
+      var sx = e[0] < 0 ? -1 : 1;
+      for (var j = 0; j < 2; j++) ptOn(b, gBox(), j ? 'gl' : 'tg', S, e[0] + sx * 0.05, f + e[1] - e[2] - 0.05 - j * 0.055, 0.0, 0.13, 0.03, 0.02, -sx * 0.18);
+    });
+    var st = new THREE.Group(), sy = f * 0.55; st.position.set(0, sy, creZ(S, 0, sy) + 0.02); b.add(st);
+    for (var k = 0; k < 5; k++) { var a2 = k / 5 * TAU; pt(st, gCone(), 'y', Math.sin(a2) * 0.07, Math.cos(a2) * 0.07, 0, 0.05, 0.1, 0.035, 0, 0, -a2); }
+    pt(st, gSph(), 'y', 0, 0, 0, 0.06, 0.06, 0.035);
+    bakeVC(st, NEUTRAL, 1, false);
   }
 ];
 
@@ -6543,7 +6734,7 @@ function gfxSlices() {
   if (UI.full && S) {
     for (i = 0; i < S.players.length; i++) {
       var p = S.players[i], sd = S.sides[p.side];
-      var vp = (G.role === 'client' && i !== G.me) || (G.role === 'host' && p.remote) ? visP(p, now) : p.p, span = padSpan(p);
+      var vp = drawP(p, i, now), span = padSpan(p);
       var pvv = p.vpLast == null ? 0 : (vp - p.vpLast) * span / Math.max(0.008, (now - p.vpT) / 1000); p.vpLast = vp; p.vpT = now;
       if (vp !== p.p) p.pvS = (p.pvS || 0) * 0.7 + pvv * 0.3;
       out.push({ si: p.side, K: S.K, a0: sd.a, L: sd.L, gh: goalHalf(p), hw: padHalf(p), pu: vp * span, pv: vp !== p.p ? p.pvS : p.pv, col: p.col, ch: p.ch, alive: p.alive, pl: p, pod: true });
@@ -6823,6 +7014,7 @@ function fxEvent(a) {
     pl = S.players[a[1]]; if (!pl) return;
     if (a[1] === me && a[2] && G.stat) G.stat.smash++;
     if (G.role === 'client' && a[1] === me) { var v = G.verdicts.get(a[3] + ':' + (a[4] - 1)); if (v && v.hit) return; }
+    if (G.role === 'client' && G.predFx) { var pk = a[3] + ':' + a[4]; if (G.predFx[pk] != null) return; G.predFx[pk] = S.t; }   // shown once, whether this phone saw it coming or the host said so first
     hitFx(pl, a[5], a[6], a[2]);
   } else if (k === 'ward') {
     burst(a[2], a[3], PEARL, 12, 0.8); shock(a[2], a[3], PEARL, 2.4, 0.35); sfx('ward');
@@ -7037,6 +7229,7 @@ function gfxResize() {
     var tb = document.querySelector('.hud-top'), tr = tb && tb.getBoundingClientRect();
     var hb = $('hud').getBoundingClientRect(), bot = hb.height ? hb.bottom - r.top : VIEW.H;          // keep the arena clear of the home bar
     rect.y = tr && tr.height ? Math.round(tr.bottom - r.top) + 4 : (wide ? 78 : 88); rect.h = bot - rect.y - (wide ? 4 : 10);
+    feedPlace(wide);
   }
   else if (UI.screen === 'home') {                              // the character stands in the stage area (above an open sheet on tall screens)
     var hs = $('home-stage').getBoundingClientRect(), so = UI.sheet && $(UI.sheet), sh = so && !so.hidden && so.querySelector('.sheet');
@@ -7155,7 +7348,7 @@ function camUpdate(now, dt) {
     az = (GFX.az || 0) + dt * 0.09; el = 0.8; key = 'lobby'; pts = arenaPts();
   } else {
     var bust = !!UI.sheet && !VIEW.wide && VIEW.rect.h < VIEW.H * 0.45;      // little room above a tall sheet: just the character, peeking over it
-    az = Math.sin(now * 0.25) * 0.08; el = bust ? 0.1 : 0.17; key = 'home' + ME.ch + (bust ? 'b' : ''); pts = showPts(bust);
+    az = Math.sin(now * 0.25) * 0.08; el = bust ? 0.1 : 0.17; key = 'home' + shownCh() + (bust ? 'b' : ''); pts = showPts(bust);
   }
   GFX.az = az;
   if (GFX.mode !== mode) { GFX.mode = mode; snap = mode === 'game'; GFX.blend = 0; }
@@ -7217,7 +7410,7 @@ function gfxFrame(now, dt) {
   if (GFX.drop.visible) { var fall = (1 - pg) * (1 - pg); GFX.drop.position.set(0, pearlR() + fall * 16, 0); GFX.drop.rotation.y = now * 4; GFX.drop.scale.setScalar(pearlR()); GFX.dropShadow.scale.setScalar(0.4 + pg * 0.8); GFX.dropShadow.material.opacity = 0.15 + pg * 0.4; }
   if (home) {
     var SP = GFX.showPod, pk = now - (GFX.pickAt || -9), po = now - (GFX.pokeAt || -9);
-    if (SP.ch !== ME.ch) { setPodLook(SP, ME.ch, COLORS[ME.col]); showroomPod(SP); } else setPodLook(SP, ME.ch, COLORS[ME.col]);
+    var shc = shownCh(); if (SP.ch !== shc) { setPodLook(SP, shc, COLORS[ME.col]); showroomPod(SP); } else setPodLook(SP, shc, COLORS[ME.col]);
     SP.grp.rotation.y = Math.PI / 2 - (GFX.az || 0) + 0.55 * Math.sin((now - (GFX.pickAt || 0)) * 0.5);
     SP.tilt.rotation.z = Math.sin(now * 1.3) * 0.02;
     SP.grp.scale.setScalar(1.55 * (1 + Math.max(0, 1 - pk / 0.35) * 0.08));
@@ -7475,7 +7668,7 @@ function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col:
 function loadProfile() {
   var p = store('sadda.profile') || {};
   ME.name = typeof p.name === 'string' ? p.name.slice(0, 12) : '';
-  ME.ch = ci(p.ch == null ? Math.random() * CHARS.length : p.ch, 0, CHARS.length - 1); ME.col = ci(p.col == null ? Math.random() * 8 : p.col, 0, COLORS.length - 1);
+  ME.ch = ci(p.ch == null ? Math.random() * BASE_CH : p.ch, 0, CHARS.length - 1); ME.col = ci(p.col == null ? Math.random() * 8 : p.col, 0, COLORS.length - 1);
   var vo = p.vol && typeof p.vol === 'object' ? p.vol : {};                 // older phones saved sound and music as on/off
   AU.vol = { m: vo.m == null ? (p.mus === false ? 0 : 80) : ci(vo.m, 0, 100), s: vo.s == null ? (p.snd === false ? 0 : 100) : ci(vo.s, 0, 100), v: vo.v == null ? 100 : ci(vo.v, 0, 100) }; auVol();
   AU.vib = p.vib !== false; UI.gfx = p.gfx || 'auto'; UI.smashL = p.sm === 'l'; UI.xp = Math.max(0, +p.xp || 0); UI.srv = p.sv2 == null ? -1 : ci(p.sv2, -1, RELAYS.length - 1); UI.srv = -1; UI.theme = /^(light|dark)$/.test(p.th) ? p.th : 'auto'; applyTheme(); UI.howSeen = !!p.how; UI.plays = +p.plays || 0;
@@ -7544,7 +7737,7 @@ function paneIn(el, from, to, order) {
 }
 function showScreen(n) {
   var was = UI.screen;
-  UI.drag = null; UI.screen = n; UI.full = n === 'game' || n === 'results';
+  UI.drag = null; UI.screen = n; if (n !== 'home') UI.viewCh = null; UI.full = n === 'game' || n === 'results';
   $('s-home').hidden = n !== 'home'; $('s-lobby').hidden = n !== 'lobby'; $('s-results').hidden = n !== 'results';
   $('hud').hidden = n !== 'game';
   $('app').setAttribute('data-screen', n);
@@ -7574,6 +7767,7 @@ function buildPickers() {
     CHARS.forEach(function (c, k) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chb'; b.setAttribute('data-k', k);
       var im = document.createElement('img'); im.alt = ''; im.width = im.height = 96; b.appendChild(im);
+      if (k >= BASE_CH) { var lk = document.createElement('i'); lk.className = 'chlk'; lk.innerHTML = LOCK_SVG; b.appendChild(lk); if (ITEM['c' + k] && ITEM['c' + k].og) b.classList.add('og'); }
       var nm = document.createElement('span'); b.appendChild(nm);
       b.addEventListener('click', function () { pickChar(k); });
       box.appendChild(b);
@@ -7590,7 +7784,40 @@ function buildPickers() {
   })(boxes[i]);
 }
 function pickChar(k) {
-  UI.tapAt = performance.now(); auInit(); var n = CHARS.length; ME.ch = ((k % n) + n) % n; saveProfile(); voice(ME.ch, 'pick'); GFX.pickAt = performance.now() / 1000; refreshPickers(); profChanged();
+  var n = CHARS.length; k = ((k % n) + n) % n;
+  if (!chOwned(k)) {                                                        // not yours yet: show it off on the home stage, or say where to get it
+    if (UI.screen === 'home') { closeSheet('profsheet'); previewChar(k); } else { sfx('click'); toast(chHowTxt(k), 2200); }
+    return;
+  }
+  UI.tapAt = performance.now(); auInit(); ME.ch = k; UI.viewCh = null; saveProfile(); voice(ME.ch, 'pick'); GFX.pickAt = performance.now() / 1000; refreshPickers(); profChanged();
+}
+/* Characters you don't own yet. The home arrows still walk through them: the model shows up, locked, with what it
+   takes to get it (a price in the Shop or a Season Pass tier) and a button that goes straight there. */
+var LOCK_SVG = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" rx="2" fill="currentColor"/><path d="M5.3 7V5.2a2.7 2.7 0 0 1 5.4 0V7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+function shownCh() { return UI.viewCh != null ? UI.viewCh : ME.ch; }
+function stepChar(d) { var n = CHARS.length, k = ((shownCh() + d) % n + n) % n; if (chOwned(k)) pickChar(k); else previewChar(k); }
+function previewChar(k) { UI.tapAt = performance.now(); auInit(); UI.viewCh = k; voice(k, 'pick'); GFX.pickAt = performance.now() / 1000; refreshPickers(); }
+function chPass(k) {                                                        // { t: tier, p: premium track } when a pass tier gives this character
+  var id = 'c' + k; for (var i = 0; i < PASS_TIERS; i++) { if (PASS_FREE[i] && PASS_FREE[i].it === id) return { t: i + 1, p: 0 }; if (PASS_PREM[i] && PASS_PREM[i].it === id) return { t: i + 1, p: 1 }; }
+  return null;
+}
+function chHowTxt(k) { var ps = chPass(k); return ps ? T(ps.p ? 'chPassP' : 'chPassF', { n: ps.t }) : T('chShop'); }
+function getChUI(k) {
+  var it = ITEM['c' + k], ps = chPass(k), b = $('b-getch'); if (!b || !it) return;
+  if (ps) b.innerHTML = '<span>' + T('chPassBtn') + '</span><small>' + T('tierT', { n: ps.t }) + '</small>';
+  else { var cur = it.p.c ? 'c' : 'g'; b.innerHTML = '<span>' + T('chUnlock') + '</span>' + curIcon(cur) + '<b>' + fmtN(it.p[cur]) + '</b>'; }
+  b.classList.toggle('og', !!it.og);
+}
+function getChGo() {
+  var k = UI.viewCh; if (k == null) return; auInit(); sfx('click');
+  var ps = chPass(k);
+  if (ps) {                                                                 // straight to that tier on the pass, lit up
+    openPass('p');
+    setTimeout(function () { var c = document.querySelectorAll('#pass-p .tcol')[ps.t], r = c && c.children[ps.p ? 2 : 1]; if (!r) return; c.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); r.classList.remove('spot'); void r.offsetWidth; r.classList.add('spot'); }, 260);
+    return;
+  }
+  UI.shopCat = 'c'; openShop('s');
+  setTimeout(function () { var c = document.querySelector('#shop-s .igrid:not(.feat) .icard[data-k="c' + k + '"]'); if (!c) return; c.scrollIntoView({ block: 'center', behavior: 'smooth' }); c.classList.remove('spot'); void c.offsetWidth; c.classList.add('spot'); }, 260);
 }
 /* Portraits are drawn a moment after a tap, never inside it, so picking a character or colour reacts at once.
    While the menus sit idle, the other characters' portraits and models are prepared one at a time. */
@@ -7622,7 +7849,7 @@ function warmStep() {
   if (UI.sheet || performance.now() - (UI.tapAt || 0) < 2500) return;
   var hex = COLORS[ME.col], n = CHARS.length, i, k;
   for (i = 1; i <= n; i++) {                                                 // nearest neighbours first: the ones the arrows go to next
-    k = (ME.ch + (i % 2 ? (i + 1) / 2 : -i / 2) + n * 2) % n;
+    k = (shownCh() + (i % 2 ? (i + 1) / 2 : -i / 2) + n * 2) % n;
     if (GFX.showPod && podPrebuild(GFX.showPod, k, hex)) return;
     if (!GFX.pCache[k + hex]) { portraitURL(k, hex); return; }
   }
@@ -7634,7 +7861,7 @@ function refreshPickers() {
   document.documentElement.style.setProperty('--me', hex);
   for (i = 0; i < bs.length; i++) {
     k = +bs[i].getAttribute('data-k'); var sel = k === ME.ch, im = bs[i].firstChild, key = k + hex;
-    bs[i].classList.toggle('sel', sel); bs[i].setAttribute('aria-pressed', sel ? 'true' : 'false'); bs[i].setAttribute('aria-label', chName(k));
+    bs[i].classList.toggle('sel', sel); bs[i].classList.toggle('lock', !chOwned(k)); bs[i].setAttribute('aria-pressed', sel ? 'true' : 'false'); bs[i].setAttribute('aria-label', chName(k));
     if (bs[i].lastChild.textContent !== chName(k)) bs[i].lastChild.textContent = chName(k);
     if (bs[i].offsetParent !== null) setPortrait(im, k, hex);
   }
@@ -7646,7 +7873,13 @@ function refreshPickers() {
     bs[i].classList.toggle('sel', k === ME.col); bs[i].classList.toggle('taken', !!taken[k]);
     bs[i].setAttribute('aria-pressed', k === ME.col ? 'true' : 'false'); bs[i].setAttribute('aria-disabled', taken[k] ? 'true' : 'false');
   }
-  $('show-name').textContent = chName(ME.ch); $('show-sub').textContent = chSub(ME.ch);
+  if (UI.viewCh != null && (UI.screen !== 'home' || chOwned(UI.viewCh))) UI.viewCh = null;   // bought it, or left home: back to your own
+  var sc = shownCh(), lk = !chOwned(sc), it = ITEM['c' + sc];
+  $('show-name').textContent = chName(sc);
+  var sub = $('show-sub');
+  if (lk) { sub.innerHTML = LOCK_SVG + '<span></span>'; sub.lastChild.textContent = chHowTxt(sc); } else sub.textContent = chSub(sc);
+  $('s-home').classList.toggle('chlock', lk); $('s-home').classList.toggle('chog', !!(it && it.og));
+  $('b-play').hidden = lk; $('b-getch').hidden = !lk; if (lk) getChUI(sc);
   setPortrait($('pf-img'), ME.ch, hex);
   $('pf-name').textContent = ME.name || T('guest');
   socHome();
@@ -7908,17 +8141,21 @@ function resAwards(S) {
   });
 }
 /* my XP for this match, once per match, with the bar filling up and a LEVEL UP! when it ticks over */
+/* XP, coins, pass XP and challenge progress for a match: paid the moment it ends (once), so leaving
+   before the results screen never loses anything */
+function payMatch(S) {
+  var me = S && S.players[G.me]; if (!me || G.xpMid === G.mid || G.role === 'demo') return;
+  G.xpMid = G.mid; var before = levelInfo(UI.xp || 0).lv, gain = matchXP(S, me);
+  G.xpBefore = UI.xp || 0; G.xpGain = gain; UI.xp = (UI.xp || 0) + gain; saveProfile();
+  var after = levelInfo(UI.xp).lv; G.lvUpTo = after > before ? after : 0;
+  if (ROOM.role !== 'none') profChanged();                                     // the room sees the new level
+  ecoAfterMatch(S, gain, before, after);                                        // coins, pass XP, challenges
+}
 function resXP(S) {
   var box = $('res-xp'), me = S.players[G.me];
   if (!me) { box.hidden = true; return; }
-  if (G.xpMid !== G.mid) {
-    G.xpMid = G.mid; var before = levelInfo(UI.xp || 0).lv, gain = matchXP(S, me);
-    G.xpBefore = UI.xp || 0; G.xpGain = gain; UI.xp = (UI.xp || 0) + gain; saveProfile();
-    var after = levelInfo(UI.xp).lv;
-    if (after > before) setTimeout(function () { showTitle(T('lvUp'), T('lvUpS', { n: after >= LV_MAX ? 'MAX' : after }), 'win', 2200, GOLD); sfx('crown', true); buzz([40, 60, 40]); }, 2600);
-    if (ROOM.role !== 'none') profChanged();                                     // the room sees the new level
-    ecoAfterMatch(S, gain, before, after);                                        // coins, pass XP, challenges
-  }
+  payMatch(S);
+  if (G.lvUpTo && G.lvShown !== G.mid) { G.lvShown = G.mid; var after = G.lvUpTo; setTimeout(function () { showTitle(T('lvUp'), T('lvUpS', { n: after >= LV_MAX ? 'MAX' : after }), 'win', 2200, GOLD); sfx('crown', true); buzz([40, 60, 40]); }, 2600); }
   box.hidden = false; $('rx-gain').textContent = T('xpGain', { n: G.xpGain || 0 });
   box.classList.toggle('practice', !withPeople(S)); $('rx-gain').textContent = withPeople(S) ? T('xpGain', { n: G.xpGain || 0 }) : T('practiceT');
   xpShow(box, $('rx-lv'), $('rx-txt'), $('rx-fill'), G.xpBefore || 0);          // start from where you were, then fill to the new total
@@ -8048,9 +8285,22 @@ function goalFeed(S, a) {
   var nm = document.createElement('b'); nm.textContent = who.seat === me ? T('you') : who.name; row.appendChild(nm);
   var bd = document.createElement('em'); bd.className = lm ? 'lv' : 'pt';
   bd.textContent = lm ? (a[5] <= 0 ? 'KO' : '-1 \u2665') : (a[7] ? '+3 \u2605' : '+1 \u2605'); row.appendChild(bd);
+  if (!box.firstChild) feedPlace();
   box.insertBefore(row, box.firstChild);
   while (box.children.length > 3) box.removeChild(box.lastChild);
   setTimeout(function () { row.classList.add('bye'); setTimeout(function () { if (row.parentNode) row.parentNode.removeChild(row); }, 320); }, 2800);
+}
+/* the KO feed: under the FPS chip when the scores leave room beside them (landscape), else just under the score row.
+   It lives outside the score row, so a new line never changes the camera framing. */
+function feedPlace(wide) {
+  var gf = $('gfeed'), hb = $('hud').getBoundingClientRect(); if (!gf || !hb.height) return;
+  if (wide == null) wide = VIEW.wide;
+  var tr = document.querySelector('.hud-top').getBoundingClientRect(), st = $('hud-stat').getBoundingClientRect(), hi = $('hud-info'), ft;
+  if (wide) {
+    ft = st.height ? st.bottom : tr.top;
+    if (hi && !hi.hidden) { var ir = hi.getBoundingClientRect(); if (ir.height && st.width && Math.abs(ir.left + ir.right - st.left - st.right) < 320) ft = Math.max(ft, ir.bottom); }
+  } else ft = tr.height ? tr.bottom : hb.top + 60;
+  gf.style.top = Math.round(ft - hb.top + 6) + 'px';
 }
 function feedClear() { var b = $('gfeed'); if (b) b.textContent = ''; }
 /* the match clock, always on show: counting down in timed matches (a ring empties, it turns red in the last 10
@@ -8143,6 +8393,7 @@ function hostSet(fn) { return function (e) { var b = e.target.closest('button');
 function initUI() {
   var hadProfile = loadProfile();
   socUIInit(); shopUIInit();
+  if (!chOwned(ME.ch)) { ME.ch = (Math.random() * BASE_CH) | 0; saveProfile(); }
   sheetDrag(); document.addEventListener('touchstart', function () {}, { passive: true });
   ['pointerdown', 'touchmove', 'scroll', 'wheel', 'keydown'].forEach(function (ev) { document.addEventListener(ev, function () { UI.tapAt = performance.now(); }, { passive: true, capture: true }); });   // the user is busy: background work waits   // iPhone only shows a button's pressed look with a touch listener on the page
   var sp = $('splash'); sp.classList.add('out'); setTimeout(function () { sp.hidden = true; }, 380);
@@ -8187,8 +8438,9 @@ function initUI() {
     if (!UI.howSeen) setTimeout(function () { if (UI.screen === 'home') $('howto').hidden = false; }, 250);
   });
   $('in-name2').addEventListener('keydown', function (e) { if (e.key === 'Enter') this.blur(); });
-  $('b-prev').addEventListener('click', function () { pickChar(ME.ch - 1); });
-  $('b-next').addEventListener('click', function () { pickChar(ME.ch + 1); });
+  $('b-prev').addEventListener('click', function () { stepChar(-1); });
+  $('b-next').addEventListener('click', function () { stepChar(1); });
+  $('b-getch').addEventListener('click', getChGo);
   $('b-create').addEventListener('click', function () { auInit(); sfx('click'); createRoom(); });
   $('b-join').addEventListener('click', function () { auInit(); sfx('click'); joinRoom($('in-code').value); });
   $('b-solo').addEventListener('click', function () { auInit(); sfx('click'); soloRoom(); });
@@ -8274,7 +8526,7 @@ function initUI() {
      the arena, so buttons stop working and the player stops moving. The drag is followed on the whole window
      instead, and any first finger down starts a fresh drag, so a lost one can never get stuck. */
   cv.addEventListener('pointerdown', function (e) {
-    if (UI.screen === 'home') { auInit(); GFX.pokeAt = performance.now() / 1000; GFX.pokeMood = ['happy', 'hurt', 'cheer', 'happy'][(Math.random() * 4) | 0]; voice(ME.ch, 'pick'); return; }
+    if (UI.screen === 'home') { auInit(); GFX.pokeAt = performance.now() / 1000; GFX.pokeMood = ['happy', 'hurt', 'cheer', 'happy'][(Math.random() * 4) | 0]; voice(shownCh(), 'pick'); return; }
     if (UI.screen !== 'game') return; auInit();
     if (commsOn() && e.pointerType === 'touch' && (e.clientX < Math.min(28, innerWidth * 0.07) || e.clientX > innerWidth - Math.min(28, innerWidth * 0.07))) return;   // the screen edges open the chat
     if (UI.drag && e.pointerId !== UI.drag.id && !e.isPrimary) { INPUT.smashQ = true; return; }   // a second finger: smash
@@ -8327,7 +8579,7 @@ function initUI() {
     else if (!hadProfile) openWelcome();
     else if (!UI.howSeen) setTimeout(function () { if (UI.screen === 'home') $('howto').hidden = false; }, 900);
   }
-  if (debug) window.__sadda = DBG = { ME: ME, SOC: SOC, socTab: socTab, PLAYLISTS: PLAYLISTS, rkWire: rkWire, titleOf: titleOf, titleName: titleName, voRouteAll: voRouteAll, renderLobby: renderLobby, openSoc: openSoc, openSeatMenu: openSeatMenu, joinCard: joinCard, rankSVG: rankSVG, rankOf: rankOf, rankName: rankName, AU: AU, BANK: BANK, SFX: SFX, VO: VO, CHAT: CHAT, chatSend: chatSend, G: G, ROOM: ROOM, NET: NET, INPUT: INPUT, GFX: GFX, VIEW: VIEW, UI: UI, auto: false, portrait: portraitURL, fx: fxEvent, title: showTitle, toast: toast, end: function () { if (G.S) skipToEnd(G.S); }, eco: function () { return ECO; }, equip: equip, buildRider: function (ch, lod) { return buildRider(ch, COLORS[ch % COLORS.length], lod); }, aoClear: function () { AO_CACHE = {}; }, buyItem: buyItem, ecoMatch: ecoMatch, norender: /[?&]norender/.test(location.search) };
+  if (debug) window.__sadda = DBG = { ME: ME, SOC: SOC, socTab: socTab, PLAYLISTS: PLAYLISTS, rkWire: rkWire, titleOf: titleOf, titleName: titleName, voRouteAll: voRouteAll, renderLobby: renderLobby, openSoc: openSoc, openSeatMenu: openSeatMenu, joinCard: joinCard, rankSVG: rankSVG, rankOf: rankOf, rankName: rankName, AU: AU, BANK: BANK, SFX: SFX, VO: VO, CHAT: CHAT, chatSend: chatSend, G: G, ROOM: ROOM, NET: NET, INPUT: INPUT, GFX: GFX, VIEW: VIEW, UI: UI, auto: false, portrait: portraitURL, fx: fxEvent, title: showTitle, toast: toast, end: function () { if (G.S) skipToEnd(G.S); }, eco: function () { return ECO; }, equip: equip, buildRider: function (ch, lod) { return buildRider(ch, COLORS[ch % COLORS.length], lod); }, aoClear: function () { AO_CACHE = {}; }, buyItem: buyItem, ecoMatch: ecoMatch, sim: { sideOf: sideOf, padHalf: padHalf, padSpan: padSpan, goalHalf: goalHalf, padU: padU, RC: RC, BR: BR, drawP: drawP, HOLD: HOLD, PEND: PEND }, feed: goalFeed, reveal: function (k) { revealItem(ITEM[k]); }, stepChar: stepChar, norender: /[?&]norender/.test(location.search) };
   requestAnimationFrame(frame);
 
   // opened from an invite link or QR: #CODE
@@ -8379,7 +8631,16 @@ function socTab(t) {
 function statusOf(pid) {
   var p = SOC.pres[pid];
   if (socOnline(pid)) return p.rm ? { k: 'room', txt: T('stRoom', { c: p.rm }), rm: p.rm } : { k: 'on', txt: T('stOnline') };
-  return { k: 'off', txt: T('stOff') };
+  var la = lastSeen(pid); return { k: 'off', txt: la ? agoTxt(la) : T('stOff'), la: la };
+}
+/* 'Active 5m ago' / 'آخر ظهور قبل ٥ دقايق' */
+function agoTxt(t) {
+  var s = Math.max(0, (Date.now() - t) / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60), d = Math.floor(h / 24), w = Math.floor(d / 7);
+  if (m < 2) return T('laNow');
+  var n = w >= 1 ? w : d >= 1 ? d : h >= 1 ? h : m, u = w >= 1 ? 3 : d >= 1 ? 2 : h >= 1 ? 1 : 0;
+  if (LANG !== 'ar') return T('laAgo', { t: n + 'mhdw'.charAt(u) });
+  var W = [['دقيقة', 'دقيقتين', 'دقايق'], ['ساعة', 'ساعتين', 'ساعات'], ['يوم', 'يومين', 'أيام'], ['أسبوع', 'أسبوعين', 'أسابيع']][u];
+  return T('laAgo', { t: n === 1 ? W[0] : n === 2 ? W[1] : n + ' ' + (n <= 10 ? W[2] : W[0]) });
 }
 /* one person in a list: picture, name, level and rank, what they are doing, and the buttons that fit */
 function personRow(c, kind) {
@@ -8410,7 +8671,7 @@ function renderFriends() {
   $('fr-req-h').hidden = !reqs.length; var rq = $('fr-req'); rq.textContent = '';
   reqs.forEach(function (c) { rq.appendChild(personRow(c, 'req')); });
   var order = { room: 0, on: 1, off: 2 };
-  var fl = SOC.friends.slice().sort(function (a, b) { return (order[statusOf(a.pid).k] - order[statusOf(b.pid).k]) || a.n.localeCompare(b.n); });
+  var fl = SOC.friends.slice().sort(function (a, b) { var sa = statusOf(a.pid), sb = statusOf(b.pid); return (order[sa.k] - order[sb.k]) || ((sb.la || 0) - (sa.la || 0)) || a.n.localeCompare(b.n); });   // online first, then whoever was around most recently
   var box = $('fr-list'); box.textContent = '';
   $('fr-count').textContent = fl.length ? String(fl.length) : '';
   if (!fl.length) box.appendChild(el('p', 'empty', T('noFriends')));
@@ -8670,6 +8931,7 @@ function curIcon(k) { return '<i class="cur ' + (k === 'g' ? 'gem' : 'coin') + '
 function itemArt(it) {
   var L = it.L || {}, cat = it.cat, ink = '#0b1b66', s = '<svg class="art" viewBox="0 0 64 64" aria-hidden="true">';
   if (cat === 'e') return EMO_SVG[L.s] || EMO_SVG[0];
+  if (cat === 'c') return '<img class="art cport" alt="" data-ch="' + it.i + '">';    // a character: their portrait, in your colour (drawn just after, see artHydrate)
   if (cat === 'b') {
     var base = L.own ? vivid(COLORS[ME.col] || COLORS[0]) : L.c || '#f6efe6', inner = '', tx = L.tex;
     var glow = L.em && L.em !== 'own' ? L.em : L.em === 'own' ? '#ff3dbb' : null;
@@ -8719,16 +8981,36 @@ function itemArt(it) {
 
 /* ---------- the wallet on the home screen and the badges on the side buttons ---------- */
 function chalName(c) { return T(c.n === 1 && (c.k === 'win' || c.k === 'friends') ? 'ch_' + c.k + '1' : 'ch_' + c.k, { n: c.n }); }
-function walletUI() {
+/* character portraits in cards are drawn a moment later, a few at a time, so opening the Shop never stalls */
+function artHydrate(root) { root.querySelectorAll('img.cport').forEach(function (im) { setPortrait(im, +im.getAttribute('data-ch'), COLORS[ME.col]); }); }
+function walletUI(slow) {
   if (!ECO) return;
-  [['w-coins', ECO.coins], ['w-gems', ECO.gems]].forEach(function (x) { var b = $(x[0]).querySelector('b'), t = fmtN(x[1]); if (b.textContent !== t) b.textContent = t; });
+  [['w-coins', ECO.coins], ['w-gems', ECO.gems]].forEach(function (x) { countTo($(x[0]).querySelector('b'), x[1], slow); });
   var c = $('sh-coins'), g = $('sh-gems'); if (c) { c.textContent = fmtN(ECO.coins); g.textContent = fmtN(ECO.gems); }
   railBadges();
+}
+/* a number that grows counts up to its new value (so you see coins arrive); one that drops just changes */
+function countTo(b, v, slow) {
+  if (!b) return; var from = b._v == null ? v : b._v; b._v = v; cancelAnimationFrame(b._raf);
+  if (v <= from || document.hidden) { b.textContent = fmtN(v); return; }
+  var t0 = performance.now(), dur = slow ? 1100 : 700, wait = slow ? 450 : 0;
+  (function step() { var k = clamp((performance.now() - t0 - wait) / dur, 0, 1), e = 1 - Math.pow(1 - k, 3); b.textContent = fmtN(Math.round(from + (v - from) * e)); if (k < 1) b._raf = requestAnimationFrame(step); else b.classList.remove('bump'), void b.offsetWidth, b.classList.add('bump'); })();
+}
+/* a few coins (or gems) fly from what you tapped up to your wallet */
+function flyCoins(from, cur, n) {
+  var to = $(cur === 'g' ? 'w-gems' : 'w-coins'); if (!from || !to || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var a = from.getBoundingClientRect(), b = to.getBoundingClientRect(); if (!b.width) return;
+  for (var i = 0; i < n; i++) (function (i) {
+    var c = el('i', 'cur ' + (cur === 'g' ? 'gem' : 'coin') + ' flyc'), x0 = a.left + a.width / 2 - 11 + (Math.random() - 0.5) * 34, y0 = a.top + a.height / 2 - 11 + (Math.random() - 0.5) * 18;
+    c.style.left = x0 + 'px'; c.style.top = y0 + 'px'; document.body.appendChild(c);
+    setTimeout(function () { c.style.transform = 'translate(' + (b.left + 14 - x0) + 'px,' + (b.top + b.height / 2 - 11 - y0) + 'px) scale(0.75)'; c.style.opacity = '0.35'; }, 30 + i * 55);
+    setTimeout(function () { c.remove(); }, 760 + i * 55);
+  })(i);
 }
 function railBadges() {
   if (!ECO) return;
   challengesFresh();
-  var claim = passClaimable(), chDone = 0; ECO.ch.d.concat(ECO.ch.w).forEach(function (c) { if (c.done && !c.seen) chDone++; });
+  var claim = passClaimable(), chDone = chClaimable();
   var pb = $('pass-badge'), n = claim + chDone; pb.hidden = !n; pb.textContent = String(n);
   var cb = $('ch-badge'); if (cb) { cb.hidden = !chDone; cb.textContent = String(chDone); }
   var sb = $('shop-badge'), fresh = ECO.seen.shop !== dayKey(); sb.hidden = !fresh; sb.textContent = '!';
@@ -8739,7 +9021,7 @@ function openShop(tab) { if (!ECO) return; openSheet('shopsheet'); shopTab(tab |
 function shopTab(t) {
   var was = UI.shopTab; UI.shopTab = t; seg('shop-tabs', t); paneIn($('shop-' + t), was, t, ['s', 'l', 'g']);
   ['s', 'l', 'g'].forEach(function (k) { $('shop-' + k).hidden = k !== t; });
-  if (t === 's') { ECO.seen.shop = dayKey(); ecoSave(); renderShop(); } else if (t === 'l') renderLocker(UI.lockCat || 'b'); else renderGems();
+  if (t === 's') { ECO.seen.shop = dayKey(); ecoSave(); renderShop(); } else if (t === 'l') renderLocker(UI.lockCat || 'c'); else renderGems();
   walletUI(); $('shopsheet').firstElementChild.scrollTop = 0;
 }
 function priceBtn(it, cur) {
@@ -8750,9 +9032,10 @@ function priceBtn(it, cur) {
 function itemCard(it, mode) {
   var own = owns(it.k), d = el('div', 'icard r' + it.r + (own ? ' own' : '')); d.setAttribute('data-k', it.k);
   d.style.setProperty('--rc', RARE_C[it.r]);
-  var art = el('div', 'iart'); art.innerHTML = itemArt(it); d.appendChild(art);
+  var art = el('div', 'iart'); art.innerHTML = itemArt(it); artHydrate(art); d.appendChild(art);
   d.appendChild(el('small', 'irar', T('rar' + it.r)));
   d.appendChild(el('b', 'inm', itemName(it)));
+  if (it.og) d.appendChild(el('small', 'iog', T('ogT')));
   var foot = el('div', 'ifoot');
   if (own) {
     var on = isEquipped(it), eb = el('button', 'btn xs ' + (on ? 'soft on' : 'blue'), on ? T('equipped') : T('equip')); eb.type = 'button'; eb.setAttribute('data-eq', it.k); if (on && it.cat !== 'e') eb.disabled = true; foot.appendChild(eb);
@@ -8761,18 +9044,18 @@ function itemCard(it, mode) {
   d.appendChild(foot);
   return d;
 }
-function isEquipped(it) { var eq = ECO.eq; return it.cat === 'e' ? eq.indexOf(it.i, 5) >= 5 : eq[CATS.indexOf(it.cat)] === it.i; }
+function isEquipped(it) { var eq = ECO.eq; if (it.cat === 'c') return ME.ch === it.i; return it.cat === 'e' ? eq.indexOf(it.i, 5) >= 5 : eq[CATS.indexOf(it.cat)] === it.i; }
 function renderShop() {
   var box = $('shop-s'); box.textContent = '';
   var hd = el('div', 'shead'); hd.appendChild(el('b', null, T('dailyT'))); hd.appendChild(el('small', 'stime', T('newIn', { t: fmtLeft(msToNextDay()) }))); box.appendChild(hd);
   var grid = el('div', 'igrid feat'); dailyShop().forEach(function (it) { grid.appendChild(itemCard(it)); }); box.appendChild(grid);
   box.appendChild(el('div', 'shead', null)).appendChild(el('b', null, T('allItems')));
-  var chips = el('div', 'catchips'); CATS.forEach(function (c) { var b = el('button', 'cchip' + ((UI.shopCat || 'b') === c ? ' on' : ''), T('cat' + c)); b.type = 'button'; b.setAttribute('data-cat', c); chips.appendChild(b); }); box.appendChild(chips);
-  var g2 = el('div', 'igrid'); ITEMS_SORTED.filter(function (it) { return it.cat === (UI.shopCat || 'b') && it.r > 0; }).forEach(function (it) { g2.appendChild(itemCard(it)); }); box.appendChild(g2);
+  var chips = el('div', 'catchips'); SHOP_CATS.forEach(function (c) { var b = el('button', 'cchip' + ((UI.shopCat || 'c') === c ? ' on' : ''), T('cat' + c)); b.type = 'button'; b.setAttribute('data-cat', c); chips.appendChild(b); }); box.appendChild(chips);
+  var g2 = el('div', 'igrid'); ITEMS_SORTED.filter(function (it) { return it.cat === (UI.shopCat || 'c') && it.r > 0; }).forEach(function (it) { g2.appendChild(itemCard(it)); }); box.appendChild(g2);
 }
 function renderLocker(cat) {
   UI.lockCat = cat; var box = $('shop-l'); box.textContent = '';
-  var chips = el('div', 'catchips'); CATS.forEach(function (c) { var b = el('button', 'cchip' + (cat === c ? ' on' : ''), T('cat' + c)); b.type = 'button'; b.setAttribute('data-lcat', c); chips.appendChild(b); }); box.appendChild(chips);
+  var chips = el('div', 'catchips'); SHOP_CATS.forEach(function (c) { var b = el('button', 'cchip' + (cat === c ? ' on' : ''), T('cat' + c)); b.type = 'button'; b.setAttribute('data-lcat', c); chips.appendChild(b); }); box.appendChild(chips);
   if (cat === 'e') {                                                         // the four taunt slots
     box.appendChild(el('small', 'snote', T('yourTaunts')));
     var sl = el('div', 'tslots'); for (var i = 0; i < 4; i++) { var t = el('button', 'tslot' + (UI.tSlot === i ? ' on' : '')); t.type = 'button'; t.setAttribute('data-slot', i); t.innerHTML = EMO_SVG[ECO.eq[5 + i]]; sl.appendChild(t); } box.appendChild(sl);
@@ -8796,8 +9079,8 @@ function renderGems() {
 }
 function shopClick(e) {
   var b = e.target.closest('button'); if (!b) return;
-  if (b.hasAttribute('data-cat')) { sfx('click'); var c0 = UI.shopCat || 'b'; UI.shopCat = b.getAttribute('data-cat'); renderShop(); paneIn($('shop-s').lastElementChild, c0, UI.shopCat, CATS); return; }
-  if (b.hasAttribute('data-lcat')) { sfx('click'); UI.tSlot = null; var l0 = UI.lockCat || 'b'; renderLocker(b.getAttribute('data-lcat')); paneIn($('shop-l').lastElementChild, l0, b.getAttribute('data-lcat'), CATS); return; }
+  if (b.hasAttribute('data-cat')) { sfx('click'); var c0 = UI.shopCat || 'c'; UI.shopCat = b.getAttribute('data-cat'); renderShop(); paneIn($('shop-s').lastElementChild, c0, UI.shopCat, SHOP_CATS); return; }
+  if (b.hasAttribute('data-lcat')) { sfx('click'); UI.tSlot = null; var l0 = UI.lockCat || 'c'; renderLocker(b.getAttribute('data-lcat')); paneIn($('shop-l').lastElementChild, l0, b.getAttribute('data-lcat'), SHOP_CATS); return; }
   if (b.hasAttribute('data-slot')) { sfx('click'); var s = +b.getAttribute('data-slot'); UI.tSlot = UI.tSlot === s ? null : s; renderLocker('e'); return; }
   if (b.hasAttribute('data-eq')) {
     var k = b.getAttribute('data-eq'), it = ITEM[k]; sfx('click');
@@ -8819,7 +9102,7 @@ function shopClick(e) {
 function revealItem(it) {
   var box = $('reveal'), card = box.firstElementChild;
   card.style.setProperty('--rc', RARE_C[it.r] || RARE_C[0]);
-  card.querySelector('.rv-art').innerHTML = itemArt(it);
+  card.querySelector('.rv-art').innerHTML = itemArt(it); artHydrate(card);
   card.querySelector('.rv-rar').textContent = T('rar' + it.r);
   card.querySelector('.rv-name').textContent = itemName(it);
   box.hidden = false; box.classList.remove('on'); void box.offsetWidth; box.classList.add('on');
@@ -8830,13 +9113,13 @@ function revealClose() { $('reveal').hidden = true; UI.revealK = null; }
 function openPass(tab) { if (!ECO) return; openSheet('passsheet'); passTab(tab || UI.passTab || 'p'); }
 function passTab(t) {
   var was = UI.passTab; UI.passTab = t; seg('pass-tabs', t); paneIn($('pass-' + t), was, t, ['p', 'c']); $('pass-p').hidden = t !== 'p'; $('pass-c').hidden = t !== 'c';
-  if (t === 'p') renderPass(); else { renderChallenges(); ECO.ch.d.concat(ECO.ch.w).forEach(function (c) { if (c.done) c.seen = 1; }); ecoSave(); }
+  if (t === 'p') renderPass(); else renderChallenges();
   railBadges(); $('passsheet').firstElementChild.scrollTop = 0;
 }
 function rewardChip(r) {
   var d = el('div', 'rw');
   if (!r) { d.classList.add('none'); return d; }
-  if (r.it) { var it = ITEM[r.it]; d.classList.add('item'); d.style.setProperty('--rc', RARE_C[it.r]); d.innerHTML = itemArt(it); d.title = itemName(it); }
+  if (r.it) { var it = ITEM[r.it]; d.classList.add('item'); if (it.og) d.classList.add('og'); d.style.setProperty('--rc', RARE_C[it.r]); d.innerHTML = itemArt(it); artHydrate(d); d.title = itemName(it); }
   else { d.innerHTML = curIcon(r.g ? 'g' : 'c') + '<b>' + fmtN(r.g || r.c) + '</b>'; d.classList.add(r.g ? 'gem' : 'coin'); }
   return d;
 }
@@ -8869,17 +9152,35 @@ function renderPass() {
 function renderChallenges() {
   challengesFresh();
   var box = $('pass-c'); box.textContent = '';
+  if (chClaimable() > 1) { var all = el('button', 'btn primary sm chall', T('collectAll')); all.type = 'button'; all.setAttribute('data-chc', 'all'); box.appendChild(all); }
   [['d', 'dailyCh', ECO.ch.d, msToNextDay()], ['w', 'weeklyCh', ECO.ch.w, weekLeft()]].forEach(function (G0) {
     var hd = el('div', 'shead'); hd.appendChild(el('b', null, T(G0[1]))); hd.appendChild(el('small', 'stime', T('resetIn', { t: fmtLeft(G0[3]) }))); box.appendChild(hd);
-    G0[2].forEach(function (c) {
-      var row = el('div', 'chrow' + (c.done ? ' done' : '')), tx = el('div', 'chtx');
+    G0[2].forEach(function (c, ci) {
+      var row = el('div', 'chrow' + (c.done ? (c.got ? ' got' : ' done') : '')), tx = el('div', 'chtx');
       tx.appendChild(el('b', null, chalName(c)));
       var bar = el('div', 'rc-bar'), f = el('i'); f.style.width = Math.round(c.v / c.n * 100) + '%'; bar.appendChild(f); tx.appendChild(bar);
       tx.appendChild(el('small', null, c.v + ' / ' + c.n)); row.appendChild(tx);
       var rw = CH_REW[G0[0]], rws = el('div', 'chrw'); rws.appendChild(rewardChip({ c: rw.c })); if (rw.g) rws.appendChild(rewardChip({ g: rw.g })); var xp = el('div', 'rw xp'); xp.innerHTML = '<b>+' + rw.xp + '</b><small>XP</small>'; rws.appendChild(xp);
-      row.appendChild(rws); box.appendChild(row);
+      row.appendChild(rws);
+      if (c.done && !c.got) { var cb = el('button', 'btn primary xs chget', T('collect')); cb.type = 'button'; cb.setAttribute('data-chc', G0[0] + ci); row.appendChild(cb); }
+      else if (c.got) { var ok = el('span', 'chok'); ok.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 8.4l3 2.9 6-6.3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span>'; ok.lastChild.textContent = T('collected'); row.appendChild(ok); }
+      box.appendChild(row);
     });
   });
+}
+/* collecting a finished challenge (or all of them) */
+function chClick(e) {
+  var b = e.target.closest('[data-chc]'); if (!b) return;
+  var k = b.getAttribute('data-chc'), keys = [], tot = { c: 0, g: 0, xp: 0, up: 0 };
+  if (k === 'all') { ['d', 'w'].forEach(function (kind) { chList(kind).forEach(function (c, i) { if (c.done && !c.got) keys.push([kind, i]); }); }); }
+  else keys.push([k.charAt(0), +k.slice(1)]);
+  keys.forEach(function (q) { var r = chClaim(q[0], q[1]); if (r) { tot.c += r.c; tot.g += r.g; tot.xp += r.xp; if (r.tierUp) tot.up = r.tierUp; } });
+  if (!tot.c && !tot.g) return;
+  sfx('orb'); buzz(25);
+  flyCoins(b, 'c', Math.min(9, 4 + keys.length * 2)); if (tot.g) setTimeout(function () { flyCoins(b, 'g', 4); }, 120);
+  walletUI(true); railBadges(); renderChallenges();
+  toast(T(tot.g ? 'gotCG' : 'gotC', { c: fmtN(tot.c), g: tot.g, x: tot.xp }), 2000);
+  if (tot.up) setTimeout(function () { toast(T('passTierUp', { n: tot.up }), 2200); }, 2100);
 }
 function weekLeft() { var d = new Date(), t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()), wk = Math.floor((t / 864e5 + 3) / 7); return ((wk + 1) * 7 - 3) * 864e5 - d.getTime(); }
 function passClick(e) {
@@ -8902,17 +9203,21 @@ function resEco(S) {
   var box = $('res-eco'), r = G.ecoRes; if (!r || G.ecoMid !== G.mid) { box.hidden = true; return; }
   box.textContent = ''; box.hidden = false;
   if (r.practice) { box.appendChild(el('span', 'rchip prac', T('practiceNote'))); return; }
-  var c = el('span', 'rchip coin'); c.innerHTML = curIcon('c') + '<b>+' + r.coins + '</b>'; box.appendChild(c);
+  var c = el('span', 'rchip coin'); c.innerHTML = curIcon('c') + '<b>+' + r.coins + '</b><small>' + T('matchT') + '</small>'; box.appendChild(c);
+  (r.lv || []).forEach(function (l) { var lc = el('span', 'rchip coin'); lc.innerHTML = curIcon('c') + '<b>+' + l.c + '</b>' + (l.g ? curIcon('g') + '<b>+' + l.g + '</b>' : '') + '<small>' + T('lvShort', { n: l.lv }) + '</small>'; box.appendChild(lc); });
   var x = el('span', 'rchip xp'); x.innerHTML = '<b>+' + r.pxp + '</b><small>' + T('passXP') + '</small>'; box.appendChild(x);
-  r.done.forEach(function (d) { var ch = el('span', 'rchip done'); ch.textContent = chalName(d.c); box.appendChild(ch); });
+  r.done.forEach(function (d) { var ch = el('button', 'rchip done'); ch.type = 'button'; ch.innerHTML = '<span></span><em></em>'; ch.firstChild.textContent = chalName(d.c); ch.lastChild.textContent = T('collect'); ch.addEventListener('click', function () { sfx('click'); openPass('c'); }); box.appendChild(ch); });
+  var w = el('div', 'rwal'); w.innerHTML = '<small></small>' + curIcon('c') + '<b dir="ltr"></b>'; w.firstChild.textContent = T('walletT'); box.appendChild(w);
+  var wb = w.lastChild; wb._v = r.before; wb.textContent = fmtN(r.before); setTimeout(function () { countTo(wb, r.after, true); }, 700);
 }
 function ecoAfterMatch(S, gain, before, after) {
   if (G.ecoMid === G.mid || !ECO) return;
-  G.ecoMid = G.mid; G.ecoRes = ecoMatch(S, gain);
-  var notes = [];
-  for (var lv = before + 1; lv <= after; lv++) { var lr = ecoLevelUp(lv); notes.push(lr.g ? T('lvRewardG', { c: lr.c, g: lr.g }) : T('lvReward', { c: lr.c })); }
-  if (G.ecoRes && G.ecoRes.done.length) notes.push(T('chDone'));
-  notes.forEach(function (t, i) { setTimeout(function () { toast(t, 2200); }, 3600 + i * 2300); });
+  var c0 = ECO.coins; G.ecoMid = G.mid; G.ecoRes = ecoMatch(S, gain);
+  if (G.ecoRes && !G.ecoRes.practice) {                                     // a level up pays too, and the results show every coin of it
+    G.ecoRes.lv = [];
+    for (var lv = before + 1; lv <= after; lv++) { var lr = ecoLevelUp(lv); G.ecoRes.lv.push({ lv: lv, c: lr.c, g: lr.g }); }
+    G.ecoRes.before = c0; G.ecoRes.after = ECO.coins;
+  }
   walletUI();
 }
 
@@ -8929,6 +9234,7 @@ function shopUIInit() {
   $('pass-tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { sfx('click'); passTab(b.getAttribute('data-v')); } });
   ['shop-s', 'shop-l', 'shop-g'].forEach(function (id) { $(id).addEventListener('click', shopClick); });
   $('pass-p').addEventListener('click', passClick);
+  $('pass-c').addEventListener('click', chClick);
   ['shopsheet', 'passsheet'].forEach(function (id) { $(id).addEventListener('click', function (e) { if (e.target === this || e.target.closest('[data-close]')) { sfx('click'); closeSheet(id); } }); });
   walletUI();
   if (!store('sadda.ecoHi')) { store('sadda.ecoHi', 1); setTimeout(function () { if (UI.screen === 'home') toast(T('welcomeGift'), 3200); }, 2600); }
