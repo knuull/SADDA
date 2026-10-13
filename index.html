@@ -1262,7 +1262,7 @@ button.opt.locked:active { transform: none; box-shadow: 0 5px 0 var(--soft-2); }
             <div class="kv wide"><span class="lbl" data-t="padSz"></span><div id="seg-pad" class="seg"><button type="button" data-v="0" data-t="bp0"></button><button type="button" data-v="1" data-t="bp1"></button><button type="button" data-v="2" data-t="bp2"></button></div></div>
             <div class="kv wide" id="kv-balls"><span class="lbl" data-t="balls"></span><div class="step"><button id="balls-minus" type="button" aria-label="Fewer pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="balls-n" class="wide">0</b><button id="balls-plus" type="button" aria-label="More pearls"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
             <span class="lbl" data-t="level"></span>
-            <div id="seg-level" class="seg"><button type="button" data-v="0" data-t="lv0"></button><button type="button" data-v="1" data-t="lv1"></button><button type="button" data-v="2" data-t="lv2"></button></div>
+            <div id="seg-level" class="seg"><button type="button" data-v="0" data-t="lv0"></button><button type="button" data-v="1" data-t="lv1"></button><button type="button" data-v="2" data-t="lv2"></button><button type="button" data-v="3" data-t="lv3"></button></div>
             <span class="lbl" data-t="speed"></span>
             <div id="seg-speed" class="seg"><button type="button" data-v="0" data-t="sp0"></button><button type="button" data-v="1" data-t="sp1"></button><button type="button" data-v="2" data-t="sp2"></button></div>
             <span class="lbl" data-t="core"></span>
@@ -1863,7 +1863,8 @@ function firstSide(S, b) {
   return best < 0 ? null : { si: best, s: bs };
 }
 function botThink(S, pl, dt) {
-  pl.botT -= dt; if (pl.botT > 0) return; pl.botT = 0.06 + Math.random() * 0.06;
+  var lvl = S.cfg.bot | 0;
+  pl.botT -= dt; if (pl.botT > 0) return; pl.botT = lvl >= 3 ? 0.035 + Math.random() * 0.03 : 0.06 + Math.random() * 0.06;   // Expert reads the pearls sooner
   var best = null, bt = 1e9, sd = S.sides[pl.side];
   for (var i = 0; i < S.balls.length; i++) {
     var b = S.balls[i]; if (b.st !== LIVE) continue;
@@ -1873,18 +1874,18 @@ function botThink(S, pl, dt) {
     if (f.s < bt) { bt = f.s; best = { u: u, b: b, s: f.s }; }
   }
   if (!best) { pl.pt *= 0.85; return; }
-  var lvl = S.cfg.bot, mul = [1.8, 1.22, 0.78][lvl] || 1.22, hw = padHalf(pl);
+  var mul = [1.8, 1.22, 0.78, 0.4][lvl] || 1.22, hw = padHalf(pl);
   var e = (hash3(best.b.id, best.b.seq, pl.seat + S.seed) - 0.5) * 2 * Math.min(PAD_MAX, pl.L * PAD_F) * mul, off = 0;   // a bot's aim is as good as anyone's: a shrunken bumper really is harder to play
-  if (S.cfg.mode === MODE_BULLET) e *= 1 + 0.13 * (best.b.hits | 0);           // Bullet: even a bot struggles once it flies
+  if (S.cfg.mode === MODE_BULLET) e *= 1 + (lvl >= 3 ? 0.07 : 0.13) * (best.b.hits | 0);           // Bullet: even a bot struggles once it flies
   var king = S.cfg.mode === MODE_CROWN && S.crown >= 0 && S.crown !== pl.seat ? S.players[S.crown] : null;
   if (king) {                                                                // in Crown, aim the return at the king's goal
     var tp = sidePt(S.sides[king.side], 0, AP), hp = sidePt(sd, best.u, RC), dx = tp.x - hp.x, dy = tp.y - hp.y;
     var want = Math.atan2(dx * -sd.s + dy * sd.c, -(dx * sd.c + dy * sd.s));
     var vr = best.b.vx * sd.c + best.b.vy * sd.s, vt = -best.b.vx * sd.s + best.b.vy * sd.c, refl = Math.atan2(vt, Math.max(1e-6, vr));
     off = clamp((want - 0.4 * refl) / 0.62, -0.6, 0.6); e *= 0.8;
-  }
+  } else if (lvl >= 3) off = (hash3(best.b.id, best.b.seq, pl.seat + 31) - 0.5) * 0.9;   // Expert hits it at an angle instead of straight back
   pl.pt = clamp((best.u - off * hw + e) / padSpan(pl), -1, 1);
-  if (best.s < 0.13 && S.t >= pl.smashCd && hash3(best.b.id, best.b.seq, pl.seat + 77) < ([0.08, 0.28, 0.5][lvl] || 0.28)) trySmash(S, pl);
+  if (best.s < 0.13 && S.t >= pl.smashCd && hash3(best.b.id, best.b.seq, pl.seat + 77) < ([0.08, 0.28, 0.5, 0.72][lvl] || 0.28)) trySmash(S, pl);
 }
 
 function hostRules(S, dt) {
@@ -2014,7 +2015,7 @@ function advance(S, dt, M, mode) {
         if (pl.remote && pl.conn) continue;                 // their phone sends the position
         if (pl.bot || pl.remote) { if (S.phase !== 'over') botThink(S, pl, dt); }
         var ai = pl.bot || pl.remote;
-        glide(pl, span, ai ? [0.62, 0.82, 1][S.cfg.bot] || 0.82 : 1, ai ? 9 : 40, dt, ai ? 16 : 30);   // your own bumper follows your finger tightly
+        glide(pl, span, ai ? [0.62, 0.82, 1, 1][S.cfg.bot] || 0.82 : 1, ai ? ((S.cfg.bot | 0) >= 3 ? 16 : 9) : 40, dt, ai ? 16 : 30);   // your own bumper follows your finger tightly
       } else if (i === M.me) {
         glide(pl, span, 1, 40, dt, 30);
       } else pl.p = pl.pn;
@@ -2401,7 +2402,7 @@ var STR = {
     tgtLives: 'Lives each', tgtPoints: 'Points to win', tgtTime: 'Match length', min: 'min',
     map: 'Map', mapRandom: 'Random', mapRandomSub: 'A new map every match',
     bots: 'Bots', lives: 'Lives', speed: 'Pearl speed', sp0: 'Chill', sp1: 'Normal', sp2: 'Wild',
-    level: 'Bot skill', lv0: 'Easy', lv1: 'Normal', lv2: 'Hard', pw: 'Superpowers', core: 'Centre launcher', haz: 'Map obstacles', chat: 'Chat', chatPh: 'Say something…', send: 'Send', qNice: 'Nice save!', qAgain: 'Again?', micOn: 'Mic on, others can hear you', micNo: 'Microphone is blocked on this phone', micMute: 'Mute mic', micUnmute: 'Unmute mic', voiceNote: 'Voice: tap the mic to talk. Players next to you sound louder. Swipe in from a screen edge to open chat.', skip: 'Skip to results', toLobby: 'Back to lobby', roomT: 'Room', qLol: 'Haha', size: 'Arena size', sz0: 'Small', sz1: 'Medium', sz2: 'Large', padSz: 'Bumper size', bp0: 'Small', bp1: 'Normal', bp2: 'Big', hazInfo: 'Map obstacles (off by default): pillars in Dune Camp, moving bumpers in Lantern Souq, a whirlpool in Pearl Reef.', on: 'On', off: 'Off',
+    level: 'Bot skill', lv0: 'Easy', lv1: 'Normal', lv2: 'Hard', lv3: 'Expert', pw: 'Superpowers', core: 'Centre launcher', haz: 'Map obstacles', chat: 'Chat', chatPh: 'Say something…', send: 'Send', qNice: 'Nice save!', qAgain: 'Again?', micOn: 'Mic on, others can hear you', micNo: 'Microphone is blocked on this phone', micMute: 'Mute mic', micUnmute: 'Unmute mic', voiceNote: 'Voice: tap the mic to talk. Players next to you sound louder. Swipe in from a screen edge to open chat.', skip: 'Skip to results', toLobby: 'Back to lobby', roomT: 'Room', qLol: 'Haha', size: 'Arena size', sz0: 'Small', sz1: 'Medium', sz2: 'Large', padSz: 'Bumper size', bp0: 'Small', bp1: 'Normal', bp2: 'Big', hazInfo: 'Map obstacles (off by default): pillars in Dune Camp, moving bumpers in Lantern Souq, a whirlpool in Pearl Reef.', on: 'On', off: 'Off',
     pwInfo: 'Superpowers are orbs on the floor. Roll a pearl you touched through one to get its power.',
     start: 'Start match', need2: 'Add a bot or wait for a friend', waitHost: 'Waiting for the host to start…',
     keepOpen: 'Keep this screen open. The match runs from your phone.', mylook: 'My player', setup: 'Match setup',
@@ -2477,7 +2478,7 @@ var STR = {
     tgtLives: 'الأرواح لكل لاعب', tgtPoints: 'النقاط للفوز', tgtTime: 'مدة الجولة', min: 'د',
     map: 'الخريطة', mapRandom: 'عشوائي', mapRandomSub: 'خريطة جديدة كل جولة',
     bots: 'البوتات', lives: 'الأرواح', speed: 'سرعة اللؤلؤ', sp0: 'هادي', sp1: 'عادي', sp2: 'ناري',
-    level: 'مستوى البوت', lv0: 'سهل', lv1: 'عادي', lv2: 'صعب', pw: 'القوى الخارقة', core: 'المدفع بالنص', haz: 'عوائق الخريطة', chat: 'الدردشة', chatPh: 'اكتب شي…', send: 'أرسل', qNice: 'صدّة حلوة!', qAgain: 'مرة ثانية؟', micOn: 'المايك شغّال، الكل يسمعك', micNo: 'المايك مقفول على هذا الجوال', micMute: 'اكتم المايك', micUnmute: 'شغّل المايك', voiceNote: 'الصوت: اضغط المايك عشان تتكلم. اللي جنبك صوتهم أعلى. اسحب من طرف الشاشة لفتح الدردشة.', skip: 'تخطَّ للنتائج', toLobby: 'رجوع للغرفة', roomT: 'الغرفة', qLol: 'هههه', size: 'حجم الحلبة', sz0: 'صغيرة', sz1: 'متوسطة', sz2: 'كبيرة', padSz: 'حجم الصدّام', bp0: 'صغير', bp1: 'عادي', bp2: 'كبير', hazInfo: 'عوائق الخريطة (مطفية عادةً): أعمدة في مخيم الطعوس، صدّامات تدور في سوق الفنر، ودوّامة في هير اللؤلؤ.', on: 'شغّال', off: 'مطفي',
+    level: 'مستوى البوت', lv0: 'سهل', lv1: 'عادي', lv2: 'صعب', lv3: 'خبير', pw: 'القوى الخارقة', core: 'المدفع بالنص', haz: 'عوائق الخريطة', chat: 'الدردشة', chatPh: 'اكتب شي…', send: 'أرسل', qNice: 'صدّة حلوة!', qAgain: 'مرة ثانية؟', micOn: 'المايك شغّال، الكل يسمعك', micNo: 'المايك مقفول على هذا الجوال', micMute: 'اكتم المايك', micUnmute: 'شغّل المايك', voiceNote: 'الصوت: اضغط المايك عشان تتكلم. اللي جنبك صوتهم أعلى. اسحب من طرف الشاشة لفتح الدردشة.', skip: 'تخطَّ للنتائج', toLobby: 'رجوع للغرفة', roomT: 'الغرفة', qLol: 'هههه', size: 'حجم الحلبة', sz0: 'صغيرة', sz1: 'متوسطة', sz2: 'كبيرة', padSz: 'حجم الصدّام', bp0: 'صغير', bp1: 'عادي', bp2: 'كبير', hazInfo: 'عوائق الخريطة (مطفية عادةً): أعمدة في مخيم الطعوس، صدّامات تدور في سوق الفنر، ودوّامة في هير اللؤلؤ.', on: 'شغّال', off: 'مطفي',
     pwInfo: 'القوى الخارقة كرات على الأرض. وجّه لؤلؤة لمستها على وحدة منها وتاخذ قوتها.',
     start: 'ابدأ الجولة', need2: 'أضف بوت أو انتظر أحد يدخل', waitHost: 'بانتظار المضيف يبدأ…',
     keepOpen: 'خلّ الشاشة مفتوحة. الجولة تشتغل من جوالك.', mylook: 'لاعبي', setup: 'إعدادات الجولة',
@@ -2993,7 +2994,8 @@ var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
 /* Competitive: each ranked playlist has fixed rules (PLAYLISTS), so ratings mean the same thing everywhere */
 function cfgObj() {
   var P = plOf(ROOM.cfg.comp), c = P ? Object.assign({}, ROOM.cfg, P.rules) : ROOM.cfg, m = MAPS[ROOM.mapNow] || MAPS[0];
-  return { mode: c.mode | 0, lives: c.lives, target: (c.mode | 0) === 6 ? c.gpts || 15 : c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: SPEEDS[c.sp] || 1, pw: !!c.pw && (c.pws == null || (c.pws | 0) > 0), pws: c.pws == null ? 127 : c.pws | 0, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, pad: c.pad == null ? 1 : c.pad | 0, map: ROOM.mapNow, layout: m.layout };
+  return { mode: c.mode | 0, lives: c.lives, target: (c.mode | 0) === 6 ? c.gpts || 15 : c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: (SPEEDS[c.sp] || 1) * ([1.12, 1, 0.88][c.size == null ? 1 : c.size | 0] || 1),   // a bigger arena: the pearls take longer to cross it
+    pw: !!c.pw && (c.pws == null || (c.pws | 0) > 0), pws: c.pws == null ? 127 : c.pws | 0, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, pad: c.pad == null ? 1 : c.pad | 0, map: ROOM.mapNow, layout: m.layout };
 }
 /* the map on show in the lobby: the chosen one, or the last one played when it is random */
 function lobbyMap() { return ROOM.cfg.map >= 0 ? ROOM.cfg.map : ROOM.mapNow; }
@@ -3293,7 +3295,7 @@ function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
   ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
-  ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: ci(q[16], 0, PLAYLISTS.length), pws: q[17] == null ? 127 : ci(q[17], 0, 127), pad: q[18] == null ? 1 : ci(q[18], 0, 2), sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 2), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
+  ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: ci(q[16], 0, PLAYLISTS.length), pws: q[17] == null ? 127 : ci(q[17], 0, 127), pad: q[18] == null ? 1 : ci(q[18], 0, 2), sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 3), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000, before = {}; ROOM.seats.concat(ROOM.waiting).forEach(function (x) { was[x.id] = x.joinedAt; if (!x.bot) before[x.id] = x.name; });
   ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), rtt: a[7] | 0, dir: !!a[8], pid: okPid(a[9]) ? a[9] : '', rk: rkClean(a[10], a[10], a[11]), joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
@@ -5474,7 +5476,7 @@ var _v = null, _v2 = null;
    keep it readable on any floor; it stretches with speed, squashes when it bounces, leaves a streak
    in its owner's colour, and smashed pearls burn. Drawn a little bigger than they are in the rules. */
 var PEARL_VIS = 1.9, BALLS_MAX = 12, _bq = new THREE.Quaternion(), _Y = new THREE.Vector3(0, 1, 0), _NZ = new THREE.Vector3(0, 0, -1);
-function pearlR() { return 0.04 * R3 * PEARL_VIS / Math.sqrt(SZ); }
+function pearlR() { return 0.04 * R3 * PEARL_VIS / Math.sqrt(1.22) * (1.22 / SZ); }   // Medium looks as it always did; Small bigger, Large smaller
 function pearlGeo() { return GEO.pearl || (GEO.pearl = new THREE.SphereGeometry(1, 32, 22)); }
 function pearlInk() {
   if (GEO.ink) return GEO.ink;
@@ -5933,7 +5935,7 @@ function syncObstacles(now) {
 }
 
 /* What is on show in each seat's slot: a live match, the lobby seats, or nothing on the home screen. */
-function charScale(K) { return clamp(0.9 + Math.tan(Math.PI / K) * 0.45, 1.1, 1.36); }   // the same size whatever the arena size   // small next to the arena, like Crash
+function charScale(K) { return clamp(0.9 + Math.tan(Math.PI / K) * 0.45, 1.1, 1.36) * Math.pow(1.22 / SZ, 1.3); }   // a bigger arena makes the players smaller in it (Medium is the usual size)   // the same size whatever the arena size   // small next to the arena, like Crash
 function gfxSlices() {
   var out = [], i, n, S = G.S, now = performance.now();
   if (UI.full && S) {
