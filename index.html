@@ -5476,7 +5476,7 @@ var _v = null, _v2 = null;
    keep it readable on any floor; it stretches with speed, squashes when it bounces, leaves a streak
    in its owner's colour, and smashed pearls burn. Drawn a little bigger than they are in the rules. */
 var PEARL_VIS = 1.9, BALLS_MAX = 12, _bq = new THREE.Quaternion(), _Y = new THREE.Vector3(0, 1, 0), _NZ = new THREE.Vector3(0, 0, -1);
-function pearlR() { return 0.04 * R3 * PEARL_VIS / Math.sqrt(1.22) * (1.22 / SZ); }   // Medium looks as it always did; Small bigger, Large smaller
+function pearlR() { return 0.4 * PEARL_VIS / Math.sqrt(1.22); }   // the same size on every arena (the arena itself grows or shrinks around it)
 function pearlGeo() { return GEO.pearl || (GEO.pearl = new THREE.SphereGeometry(1, 32, 22)); }
 function pearlInk() {
   if (GEO.ink) return GEO.ink;
@@ -5892,7 +5892,12 @@ function stageFor() {
   else { K = 4; occ = [false, false, false, false]; map = UI.homeMap || 0; }
   return { K: K, occ: occ, map: map, core: core, haz: haz };
 }
+/* Arena size really changes the arena: the field is drawn bigger or smaller while the players, pearls and bumpers
+   keep their size (in the rules a bigger arena means smaller pearls and bumpers; drawn here that is the same thing).
+   Medium is the size the game always had. */
+function arenaK() { return SZ / 1.2207; }
 function setStage(st) {
+  var rk = 10 * arenaK(); if (Math.abs(R3 - rk) > 1e-6) { R3 = rk; GFX.fit = {}; GFX.ptsArena = null; GFX.stageKey = ''; GFX.slots.forEach(function (s) { s.key = ''; s.hwKey = -1; }); }
   var mk = (MAPS[st.map] || MAPS[0]).k, key = mk + ':' + st.K + ':' + st.occ.map(Number).join('') + ':' + SIZE;
   if (GFX.stageMap !== mk) {
     if (GFX.mapNow) { GFX.scene.remove(GFX.mapNow.grp); disposeTree(GFX.mapNow.grp); delete GFX.maps[GFX.stageMap]; }   // free the old map so phones don't run out of graphics memory
@@ -5935,7 +5940,7 @@ function syncObstacles(now) {
 }
 
 /* What is on show in each seat's slot: a live match, the lobby seats, or nothing on the home screen. */
-function charScale(K) { return clamp(0.9 + Math.tan(Math.PI / K) * 0.45, 1.1, 1.36) * Math.pow(1.22 / SZ, 1.3); }   // a bigger arena makes the players smaller in it (Medium is the usual size)   // the same size whatever the arena size   // small next to the arena, like Crash
+function charScale(K) { return clamp(0.9 + Math.tan(Math.PI / K) * 0.45, 1.1, 1.36); }   // the same size whatever the arena size   // small next to the arena, like Crash
 function gfxSlices() {
   var out = [], i, n, S = G.S, now = performance.now();
   if (UI.full && S) {
@@ -5985,7 +5990,7 @@ function syncSlot(S, sl, now, dt) {
   if (S.flung && live) restorePod(S);
   S.bumper.visible = S.scale > 0.02 && !!sl.pod && !S.flung; if (!S.flung) S.pod.grp.visible = S.bumper.visible;
   if (Math.abs(sl.hw - S.hwKey) > 0.0015) {
-    S.hwKey = sl.hw; var bk = 1 / SZ, len = Math.max(0.1, sl.hw * 2 * R3 - 0.6 * bk);
+    S.hwKey = sl.hw; var bk = 1 / 1.22, len = Math.max(0.1, sl.hw * 2 * R3 - 0.6 * bk);
     S.bCyl.scale.set(bk, len, bk); S.bCap[0].position.z = -len / 2; S.bCap[1].position.z = len / 2; S.bCap.forEach(function (c) { c.scale.setScalar(bk); });
     S.stripe.scale.set(0.08, 0.1, len + 0.3); S.stripe.position.set(-0.24, 0.12, 0);
   }
@@ -6006,7 +6011,7 @@ function syncSlot(S, sl, now, dt) {
   if (!S.bumper.visible) return;
   S.recoil *= Math.exp(-dt * 9);
   var u = sl.pu * R3, hurt = Math.max(0, 1 - (now - S.hurtT) / 0.55), hit = Math.max(0, 1 - (now - S.hitT) / 0.25), sm = Math.max(0, 1 - (now - S.smashT) / 0.4);
-  S.bumper.position.set(R3 + 0.3 / SZ - sm * 0.25 + S.recoil * 0.4, 0.42 / SZ, u); S.bumper.scale.setScalar(Math.max(0.01, S.scale));
+  S.bumper.position.set(R3 + 0.3 / 1.22 - sm * 0.25 + S.recoil * 0.4, 0.42 / 1.22, u); S.bumper.scale.setScalar(Math.max(0.01, S.scale));
   var P = S.pod, s = S.s * (0.3 + 0.7 * S.scale);
   P.grp.position.set(R3 + 0.6 + 0.85 * S.s + S.recoil + (hurt ? Math.sin(now * 70) * 0.08 * hurt : 0), 0.14, u + (hurt ? Math.cos(now * 63) * 0.1 * hurt : 0));
   P.grp.scale.setScalar(s);
@@ -6545,6 +6550,7 @@ function camUpdate(now, dt) {
     if (it < 1) { az += (1 - e) * 0.9; el += (1 - e) * 0.18; extra = 1 + (1 - e) * 0.22; }
   }
   var ce = Math.cos(el), dx = Math.cos(az), dz = Math.sin(az), d = f.d * extra, tx, ty = 0, tz;
+  if ((mode === 'game' || mode === 'lobby') && arenaK() < 1) d /= arenaK();          // a small arena: the camera stays where it is for Medium, so the arena looks smaller
   if (base) { tx = base.x; tz = base.z; } else { tx = dx * tgtOff; tz = dz * tgtOff; }
   _v.set(tx + dx * ce * d, ty + Math.sin(el) * d, tz + dz * ce * d);
   var kk = snap ? 1 : Math.min(1, dt * (mode === 'game' ? 9 : mode === 'home' ? 6 : 3.2));
@@ -6611,7 +6617,7 @@ function gfxFrame(now, dt) {
     var O = GFX.orbs[i], o = S && S.phase !== 'over' && S.orbs[i];
     if (!o) { O.s.visible = O.g.visible = false; continue; }
     O.s.visible = O.g.visible = true; O.s.material.map = GFX.orbTex[o.ty] || GFX.orbTex[0]; if (O.ty !== o.ty) { O.ty = o.ty; O.g.material.color.copy(LC((PWR[o.ty] || PWR[0]).c)); }
-    O.s.position.set(o.x * R3, 1.3 + Math.sin(now * 3 + o.id) * 0.18, o.y * R3); O.g.position.set(o.x * R3, 0.05, o.y * R3); O.g.material.opacity = 0.35; O.s.scale.set(2.1 / Math.sqrt(SZ), 2.1 / Math.sqrt(SZ), 1); O.g.scale.setScalar(1 / Math.sqrt(SZ));
+    O.s.position.set(o.x * R3, 1.3 + Math.sin(now * 3 + o.id) * 0.18, o.y * R3); O.g.position.set(o.x * R3, 0.05, o.y * R3); O.g.material.opacity = 0.35; O.s.scale.set(1.9, 1.9, 1); O.g.scale.setScalar(0.9);
   }
   // guard / shield barriers, goal flashes
   for (i = 0; i < MAXP; i++) {
