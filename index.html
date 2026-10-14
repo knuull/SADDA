@@ -822,7 +822,7 @@ button.opt.locked:active { transform: none; background: var(--soft); }
 /* lobby: casual or competitive */
 .compseg { padding: 5px; }
 .compseg button { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.98rem; }
-.compseg button[data-v="1"].on, .compseg button[data-v="2"].on { color: #5a3a00; background: linear-gradient(180deg, #ffe680, #ffb81c); box-shadow: 0 2px 0 var(--yellow-lip); }
+.compseg button[data-v="1"].on, .compseg button[data-v="2"].on, .compseg button[data-v="3"].on { color: #5a3a00; background: linear-gradient(180deg, #ffe680, #ffb81c); box-shadow: 0 2px 0 var(--yellow-lip); }
 #hostctl.comp .casual-only { display: none !important; }
 .comprules { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 12px; border-radius: 18px; background: linear-gradient(160deg, #fff8dc, #ffeaa8); color: #4d3500; }
 :root[data-theme="dark"] .comprules { background: linear-gradient(160deg, #3a3418, #2b2610); color: #ffe7a6; }
@@ -875,8 +875,8 @@ button.opt.locked:active { transform: none; background: var(--soft); }
   width: var(--w); inset-inline-start: calc(4px + var(--i) * (var(--w) + 4px)); border-radius: 12px; background: linear-gradient(180deg, #5d8eff, #2a5cf0); box-shadow: 0 4px 10px rgba(34, 83, 232, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition: inset-inline-start 0.32s cubic-bezier(0.2, 1.25, 0.4, 1), background 0.2s; }
 .seg.has button.on { background: none; box-shadow: none; color: #fff; }
-.compseg.has[data-i="1"]::before, .compseg.has[data-i="2"]::before { background: linear-gradient(180deg, #ffe17a, #ffb81c); box-shadow: 0 4px 10px rgba(230, 150, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
-.compseg.has[data-i="1"] button.on, .compseg.has[data-i="2"] button.on { color: #5a3a00; background: none; }
+.compseg.has[data-i="1"]::before, .compseg.has[data-i="2"]::before, .compseg.has[data-i="3"]::before { background: linear-gradient(180deg, #ffe17a, #ffb81c); box-shadow: 0 4px 10px rgba(230, 150, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+.compseg.has[data-i="1"] button.on, .compseg.has[data-i="2"] button.on, .compseg.has[data-i="3"] button.on { color: #5a3a00; background: none; }
 .seg button:active { transform: scale(0.96); }
 /* buttons: a soft shine across the top of the coloured ones */
 .btn.primary { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3); }
@@ -1362,6 +1362,10 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
 .podium.teams .tpics.n4 img, .podium.teams .tpics.n5 img { width: 30px; height: 30px; margin-inline: -6px; border-width: 2px; }
 .podium.teams .p1 .tpics.n4 img, .podium.teams .p1 .tpics.n5 img { width: 34px; height: 34px; }
 .podium.teams .tpics.n3 img { width: 34px; height: 34px; }
+.compseg button { padding-inline: 4px; gap: 4px; min-width: 0; }
+.compseg .cs b { font-size: 0.84rem; white-space: nowrap; }
+.compseg .cs small { font-size: 0.62rem; }
+.compseg button > svg { flex: none; }
 </style>
 </head>
 <body>
@@ -1501,7 +1505,7 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
       </div>
       <div id="soc-r" class="socpane" hidden>
         <div id="my-title" class="titlebar" hidden><i></i><span><small data-t="titleT"></small><b></b></span></div>
-        <div id="pl-tabs" class="seg pltabs"><button type="button" data-v="l"><i class="mi" data-m="0"></i><span data-t="mLives"></span><em hidden></em></button><button type="button" data-v="b"><i class="mi" data-m="4"></i><span data-t="mBullet"></span><em hidden></em></button></div>
+        <div id="pl-tabs" class="seg pltabs"><button type="button" data-v="l"><i class="mi" data-m="0"></i><span data-t="mLives"></span><em hidden></em></button><button type="button" data-v="b"><i class="mi" data-m="4"></i><span data-t="mBullet"></span><em hidden></em></button><button type="button" data-v="t"><i class="mi" data-m="9"></i><span data-t="m2v2"></span><em hidden></em></button></div>
         <div id="my-rank" class="rankcard"></div>
         <div id="lb-tabs" class="seg"><button type="button" data-v="g" data-t="top50"></button><button type="button" data-v="f" data-t="friendsT"></button></div>
         <div id="lb-list" class="lblist"></div>
@@ -1541,7 +1545,7 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
       <div id="seats" class="seats"></div>
       <div id="summary" class="summary" hidden></div>
       <div id="hostctl" class="setup">
-        <div id="seg-comp" class="seg compseg"><button type="button" data-v="0"><span data-t="casual"></span></button><button type="button" data-v="1"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span class="cs"><small data-t="rankedT"></small><b data-t="mLives"></b></span></button><button type="button" data-v="2"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span class="cs"><small data-t="rankedT"></small><b data-t="mBullet"></b></span></button></div>
+        <div id="seg-comp" class="seg compseg"><button type="button" data-v="0"><span data-t="casual"></span></button><button type="button" data-v="1"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span class="cs"><small data-t="rankedT"></small><b data-t="mLives"></b></span></button><button type="button" data-v="2"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span class="cs"><small data-t="rankedT"></small><b data-t="mBullet"></b></span></button><button type="button" data-v="3"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3.5v2.5c0 2.9-2.1 5.2-4.9 5.5A5 5 0 0 1 13 15.8V18h3v3H8v-3h3v-2.2A5 5 0 0 1 8.4 13C5.6 12.7 3.5 10.4 3.5 7.5V5H7zm0 4H5.5v.5c0 1.6 1 3 2.4 3.4A5 5 0 0 1 7 8.5zm10 0v1.5c0 .9-.3 1.7-.9 2.4 1.4-.4 2.4-1.8 2.4-3.4V7z"/></svg><span class="cs"><small data-t="rankedT"></small><b data-t="m2v2"></b></span></button></div>
         <div id="comp-rules" class="comprules" hidden><i id="cr-rk"></i><p id="cr-tx"></p></div>
         <section class="grp casual-only">
           <div class="grp-h"><span data-t="mode"></span></div>
@@ -1745,7 +1749,7 @@ function livesMode(m) { m = m | 0; return m === MODE_LIVES || m === MODE_BULLET 
 var NB = 5, BRICKS = (1 << NB) - 1;
 function brickIdx(S, pl, b) { var sd = S.sides[pl.side], u = -b.x * sd.s + b.y * sd.c - (pl.lc || 0), gh = goalHalf(pl); return clamp(Math.floor((u + gh) / (2 * gh) * NB), 0, NB - 1); }
 function brickBlock(S, b, seat, predict) {
-  var pl = S.players[seat]; if (!pl || !pl.alive || (S.cfg.mode | 0) !== MODE_FORT) return false;
+  seat = brickSeat(S, seat); var pl = S.players[seat]; if (!pl || (S.fo ? !S.players.some(function (q) { return q.side === pl.side && q.alive; }) : !pl.alive) || (S.cfg.mode | 0) !== MODE_FORT) return false;
   var i = brickIdx(S, pl, b); if (!((pl.bricks >> i) & 1)) return false;
   if (!predict) { pl.bricks &= ~(1 << i); ev(S, ['brick', seat, i, r3(b.x), r3(b.y)]); }
   var sd = S.sides[pl.side]; reflectSide(b, sd, -b.x * sd.s + b.y * sd.c); b.st = LIVE; b.seq++; b.tent = -1;
@@ -1851,27 +1855,33 @@ function newMatch(roster, cfg) {
     var A = ST.at[i], sd = sides[A.side]; if (sd.seat < 0) sd.seat = i; (sd.seats || (sd.seats = [])).push(i);
     S.players.push({
       seat: i, id: r.id, name: r.name, ch: r.ch, col: r.col, team: TM ? clamp(r.team | 0, 0, TM - 1) : -1, lv: r.lv | 0, cos: r.cos || null, bot: !!r.bot, remote: !!r.remote, conn: true,
-      side: sd.i, a0: sd.a, L: sd.L, lc: A.lc, lw: A.lw, alive: true, lives: TM ? cfg.lives * S.teams[clamp(r.team | 0, 0, TM - 1)].n : cfg.lives, pts: 0, conc: 0, bricks: BRICKS,
+      side: sd.i, a0: sd.a, L: sd.L, lc: A.lc || 0, lw: A.lw || 0, hm: A.hm || 0, gw: A.gw || 0, pk: A.pk || 1, alive: true, lives: TM ? cfg.lives * S.teams[clamp(r.team | 0, 0, TM - 1)].n : cfg.lives, pts: 0, conc: 0, bricks: BRICKS,
       p: 0, pt: 0, pn: 0, pv: 0, pvel: 0, smashUntil: -1, smashCd: 0, smashN: 0, smashOn: false,
       wideUntil: -1, wide: false, shield: false, shieldUntil: -1, guardUntil: -1, guard: false, slowUntil: -1, slow: false, smallUntil: -1, small: false, fireN: 0, fireUntil: -1,
       score: 0, saves: 0, place: 0, lat: 0, lastIn: 0, botT: Math.random() * 0.1, lastAimed: -9, cr: 0, steals: 0
     });
   });
   S.posts = S.corners.concat(lay.obs(S));
+  S.players.forEach(function (p) { if (p.hm) p.p = p.pt = clamp(p.hm / padSpan(p), -1, 1); });   // Face-Off: teammates start spread along their goal
+  if (S.fo && !(cfg.balls > 0) && cfg.mode !== MODE_BULLET && cfg.mode !== MODE_FRENZY) S.ballsWanted = Math.min(5, Math.round(n / 2) + 2);
   return S;
 }
 
 /* Face-Off: two teams, two goals. A square arena whose two facing sides are the teams' goals (the other two are
-   walls); each goal is split into one lane per player, so everyone still has their own bumper and stretch of goal. */
+   walls). Every player on a team slides along the whole of their team's goal and can pass their teammates; each
+   starts from (and drifts back to) their own spot. The goals are wider than usual and the bumpers a little smaller
+   the more players share a goal, so it is easy to score and never easy to defend. */
+var FO_GH = 0.88;
 function foOn(cfg) { return !!cfg.fo && (cfg.tm | 0) === 2 && (cfg.mode | 0) !== MODE_CROWN; }
-/* where everyone sits: { K: sides, at: [{ side, lc: lane centre, lw: lane half-width (0 = the whole goal) }] } */
+var FO_PAD = [1, 1, 0.78, 0.7, 0.64, 0.58];                              // bumper size by how many share a goal
+/* where everyone sits: { K: sides, at: [{ side, hm: home spot along the goal, gw: goal half-width override, pk: bumper scale }] } */
 function seating(teams, cfg) {
   var n = teams.length, out = [];
   if (foOn(cfg)) {
-    var gh = Math.min(GOAL_MAX, Math.tan(Math.PI / 4) * GOAL_F), by = [[], []];
+    var by = [[], []];
     teams.forEach(function (t, i) { by[t === 1 ? 1 : 0].push(i); });
-    [0, 1].forEach(function (t) { var L = by[t], m = L.length; L.forEach(function (seat, j) { out[seat] = { side: t * 2, lc: m > 1 ? -gh + gh / m * (2 * j + 1) : 0, lw: m > 1 ? gh / m : 0 }; }); });
-    return { K: 4, at: out };
+    [0, 1].forEach(function (t) { var L = by[t], m = L.length; L.forEach(function (seat, j) { out[seat] = { side: t * 2, lc: 0, lw: 0, hm: m > 1 ? -FO_GH + FO_GH / m * (2 * j + 1) : 0, gw: FO_GH, pk: FO_PAD[Math.min(5, m)] }; }); });
+    return { K: 4, at: out, gh: FO_GH };
   }
   var ss = seatSides(n), TM = teamsOn(cfg) ? cfg.tm | 0 : 0, order = TM ? teamOrder(teams, TM) : null;
   for (var i = 0; i < n; i++) out.push({ side: ss[order ? order.indexOf(i) : i], lc: 0, lw: 0 });
@@ -1916,9 +1926,9 @@ function teamPlaces(S) {
 }
 function ev(S, a) { if (S.noEv) return; S.ev.push([++S.eid, S.t].concat(a)); }
 function ramp(S) { return Math.min(0.55, Math.max(0, S.t - 4) / 160); }
-function speedK(S) { return S.cfg.speed * (1 + ramp(S)); }
-function goalHalf(pl) { return pl.lw || Math.min(GOAL_MAX, pl.L * GOAL_F); }               // a Face-Off player guards their own lane of the team's goal
-function padHalf(pl) { return Math.min(PAD_MAX, pl.L * PAD_F, pl.lw ? pl.lw * 0.62 : 9) * (pl.wide ? 1.5 : 1) * (pl.small ? 0.6 : 1) * (pl.king ? pl.kw || 0.78 : 1); }   // the crown is heavy: the king's bumper shrinks the longer they keep it
+function speedK(S) { return S.cfg.speed * (1 + ramp(S)) * (S.fo ? 1.18 : 1); }          // Face-Off pearls fly a little faster
+function goalHalf(pl) { return pl.lw || pl.gw || Math.min(GOAL_MAX, pl.L * GOAL_F); }               // a Face-Off player guards their own lane of the team's goal
+function padHalf(pl) { return Math.min(PAD_MAX, pl.L * PAD_F, pl.lw ? pl.lw * 0.62 : 9) * (pl.pk || 1) * (pl.wide ? 1.5 : 1) * (pl.small ? 0.6 : 1) * (pl.king ? pl.kw || 0.78 : 1); }   // the crown is heavy: the king's bumper shrinks the longer they keep it
 function padSpan(pl) { return Math.max(0.001, goalHalf(pl) - padHalf(pl) * 0.55); }
 function padU(pl) { return (pl.lc || 0) + pl.p * padSpan(pl); }
 function aliveList(S) { return S.players.filter(function (p) { return p.alive; }); }
@@ -1934,9 +1944,16 @@ function sideOwner(S, si) { var sd = S.sides[si]; return sd ? sd.seat : -1; }
 /* whose bumper guards the point u along side sd (Face-Off goals are shared, one lane each); -1 = a wall there */
 function seatAt(S, sd, u) {
   if (!sd.seats || sd.seats.length < 2) return sd.seat;
-  for (var i = 0; i < sd.seats.length; i++) { var p = S.players[sd.seats[i]]; if (Math.abs(u - p.lc) <= p.lw + 1e-6) return p.seat; }
-  return -1;
+  var best = -1, bd = 9, cov = -1, cd = 9;                                // a shared goal: the bumper that covers it (the nearest if two do), else the nearest
+  for (var i = 0; i < sd.seats.length; i++) {
+    var p = S.players[sd.seats[i]]; if (!p.alive) continue;
+    var d = Math.abs(u - padU(p));
+    if (d <= padHalf(p) + 0.042 && d < cd) { cd = d; cov = p.seat; }
+    if (d < bd) { bd = d; best = p.seat; }
+  }
+  return cov >= 0 ? cov : best;
 }
+function brickSeat(S, seat) { var p = S.players[seat]; return S.fo && p ? S.sides[p.side].seat : seat; }   // Face-Off: one wall per goal
 
 function trySmash(S, pl) {
   if (S.t < pl.smashCd || !pl.alive) return false;
@@ -1977,11 +1994,34 @@ function doHit(S, b, pl, sd, u) {
   b.vx = ns * (-nx * Math.cos(ang) + tx * Math.sin(ang));
   b.vy = ns * (-ny * Math.cos(ang) + ty * Math.sin(ang));
   var p = sidePt(sd, u, RC - 0.004); b.x = p.x; b.y = p.y;
+  if (S.tm) aimAssist(S, b, pl, smash);
   b.owner = pl.seat; b.seq++; b.tent = -1; b.st = LIVE;
   pl.saves++;
   return smash;
 }
 
+/* Team games: every return leans toward the other team's goal (toward a spot along it, not always the middle), and
+   a smash leans much harder. Scoring is easier, defending harder, and your own teammates are rarely in the way. */
+function aimAssist(S, b, pl, smash) {
+  var sp = Math.hypot(b.vx, b.vy); if (sp < 1e-6) return;
+  var dx = b.vx / sp, dy = b.vy / sp, best = null, bd = -2;
+  for (var i = 0; i < S.players.length; i++) {
+    var q = S.players[i]; if (!q.alive || q.team === pl.team || q.side === pl.side) continue;
+    var c = sidePt(S.sides[q.side], 0, AP), tx = c.x - b.x, ty = c.y - b.y, tl = Math.hypot(tx, ty) || 1, dot = (tx * dx + ty * dy) / tl;
+    if (dot > bd) { bd = dot; best = q; }
+  }
+  if (!best) return;
+  var gh = goalHalf(best), su = 0, sv = -1, j, k0;                        // aim for the biggest gap the defenders leave on that goal
+  for (j = 0; j < 7; j++) {
+    var cu = (j / 3 - 1) * 0.8 * gh, gap = 9;
+    for (k0 = 0; k0 < S.players.length; k0++) { var dq = S.players[k0]; if (dq.alive && dq.side === best.side) gap = Math.min(gap, Math.abs(cu - padU(dq)) - padHalf(dq)); }
+    gap += hash3(b.id, b.seq, pl.seat + j) * 0.05;
+    if (gap > sv) { sv = gap; su = cu; }
+  }
+  var tp = sidePt(S.sides[best.side], su, AP), ax = tp.x - b.x, ay = tp.y - b.y, al = Math.hypot(ax, ay) || 1;
+  var k = smash ? (S.fo ? 0.75 : 0.62) : S.fo ? 0.52 : 0.3, nx = dx + (ax / al - dx) * k, ny = dy + (ay / al - dy) * k, nl = Math.hypot(nx, ny) || 1;
+  b.vx = nx / nl * sp; b.vy = ny / nl * sp;
+}
 function useShield(S, pl) {
   if (pl.guard) return false;
   if (pl.shield) { pl.shield = false; ev(S, ['shieldoff', pl.seat]); return true; }
@@ -2051,9 +2091,10 @@ function goal(S, b, seat) {
   else if (lm) pl.lives--;
   else if (mode === MODE_CROWN) crownGoal(S, seat, sc);
   else if (scp) scp.pts += b.gold ? 3 : 1;                                  // points: a pearl you sent into someone else's goal (a golden one is worth 3)
+  else if (S.fo) { var cr = S.players.find(function (q) { return q.team !== pl.team && q.alive; }); if (cr) { cr.pts += b.gold ? 3 : 1; scp = cr; } }   // Face-Off: any pearl in your goal is the other team's point
   ev(S, ['goal', seat, sc, r3(b.x), r3(b.y), lm ? pl.lives : pl.pts, scp ? scp.pts : 0, b.gold ? 1 : 0]);
   if (mode === MODE_FRENZY && S.phase === 'play' && maxBalls(S) > normalBalls(S)) ev(S, ['more', maxBalls(S)]);
-  if (mode === MODE_FORT && pl.lives > 0) { pl.bricks = BRICKS; ev(S, ['walls', seat]); }   // a fresh wall after every life lost
+  if (mode === MODE_FORT && pl.lives > 0) { var bs = brickSeat(S, seat); S.players[bs].bricks = BRICKS; ev(S, ['walls', bs]); }   // a fresh wall after every life lost
   if (lm && S.tm) { if (S.teams[pl.team].lives <= 0) teamOut(S, pl.team); }
   else if (lm) {
     if (pl.lives <= 0) {
@@ -2284,9 +2325,10 @@ function botThink(S, pl, dt) {
     var f = firstSide(S, b); if (!f || f.si !== pl.side) continue;
     var u = -(b.x + b.vx * f.s) * sd.s + (b.y + b.vy * f.s) * sd.c;
     if (Math.abs(u - (pl.lc || 0)) > goalHalf(pl) + 0.06) continue;
+    if (S.fo && Math.abs(u - padU(pl)) > padHalf(pl) && S.players.some(function (q) { return q !== pl && q.alive && q.side === pl.side && Math.abs(u - q.hm) < Math.abs(u - pl.hm) - 0.02; })) continue;   // a teammate's zone: leave it to them
     if (f.s < bt) { bt = f.s; best = { u: u, b: b, s: f.s }; }
   }
-  if (!best) { pl.pt *= 0.85; return; }
+  if (!best) { pl.pt = pl.hm ? pl.pt + (pl.hm / padSpan(pl) - pl.pt) * 0.15 : pl.pt * 0.85; return; }
   var mul = [1.8, 1.22, 0.78, 0.4][lvl] || 1.22, hw = padHalf(pl);
   var e = (hash3(best.b.id, best.b.seq, pl.seat + S.seed) - 0.5) * 2 * Math.min(PAD_MAX, pl.L * PAD_F) * mul, off = 0;   // a bot's aim is as good as anyone's: a shrunken bumper really is harder to play
   if (S.cfg.mode === MODE_BULLET) e *= 1 + (lvl >= 3 ? 0.07 : 0.13) * (best.b.hits | 0);           // Bullet: even a bot struggles once it flies
@@ -2407,7 +2449,8 @@ function hostRules(S, dt) {
 
 /* Bumpers ease into motion and ease to a stop (still capped at OMEGA), so they glide instead of jerking. */
 function glide(pl, span, f, acc, dt, gain) {
-  var vmax = OMEGA * f * (pl.king ? 0.85 : 1) * (pl.slow ? 0.45 : 1) / span, v = pl.pvel || 0, want = clamp((pl.pt - pl.p) * (gain || 16), -vmax, vmax), a = vmax * acc * dt;
+  var vmax = OMEGA * f * (pl.king ? 0.85 : 1) * (pl.slow ? 0.45 : 1) * (pl.gw ? 0.8 : 1) / span,   // Face-Off bumpers are a touch slower: a wide goal is hard to cover
+    v = pl.pvel || 0, want = clamp((pl.pt - pl.p) * (gain || 16), -vmax, vmax), a = vmax * acc * dt;
   v += clamp(want - v, -a, a); pl.p += v * dt;
   if (pl.p > 1) { pl.p = 1; if (v > 0) v = 0; } else if (pl.p < -1) { pl.p = -1; if (v < 0) v = 0; }
   pl.pvel = v;
@@ -2847,6 +2890,7 @@ var STR = {
     seasonT: 'Season 1: {n}', tierT: 'Tier {n}', premT: 'Premium', freeT: 'Free', getPrem: 'Unlock Premium', premOn: 'Premium unlocked', claim: 'Claim', claimAll: 'Claim all',
     passNote: 'Earn pass XP from every match and from challenges.', xpTo: '{a} / {b} XP to tier {n}', passDone: 'All tiers reached',
     arenaT: 'Arena', foRing: 'Ring', foFace: 'Face-Off', foNote: 'Two goals, one per team; each player guards a lane.',
+    m2v2: '2v2', m2v2T: '2v2', comp4: 'Ranked 2v2 needs 4 players, 2 on each team', compRulesT: 'Ranked 2v2 Face-Off. Two teams of two, one goal each, 5 lives each shared by the team, no bots. Powers: Wide, Shield, Split and Fireball. Win or lose together: your rank moves by how your team does against theirs.',
     teamsT: 'Teams', tmOff: 'Off', teamN: '{c} team', teamOut: '{n} is out', yourTeamOut: 'Your team is out', teamWin: 'Your team wins!', tmNoteL: 'Each team shares its lives.', tmNoteP: 'Teammates score together.',
     collect: 'Collect', collectAll: 'Collect all', collected: 'Collected', gotC: '+{c} coins, +{x} pass XP', gotCG: '+{c} coins, +{g} gems, +{x} pass XP', passTierUp: 'Season Pass tier {n} reached!',
     matchT: 'Match', lvShort: 'Level {n}', walletT: 'Your coins',
@@ -2939,6 +2983,7 @@ var STR = {
     seasonT: 'الموسم 1: {n}', tierT: 'المرحلة {n}', premT: 'المميزة', freeT: 'مجانية', getPrem: 'افتح المميزة', premOn: 'المميزة مفتوحة', claim: 'استلم', claimAll: 'استلم الكل',
     passNote: 'اجمع نقاط التذكرة من كل مباراة ومن التحديات.', xpTo: '{a} / {b} نقطة للمرحلة {n}', passDone: 'وصلت كل المراحل',
     arenaT: 'الساحة', foRing: 'دائرة', foFace: 'وجهًا لوجه', foNote: 'مرميين، واحد لكل فريق، وكل لاعب يحمي جزءه.',
+    m2v2: '2 ضد 2', m2v2T: '2 ضد 2', comp4: 'تصنيف 2 ضد 2 يحتاج 4 لاعبين، اثنين بكل فريق', compRulesT: 'تصنيف 2 ضد 2 وجهًا لوجه. فريقين من لاعبين، مرمى لكل فريق، 5 أرواح لكل لاعب يتشاركها الفريق، بدون بوتات. القوى: عريض، درع، انقسام وكرة نار. تفوزون أو تخسرون مع بعض، وتصنيفك يتغير حسب أداء فريقك قدام الفريق الثاني.',
     teamsT: 'الفرق', tmOff: 'بدون', teamN: 'الفريق {c}', teamOut: 'طلع {n}', yourTeamOut: 'طلع فريقك', teamWin: 'فاز فريقك!', tmNoteL: 'كل فريق يتشارك نفس الأرواح.', tmNoteP: 'نقاط الفريق تنجمع مع بعض.',
     collect: 'استلم', collectAll: 'استلم الكل', collected: 'تم الاستلام', gotC: '+{c} عملة، +{x} نقطة تذكرة', gotCG: '+{c} عملة، +{g} جوهرة، +{x} نقطة تذكرة', passTierUp: 'وصلت المرحلة {n} في التذكرة!',
     matchT: 'المباراة', lvShort: 'المستوى {n}', walletT: 'رصيدك',
@@ -3448,7 +3493,7 @@ var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
 function cfgObj() {
   var P = plOf(ROOM.cfg.comp), c = P ? Object.assign({}, ROOM.cfg, P.rules) : ROOM.cfg, m = MAPS[ROOM.mapNow] || MAPS[0];
   return { mode: c.mode | 0, lives: c.lives, target: (c.mode | 0) === 6 ? c.gpts || 15 : c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: (SPEEDS[c.sp] || 1) * ([1.12, 1, 0.88][c.size == null ? 1 : c.size | 0] || 1),   // a bigger arena: the pearls take longer to cross it
-    pw: !!c.pw && (c.pws == null || (c.pws | 0) > 0), pws: c.pws == null ? 127 : c.pws | 0, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, pad: c.pad == null ? 1 : c.pad | 0, map: ROOM.mapNow, layout: m.layout, tm: P ? 0 : c.tm | 0, fo: P ? 0 : c.fo ? 1 : 0 };
+    pw: !!c.pw && (c.pws == null || (c.pws | 0) > 0), pws: c.pws == null ? 127 : c.pws | 0, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, pad: c.pad == null ? 1 : c.pad | 0, map: ROOM.mapNow, layout: m.layout, tm: c.tm | 0, fo: c.fo ? 1 : 0 };
 }
 /* the map on show in the lobby: the chosen one, or the last one played when it is random */
 function lobbyMap() { return ROOM.cfg.map >= 0 ? ROOM.cfg.map : ROOM.mapNow; }
@@ -3473,8 +3518,8 @@ function freeCol(want, exceptId) {
 function syncBots() {
   var hs = humans(), bots = ROOM.seats.filter(function (s) { return s.bot; });
   var want = ROOM.cfg.comp ? 0 : Math.max(0, Math.min(ROOM.bots, MAXP - hs.length)), u = {}, uc = {}, i;
-  if (tmOn()) {                                                       // teams: bots top every team up to the same size
-    var T = ROOM.cfg.tm | 0, big = 0, cn = []; for (i = 0; i < T; i++) cn.push(0);
+  if (tmOn() && !ROOM.cfg.comp) {                                     // teams: bots top every team up to the same size
+    var T = tmCount(), big = 0, cn = []; for (i = 0; i < T; i++) cn.push(0);
     hs.forEach(function (s) { if (s.team >= 0 && s.team < T) cn[s.team]++; }); cn.forEach(function (x) { big = Math.max(big, x); });
     var tot = Math.max(hs.length + want, 2 * T, big * T); tot = Math.min(MAXP, Math.ceil(tot / T) * T); want = Math.max(0, Math.min(MAXP, tot) - hs.length);
   }
@@ -3498,11 +3543,14 @@ function syncBots() {
 /* ---------- teams in the room ----------
    Players pick their team (new ones join the smallest), bots fill whichever team is short, and everyone wears
    their team's colour. With teams off, everyone gets their own colour back. */
-function tmOn() { var c = ROOM.cfg; return (c.tm | 0) >= 2 && (c.mode | 0) !== MODE_CROWN && !c.comp; }
+function tmOn() { var P = plOf(ROOM.cfg.comp), c = P ? Object.assign({}, ROOM.cfg, P.rules) : ROOM.cfg; return (c.tm | 0) >= 2 && (c.mode | 0) !== MODE_CROWN; }
+function tmCount() { var P = plOf(ROOM.cfg.comp); return P ? P.rules.tm | 0 : ROOM.cfg.tm | 0; }
+/* ranked 2v2 starts with exactly four players, two on each team */
+function compReady() { var P = plOf(ROOM.cfg.comp), hs = humans(); if (!P) return true; if (!P.need) return hs.length >= 2; return hs.length === P.need && [0, 1].every(function (t) { return hs.filter(function (s) { return s.team === t; }).length === P.need / 2; }); }
 function assignTeams() {
   var hs = humans(), bots = ROOM.seats.filter(function (s) { return s.bot; }), i;
   if (!tmOn()) { hs.forEach(function (s) { if (s.pc != null && s.col !== s.pc) s.col = freeCol(s.pc, s.id); }); return; }
-  var T = ROOM.cfg.tm | 0, cn = []; for (i = 0; i < T; i++) cn.push(0);
+  var T = tmCount(), cn = []; for (i = 0; i < T; i++) cn.push(0);
   function least() { var b = 0; for (var k = 1; k < T; k++) if (cn[k] < cn[b]) b = k; return b; }
   hs.forEach(function (s) { if (s.team >= 0 && s.team < T) cn[s.team]++; else s.team = -1; });
   hs.forEach(function (s) { if (s.team < 0) { s.team = least(); cn[s.team]++; } });
@@ -3511,10 +3559,10 @@ function assignTeams() {
   ROOM.seats.forEach(function (s) { s.col = ROOM.tcol[s.team]; });
 }
 /* a player moves to another team, or a team picks its colour (any colour no other team wears) */
-function setTeam(seat, t) { if (!tmOn() || !seat || t < 0 || t >= (ROOM.cfg.tm | 0) || seat.team === t) return false; seat.team = t; syncBots(); return true; }
+function setTeam(seat, t) { if (!tmOn() || !seat || t < 0 || t >= tmCount() || seat.team === t) return false; seat.team = t; syncBots(); return true; }
 function setTeamCol(t, k) {
-  if (!tmOn() || t < 0 || t >= (ROOM.cfg.tm | 0) || k < 0 || k >= COLORS.length) return false;
-  for (var i = 0; i < (ROOM.cfg.tm | 0); i++) if (i !== t && ROOM.tcol[i] === k) return false;
+  if (!tmOn() || t < 0 || t >= tmCount() || k < 0 || k >= COLORS.length) return false;
+  for (var i = 0; i < tmCount(); i++) if (i !== t && ROOM.tcol[i] === k) return false;
   ROOM.tcol[t] = k; assignTeams(); return true;
 }
 
@@ -3528,7 +3576,7 @@ function beginMatch(role) {
   var hs = ROOM.seats.filter(function (s) { return !s.bot; });
   var P = plOf(ROOM.cfg.comp), k = P ? P.k : 'l';
   G.rk = { comp: !!P && hs.length >= 2 && !ROOM.seats.some(function (s) { return s.bot; }), k: k, done: false,
-    list: hs.map(function (s) { var x = rkAt(seatRks(s), k); return { id: s.id, pid: s.id === ME.id ? ME.pid : s.pid, sr: x.sr, gp: x.gp }; }) };
+    list: hs.map(function (s) { var x = rkAt(seatRks(s), k); return { id: s.id, pid: s.id === ME.id ? ME.pid : s.pid, sr: x.sr, gp: x.gp, team: P && P.rules.tm ? s.team | 0 : null }; }) };
   G.S = S; G.log = []; G.role = role; G.stat = { smash: 0, pw: 0 }; G.quiet = false; G.acc = 0; G.lastEid = 0; G.vis = {}; G.predFx = {}; G.lastTick = -1; G.smashN = 0; G.stale = false;
   G.me = -1; roster.forEach(function (r, i) { if (r.id === ME.id) G.me = i; });
   G.verdicts.clear(); G.seenV.clear(); G.early.clear();
@@ -3547,6 +3595,7 @@ function hostStart() {
   while (ROOM.waiting.length && humans().length < MAXP) { var w = ROOM.waiting.shift(); w.col = freeCol(w.col, w.id); w.seen = now; ROOM.seats.push(w); }
   syncBots();
   if (ROOM.cfg.comp && humans().length < 2) { toast(T('comp2')); return; }
+  if (!compReady()) { toast(T('comp4')); return; }
   if (ROOM.seats.length < 2) { toast(T('need2')); return; }
   ROOM.phase = 'game'; G.mid = (Date.now() % 100000000) | 0; ROOM.mapNow = pickMap();
   beginMatch(ROOM.role === 'solo' ? 'solo' : 'host');
@@ -3574,9 +3623,9 @@ function onMatchOver() {
    moment, so a bumper is drawn (and pearls bounce off it) where it really is now, not where it was a moment ago.
    When an update shows the guess was a little off, the difference is blended out over a few frames, never a jump.
    Each bumper also keeps score of how good the guesses are, so a joined phone knows when a bounce is a sure thing. */
-var _gl = { p: 0, pvel: 0, pt: 0, king: false, slow: false }, NET_H = 0.25;
+var _gl = { p: 0, pvel: 0, pt: 0, king: false, slow: false, gw: 0 }, NET_H = 0.25;
 function fwdP(S, pl, s, h) {
-  var o = _gl; o.p = s.p; o.pvel = s.v; o.pt = s.pt; o.king = pl.king; o.slow = pl.slow;
+  var o = _gl; o.p = s.p; o.pvel = s.v; o.pt = s.pt; o.king = pl.king; o.slow = pl.slow; o.gw = pl.gw;
   if (!(h > 0)) return o.p;
   var ai = pl.bot || !pl.conn, lv = S.cfg.bot | 0, f = ai ? [0.62, 0.82, 1, 1][lv] || 0.82 : 1, acc = ai ? (lv >= 3 ? 16 : 9) : 40, gain = ai ? 16 : 30;
   var n = Math.min(32, Math.ceil(h / STEP)), d = h / n, span = padSpan(pl);
@@ -4045,7 +4094,7 @@ function profLocal() {
 function rankResult(S) {
   var K = G.rk; if (!K || !K.comp || G.role === 'demo') return null;
   if (K.res && K.res.mid === G.mid) return K.res;
-  var list = K.list.map(function (r) { var pl = S.players.find(function (p) { return p.id === r.id; }); return { key: r.id, sr: r.sr, gp: r.gp, place: pl ? pl.place || S.players.length : S.players.length }; });
+  var list = K.list.map(function (r) { var pl = S.players.find(function (p) { return p.id === r.id; }); return { key: r.id, sr: r.sr, gp: r.gp, team: r.team, place: pl ? pl.place || S.players.length : S.players.length }; });
   var d = rateMatch(list), mine = null, me = S.players[G.me];
   if (me && d[ME.id] != null && !K.done) { K.done = true; mine = rankApply(K.k, d[ME.id], me.place === 1); }
   K.res = { mid: G.mid, k: K.k, d: d, mine: mine }; return K.res;
@@ -4057,6 +4106,7 @@ function rankQuit() {
   var out = !me.alive && me.place;                                      // already knocked out: I keep the place I had, everyone still in is above me
   var list = K.list.map(function (r) {
     var pl = S.players.find(function (p) { return p.id === r.id; });
+    if (r.team != null) return { key: r.id, sr: r.sr, gp: r.gp, team: r.team, place: r.team === me.team ? 2 : 1 };   // teams: leaving loses it for your team
     return { key: r.id, sr: r.sr, gp: r.gp, place: r.id === ME.id ? (out ? me.place : 99) : (out && pl && !pl.alive && pl.place ? pl.place : 1) };
   });
   var d = rateMatch(list); K.done = true;
@@ -4117,8 +4167,9 @@ frame.n = 0;
 /* ---------- ranks ---------- */
 var SEASON = 1, SR0 = 1000, PLACEMENTS = 5;
 var PLAYLISTS = [                                               // the same fair rules in every room, so a rating means the same thing everywhere
-  { k: 'l', t: 'L', n: 'mLives', rules: { mode: 0, lives: 5, sp: 2, pw: 1, pws: 39, pad: 1, core: 0, haz: 0, size: 1, balls: 0 } },   // Lives, Wild speed; Wide, Shield, Split, Fireball
-  { k: 'b', t: 'B', n: 'mBullet', rules: { mode: 4, lives: 3, sp: 1, pw: 1, pws: 35, pad: 1, core: 0, haz: 0, size: 1, balls: 0 } }   // Bullet, 3 lives; Wide, Shield, Fireball
+  { k: 'l', t: 'L', n: 'mLives', rules: { mode: 0, lives: 5, sp: 2, pw: 1, pws: 39, pad: 1, core: 0, haz: 0, size: 1, balls: 0, tm: 0, fo: 0 } },   // Lives, Wild speed; Wide, Shield, Split, Fireball
+  { k: 'b', t: 'B', n: 'mBullet', rules: { mode: 4, lives: 3, sp: 1, pw: 1, pws: 35, pad: 1, core: 0, haz: 0, size: 1, balls: 0, tm: 0, fo: 0 } },   // Bullet, 3 lives; Wide, Shield, Fireball
+  { k: 't', t: 'T', n: 'm2v2', need: 4, rules: { mode: 0, lives: 5, sp: 1, pw: 1, pws: 39, pad: 1, core: 0, haz: 0, size: 1, balls: 0, tm: 2, fo: 1 } }   // 2v2 Face-Off: exactly four players, two a side, shared lives
 ];
 function plOf(comp) { return PLAYLISTS[(comp | 0) - 1] || null; }        // room setting: 0 casual, 1 ranked Lives, 2 ranked Bullet
 function plIdx(k) { for (var i = 0; i < PLAYLISTS.length; i++) if (PLAYLISTS[i].k === k) return i; return 0; }
@@ -4201,6 +4252,15 @@ function rankSVG(r, cls) {
 function rateMatch(list) {
   var N = list.length, out = {};
   if (N < 2) return out;
+  if (list[0].team != null && list.some(function (a) { return a.team !== list[0].team; })) {     // teams: your team's average rating against theirs, win or lose together
+    var avg = {}; list.forEach(function (a) { var A = avg[a.team] || (avg[a.team] = { s: 0, n: 0, place: a.place }); A.s += a.sr || SR0; A.n++; A.place = Math.min(A.place, a.place); });
+    list.forEach(function (a) {
+      var mine = avg[a.team], s = 0, m = 0;
+      for (var t in avg) { if (+t === a.team) continue; var o = avg[t], E = 1 / (1 + Math.pow(10, (o.s / o.n - mine.s / mine.n) / 400)), W = mine.place < o.place ? 1 : mine.place > o.place ? 0 : 0.5; s += W - E; m++; }
+      out[a.key] = Math.round(((a.gp | 0) < PLACEMENTS ? 64 : 32) * s / Math.max(1, m));
+    });
+    return out;
+  }
   var size = 1 + 0.15 * (N - 2) / 8;                               // beating nine people is worth a little more than beating one
   list.forEach(function (a) {
     var s = 0;
@@ -5579,11 +5639,12 @@ function seam(g, x0, y0, x1, y1, rgb) {
   g.strokeStyle = 'rgba(' + rgb + ',0.34)'; g.lineWidth = 3; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
   g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x0 + 1.6, y0 + 1.6); g.lineTo(x1 + 1.6, y1 + 1.6); g.stroke();
 }
+var ARENA_GH = 0;                                                             // Face-Off: wider goal mouths than the ring
 function deckTexture(K, key, occ) {
   var D = DECKS[key];
   return canvasTex(2048, 2048, function (g) {
     g.scale(2, 2); var n = 1024;                                          // drawn as 1024, stored at 2048 for sharp lines
-    var h = n / 2, rvD = DECK_AP / Math.cos(Math.PI / K), s = h / rvD, i, k, L = Math.tan(Math.PI / K), gh = Math.min(GOAL_MAX, L * GOAL_F), rv = 1 / Math.cos(Math.PI / K);
+    var h = n / 2, rvD = DECK_AP / Math.cos(Math.PI / K), s = h / rvD, i, k, L = Math.tan(Math.PI / K), gh = ARENA_GH || Math.min(GOAL_MAX, L * GOAL_F), rv = 1 / Math.cos(Math.PI / K);
     g.fillStyle = D.base; g.fillRect(0, 0, n, n);
     // the bays behind the goals, where the players stand
     for (i = 0; i < K; i++) {
@@ -5661,7 +5722,7 @@ function buildArenaK(K, key, occ) {
   var plinth = new THREE.Mesh(new THREE.CylinderGeometry(rvD, rvD * 0.86, 2.6, K, 1, false, Math.PI / 2 - Math.PI / K), new THREE.MeshLambertMaterial({ color: LC(D.plinth) }));
   plinth.position.y = -1.31; grp.add(plinth);
   var rim = new THREE.Mesh(new THREE.CylinderGeometry(rvD + 0.06, rvD + 0.06, 0.16, K, 1, true, Math.PI / 2 - Math.PI / K), new THREE.MeshLambertMaterial({ color: LC(D.wall) })); rim.position.y = -0.12; grp.add(rim);
-  var b = new Batch(), tb = new Batch(), L = Math.tan(Math.PI / K), gh = Math.min(GOAL_MAX, L * GOAL_F), th = 0.07;
+  var b = new Batch(), tb = new Batch(), L = Math.tan(Math.PI / K), gh = ARENA_GH || Math.min(GOAL_MAX, L * GOAL_F), th = 0.07;
   for (i = 0; i < K; i++) {
     if (occ[i]) {
       wallBox(b, D.wall, i, K, gh, L + 0.02, 1.0, th); wallBox(b, D.wall, i, K, -L - 0.02, -gh, 1.0, th);
@@ -6814,10 +6875,11 @@ function disposeTree(root) {
 function lobbySeating() { var tms = ROOM.seats.map(function (s) { return s.team; }); if (tms.length < 2) tms.push(tmOn() ? 1 : 0); return seating(tms, cfgObj()); }
 function stageFor() {
   var S = G.S, n, occ = [], K, i, map = 0, core = false, haz = false;
-  if (UI.full && S) { K = S.K; for (i = 0; i < K; i++) occ.push(S.sides[i].seat >= 0); map = S.cfg.map | 0; core = !!S.cfg.core; haz = !!S.cfg.hazards; }
-  else if (UI.screen === 'lobby') { var ST = lobbySeating(); K = ST.K; for (i = 0; i < K; i++) occ.push(false); ST.at.forEach(function (a) { occ[a.side] = true; }); map = lobbyMap(); core = !!ROOM.cfg.core; haz = !!ROOM.cfg.haz; }
+  var gh = 0;
+  if (UI.full && S) { K = S.K; for (i = 0; i < K; i++) occ.push(S.sides[i].seat >= 0); map = S.cfg.map | 0; core = !!S.cfg.core; haz = !!S.cfg.hazards; if (S.fo) gh = FO_GH; }
+  else if (UI.screen === 'lobby') { var ST = lobbySeating(); K = ST.K; gh = ST.gh || 0; for (i = 0; i < K; i++) occ.push(false); ST.at.forEach(function (a) { occ[a.side] = true; }); map = lobbyMap(); core = !!ROOM.cfg.core; haz = !!ROOM.cfg.haz; }
   else { K = 4; occ = [false, false, false, false]; map = UI.homeMap || 0; }
-  return { K: K, occ: occ, map: map, core: core, haz: haz };
+  return { K: K, occ: occ, map: map, core: core, haz: haz, gh: gh };
 }
 /* Arena size really changes the arena: the field is drawn bigger or smaller while the players, pearls and bumpers
    keep their size (in the rules a bigger arena means smaller pearls and bumpers; drawn here that is the same thing).
@@ -6825,7 +6887,7 @@ function stageFor() {
 function arenaK() { return SZ / 1.2207; }
 function setStage(st) {
   var rk = 10 * arenaK(); if (Math.abs(R3 - rk) > 1e-6) { R3 = rk; GFX.fit = {}; GFX.ptsArena = null; GFX.stageKey = ''; GFX.slots.forEach(function (s) { s.key = ''; s.hwKey = -1; }); }
-  var mk = (MAPS[st.map] || MAPS[0]).k, key = mk + ':' + st.K + ':' + st.occ.map(Number).join('') + ':' + SIZE;
+  var mk = (MAPS[st.map] || MAPS[0]).k, key = mk + ':' + st.K + ':' + st.occ.map(Number).join('') + ':' + SIZE + ':' + (st.gh || 0);
   if (GFX.stageMap !== mk) {
     if (GFX.mapNow) { GFX.scene.remove(GFX.mapNow.grp); disposeTree(GFX.mapNow.grp); delete GFX.maps[GFX.stageMap]; }   // free the old map so phones don't run out of graphics memory
     var M = GFX.maps[mk];
@@ -6836,7 +6898,7 @@ function setStage(st) {
   }
   if (GFX.stageKey !== key) {
     if (GFX.arena) { GFX.scene.remove(GFX.arena); disposeTree(GFX.arena); }
-    GFX.arena = buildArenaK(st.K, mk, st.occ); GFX.scene.add(GFX.arena); GFX.stageKey = key; GFX.stageK = st.K; GFX.fit = {};
+    ARENA_GH = st.gh || 0; GFX.arena = buildArenaK(st.K, mk, st.occ); GFX.scene.add(GFX.arena); GFX.stageKey = key; GFX.stageK = st.K; GFX.fit = {};
     GFX.ptsArena = null;
   }
   GFX.stageCore = st.core;
@@ -6876,13 +6938,29 @@ function gfxSlices() {
       var vp = drawP(p, i, now), span = padSpan(p);
       var pvv = p.vpLast == null ? 0 : (vp - p.vpLast) * span / Math.max(0.008, (now - p.vpT) / 1000); p.vpLast = vp; p.vpT = now;
       if (vp !== p.p) p.pvS = (p.pvS || 0) * 0.7 + pvv * 0.3;
-      out.push({ si: p.side, K: S.K, a0: sd.a, L: sd.L, gh: goalHalf(p), lc: p.lc || 0, hw: padHalf(p), pu: (p.lc || 0) + vp * span, pv: vp !== p.p ? p.pvS : p.pv, col: p.col, ch: p.ch, alive: p.alive, pl: p, pod: true });
+      var dk = !S.fo || sd.seat === i, gl = S.fo ? S.players.some(function (q) { return q.side === p.side && q.alive; }) : p.alive;   // Face-Off: one net and one goal light per goal, drawn by its first player
+      out.push({ si: p.side, K: S.K, a0: sd.a, L: sd.L, gh: goalHalf(p), lc: p.lc || 0, deco: dk, gl: gl, hw: padHalf(p), pu: (p.lc || 0) + vp * span, pv: vp !== p.p ? p.pvS : p.pv, col: p.col, ch: p.ch, alive: p.alive, pl: p, pod: true });
     }
   } else if (UI.screen === 'lobby') {
     var ST = lobbySeating(), K = ST.K, L = Math.tan(Math.PI / K);
-    for (i = 0; i < ROOM.seats.length; i++) { var A = ST.at[i], f = { L: L, wide: false, lc: A.lc, lw: A.lw }, sj = A.side; out.push({ si: sj, K: K, a0: sj * TAU / K, L: L, gh: goalHalf(f), lc: A.lc, hw: padHalf(f), pu: A.lc, pv: 0, col: ROOM.seats[i].col, ch: ROOM.seats[i].ch, alive: true, pod: true, seat: ROOM.seats[i] }); }
+    var firstAt = {};
+    for (i = 0; i < ROOM.seats.length; i++) { var A = ST.at[i], f = { L: L, wide: false, lc: A.lc, lw: A.lw, gw: A.gw, pk: A.pk }, sj = A.side, dk2 = !firstAt[sj]; firstAt[sj] = 1; out.push({ si: sj, K: K, a0: sj * TAU / K, L: L, gh: goalHalf(f), lc: A.lc, deco: dk2, hw: padHalf(f), pu: A.hm || A.lc, pv: 0, col: ROOM.seats[i].col, ch: ROOM.seats[i].ch, alive: true, pod: true, seat: ROOM.seats[i] }); }
   }
   return out;
+}
+/* Face-Off: teammates sliding into each other bump heads, wobble and say ouch (now and then, never nonstop) */
+function bonkCheck(slices) {
+  var S = G.S; if (!S || !S.fo || UI.screen !== 'game' || S.phase !== 'play') return;
+  var now = performance.now() / 1000, B = GFX.bonk || (GFX.bonk = {});
+  for (var i = 0; i < slices.length; i++) for (var j = i + 1; j < slices.length; j++) {
+    var a = slices[i], b = slices[j]; if (!a || !b || a.si !== b.si || !a.alive || !b.alive) continue;
+    var k = i + ':' + j, touch = Math.abs(a.pu - b.pu) < a.hw + b.hw - 0.01, was = B[k];
+    if (touch && !was && now - (B.t || 0) > 0.7) {
+      B.t = now; [i, j].forEach(function (q) { setMood(q, 'hurt', 0.45); var sl = GFX.slots[q]; if (sl) { sl.hurtT = now; sl.recoil = 0.22; } });
+      sfx('wall', true); if (i === G.me || j === G.me) buzz(12);
+    }
+    B[k] = touch;
+  }
 }
 function podPos(sl, slot, out) {                               // world position of a slot's character
   var x = R3 + 0.6 + 0.85 * slot.s, c = Math.cos(sl.a0), s = Math.sin(sl.a0), u = sl.pu * R3;
@@ -6899,7 +6977,8 @@ function syncSlot(S, sl, now, dt) {
   var cos = slotCos(sl), ck = cos ? cos.join() : '';
   if (S.cosK !== ck) { S.cosK = ck; applySlotCos(S, cos || COS0); }
   S.scale += ((live ? 1 : 0) - S.scale) * Math.min(1, dt * (live ? 6 : 10));
-  S.seal += ((live ? 0 : 1) - S.seal) * Math.min(1, dt * 5);
+  var gLive = sl.gl != null ? sl.gl : live;                                  // a shared goal closes only when its whole team is out
+  S.seal += ((gLive ? 0 : 1) - S.seal) * Math.min(1, dt * 5);
   var key = sl.a0.toFixed(3) + ':' + sl.gh.toFixed(3) + ':' + (sl.lc || 0).toFixed(3) + ':' + SIZE;
   if (key !== S.key) {
     S.key = key; var gh = sl.gh * R3, lz = (sl.lc || 0) * R3;           // a Face-Off lane sits off the middle of the goal
@@ -6913,7 +6992,8 @@ function syncSlot(S, sl, now, dt) {
     S.s = charScale(sl.K);
     S.net.position.set(R3 - 0.02, 0, lz); S.netHalf = gh + (sl.lc ? 0 : 0.05); S.netDep = 1.05; S.netH = 1.0; netShape(S, 0);
   }
-  S.sealW.visible = S.sealT.visible = S.seal > 0.01;
+  var deco = sl.deco !== false; S.glow.visible = S.line.visible = S.curtain.visible = S.net.visible = deco;
+  S.sealW.visible = S.sealT.visible = deco && S.seal > 0.01;
   if (S.sealW.visible) { var sh = 1.0 * S.seal; S.sealW.scale.y = sh; S.sealW.position.y = sh / 2; S.sealT.position.y = sh + 0.05; }
   S.curtM.opacity = live ? S.curtM.opacity : 0;
   if (S.flung && live) restorePod(S);
@@ -6923,7 +7003,7 @@ function syncSlot(S, sl, now, dt) {
     S.bCyl.scale.set(bk, len, bk); S.bCap[0].position.z = -len / 2; S.bCap[1].position.z = len / 2; S.bCap.forEach(function (c) { c.scale.setScalar(bk); });
     S.stripe.scale.set(0.08, 0.1, len + 0.3); S.stripe.position.set(-0.24, 0.12, 0);
   }
-  var fort = !!(sl.pl && G.S && (G.S.cfg.mode | 0) === MODE_FORT && live);
+  var fort = !!(sl.pl && G.S && (G.S.cfg.mode | 0) === MODE_FORT && (sl.gl != null ? sl.gl : live) && deco);
   S.bricks.visible = fort;
   if (fort) {
     var mk = (sl.pl.bricks | 0) + ':' + S.hwKey + ':' + sl.gh.toFixed(3);
@@ -7140,7 +7220,8 @@ function netUpdate(sl, now, alive) {
 }
 /* a goal on this slot: where along the goal (sim x, y of the pearl) */
 function netHit(seat, x, y) {
-  var S = G.S, sl = GFX.slots[seat], pl = S && S.players[seat]; if (!sl || !pl) return;
+  var S = G.S, pl = S && S.players[seat]; if (S && S.fo && pl) { seat = S.sides[pl.side].seat; pl = S.players[seat]; }
+  var sl = GFX.slots[seat]; if (!sl || !pl) return;
   var sd = S.sides[pl.side], u = -x * sd.s + y * sd.c - (pl.lc || 0), d = x * sd.c + y * sd.s, now = performance.now() / 1000;
   sl.netT = now; sl.netU = clamp(u * R3, -sl.netHalf + 0.3, sl.netHalf - 0.3);
   sl.npT = now; sl.npX0 = Math.max(R3 - 0.3, Math.min(R3 + 0.6, d * R3));
@@ -7541,7 +7622,7 @@ function gfxFrame(now, dt) {
     GFX.warmFor = G.mid + ':' + GFX.stageKey; GFX.crown.grp.visible = (S.cfg.mode | 0) === MODE_CROWN;
     try { GFX.r.compile(GFX.scene, GFX.cam); } catch (e) {}
   }
-  var slices = gfxSlices();
+  var slices = gfxSlices(); bonkCheck(slices);
   GFX.csN = 0;
   for (i = 0; i < MAXP; i++) syncSlot(GFX.slots[i], slices[i], now, dt);
   GFX.cs.count = GFX.csN; GFX.cs.visible = GFX.csN > 0; GFX.cs.material.opacity = GFX.sun.castShadow ? 0.26 : 0.4; if (GFX.csN) GFX.cs.instanceMatrix.needsUpdate = true;
@@ -8017,7 +8098,7 @@ function refreshPickers() {
   }
   var taken = {};
   var tsel = -1, mine = ROOM.role !== 'none' && tmOn() ? ROOM.seats.find(function (s) { return s.id === ME.id; }) : null;
-  if (mine) { tsel = ROOM.tcol[mine.team]; for (var tq = 0; tq < (ROOM.cfg.tm | 0); tq++) if (tq !== mine.team) taken[ROOM.tcol[tq]] = 1; }
+  if (mine) { tsel = ROOM.tcol[mine.team]; for (var tq = 0; tq < tmCount(); tq++) if (tq !== mine.team) taken[ROOM.tcol[tq]] = 1; }
   else if (ROOM.role !== 'none') ROOM.seats.forEach(function (s) { if (!s.bot && s.id !== ME.id) taken[s.col] = 1; });
   bs = document.querySelectorAll('.sw');
   for (i = 0; i < bs.length; i++) {
@@ -8137,7 +8218,8 @@ var MODE_SVG = [
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="11" cy="14" r="7.5" fill="currentColor"/><path d="M15.5 7.5l2-2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M18.5 2.5v2M21.5 5.5h-2M20.6 3.4l-1.3 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.5" cy="11.5" r="1.8" fill="#fff" opacity=".55"/></svg>',
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="13" r="7.5" fill="currentColor"/><path d="M12 2.2l1.1 2.3 2.5.3-1.8 1.7.5 2.5L12 7.8 9.7 9l.5-2.5-1.8-1.7 2.5-.3z" fill="currentColor"/><path d="M9 13h6M12 10v6" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg>',
   '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="7" cy="8" r="4" fill="currentColor"/><circle cx="17" cy="7" r="3.2" fill="currentColor"/><circle cx="12.5" cy="16" r="5" fill="currentColor"/><circle cx="4.5" cy="18" r="2.4" fill="currentColor"/></svg>',
-  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M3 9h3V6h3v3h2V6h2v3h2V6h3v3h3v12H3z"/><path d="M3 14h18M8 14v7M16 14v7M12 9v5" stroke="#fff" stroke-width="1.4" opacity=".55"/></svg>'
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M3 9h3V6h3v3h2V6h2v3h2V6h3v3h3v12H3z"/><path d="M3 14h18M8 14v7M16 14v7M12 9v5" stroke="#fff" stroke-width="1.4" opacity=".55"/></svg>',
+  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="7.5" cy="7" r="3.2" fill="currentColor"/><circle cx="16.5" cy="7" r="3.2" fill="currentColor"/><path fill="currentColor" d="M1.8 19a5.7 5.7 0 0 1 11.4 0zM10.8 19a5.7 5.7 0 0 1 11.4 0z"/></svg>'
 ];
 function buildMaps() {
   var box = $('maps'); box.textContent = '';
@@ -8219,8 +8301,8 @@ function renderLobby() {
     $('kv-balls').hidden = mode === 4 || mode === 7; $('balls-n').textContent = c.balls ? String(c.balls) : T('auto');
     seg('seg-tgt', cfgTarget(c)); seg('maps', c.map);
     seg('seg-speed', c.sp); seg('seg-level', c.bot); pwChips(); seg('seg-core', c.core ? 1 : 0); seg('seg-haz', c.haz ? 1 : 0); seg('seg-size', c.size | 0); seg('seg-pad', c.pad == null ? 1 : c.pad | 0);
-    var ok = ROOM.seats.length >= 2; $('b-start').disabled = !ok;
-    $('lob-note').textContent = !ok ? T('need2') : ROOM.role === 'host' ? T('keepOpen') : '';
+    var ok = ROOM.seats.length >= 2, P2 = plOf(ROOM.cfg.comp), rdy = compReady(); $('b-start').disabled = !ok || !rdy;
+    $('lob-note').textContent = !ok ? T('need2') : !rdy && P2 && P2.need ? T('comp4') : ROOM.role === 'host' ? T('keepOpen') : '';
   } else $('lob-note').textContent = T('waitHost');
   refreshPickers(); gfxResize();
 }
@@ -8577,7 +8659,7 @@ function colName(k) { return (COL_NAMES[LANG] || COL_NAMES.en)[k] || ''; }
 function teamName(k) { return T('teamN', { c: colName(k) }); }
 /* the team chips over the seats: tap one to play for that team */
 function teamRow() {
-  var row = $('tmrow'), on = tmOn(), T0 = ROOM.cfg.tm | 0, mine = ROOM.seats.find(function (s) { return s.id === ME.id; });
+  var row = $('tmrow'), on = tmOn(), T0 = tmCount(), mine = ROOM.seats.find(function (s) { return s.id === ME.id; });
   row.hidden = !on; if (!on) return;
   while (row.children.length > T0) row.removeChild(row.lastChild);
   for (var t = 0; t < T0; t++) {
@@ -9043,7 +9125,7 @@ function lobbyComp() {
   $('seg-comp').hidden = !host; seg('seg-comp', ROOM.cfg.comp | 0);
   $('hostctl').classList.toggle('comp', comp);
   $('comp-rules').hidden = !comp || !host;
-  if (comp) { $('cr-rk').innerHTML = rankSVG(myRank(P.k)); $('cr-tx').textContent = T(P.k === 'b' ? 'compRulesB' : 'compRules'); }
+  if (comp) { $('cr-rk').innerHTML = rankSVG(myRank(P.k)); $('cr-tx').textContent = T(P.k === 'b' ? 'compRulesB' : P.k === 't' ? 'compRulesT' : 'compRules'); }
   $('b-invfr').hidden = !online || PREVIEW;
   $('s-lobby').classList.toggle('compo', comp && online);
 }
