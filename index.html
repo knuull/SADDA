@@ -1366,6 +1366,12 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
 .compseg .cs b { font-size: 0.84rem; white-space: nowrap; }
 .compseg .cs small { font-size: 0.62rem; }
 .compseg button > svg { flex: none; }
+/* three awards in a row: a little more compact so names still fit */
+.awards.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.awards.three .award { gap: 6px; padding: 5px 7px 5px 5px; border-radius: 14px; }
+.awards.three .award img { width: 32px; height: 32px; border-radius: 10px; }
+.awards.three .award small { font-size: 0.64rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.awards.three .award b { font-size: 0.8rem; }
 </style>
 </head>
 <body>
@@ -1995,6 +2001,7 @@ function doHit(S, b, pl, sd, u) {
   b.vy = ns * (-ny * Math.cos(ang) + ty * Math.sin(ang));
   var p = sidePt(sd, u, RC - 0.004); b.x = p.x; b.y = p.y;
   if (S.tm) aimAssist(S, b, pl, smash);
+  if (smash) pl.smashes = (pl.smashes | 0) + 1;
   b.owner = pl.seat; b.seq++; b.tent = -1; b.st = LIVE;
   pl.saves++;
   return smash;
@@ -2145,7 +2152,7 @@ function applyClientBounce(S, b, pl, v, extraAge, quiet) {
   b.x = v.x + b.vx * age; b.y = v.y + b.vy * age;
   keepInside(S, b, 0.01);
   b.st = LIVE; b.owner = pl.seat; b.seq = v.s + 1; b.tent = -1;
-  if (v.sm) { b.hotUntil = S.t + 1.3; if (pl.fireN > 0 && !quiet) pl.fireN--; }
+  if (v.sm) { b.hotUntil = S.t + 1.3; if (pl.fireN > 0 && !quiet) pl.fireN--; if (!quiet) pl.smashes = (pl.smashes | 0) + 1; }
   if (!quiet) { pl.saves++; ev(S, ['hit', pl.seat, v.sm ? 1 : 0, b.id, b.seq, r3(v.x), r3(v.y)]); }
   return true;
 }
@@ -2905,7 +2912,7 @@ var STR = {
     gAuto: 'Auto', gHigh: 'High', gLow: 'Battery saver', ko: 'KO!', finalT: 'FINAL DUEL', finalS: 'Last one standing wins',
     lastLife: 'LAST LIFE!', youWin: 'YOU WIN!', winner: 'WINNER', smashT: 'SMASH!', matchPoint: 'MATCH POINT!',
     otT: 'OVERTIME', otS: 'Next point wins', firstTo: 'First to {n}',
-    awardGoals: 'Top scorer', awardSaves: 'Best keeper', howTitle: 'How to play', gotIt: "Let's go",
+    awardGoals: 'Top scorer', awardSaves: 'Best keeper', awardSmash: 'Top smasher', howTitle: 'How to play', gotIt: "Let's go",
     h1t: 'Slide', h1: 'Drag anywhere on the screen to slide along your goal. Your goal is always at the bottom.',
     h2t: 'Block', h2: 'Bounce the pearls away from your goal with your bumper.',
     h3t: 'Smash', h3: 'Tap SMASH just as a pearl reaches you to fire it back twice as hard.',
@@ -2998,7 +3005,7 @@ var STR = {
     gAuto: 'تلقائي', gHigh: 'عالية', gLow: 'توفير البطارية', ko: 'طلع!', finalT: 'النزال الأخير', finalS: 'اللي يبقى هو الفايز',
     lastLife: 'آخر روح!', youWin: 'فزت!', winner: 'الفايز', smashT: 'ضربة!', matchPoint: 'نقطة الفوز!',
     otT: 'وقت إضافي', otS: 'النقطة الجاية تحسم', firstTo: 'أول من يوصل {n}',
-    awardGoals: 'الهدّاف', awardSaves: 'أفضل حارس', howTitle: 'طريقة اللعب', gotIt: 'يلا نلعب',
+    awardGoals: 'الهدّاف', awardSaves: 'أفضل حارس', awardSmash: 'ملك الضربات', howTitle: 'طريقة اللعب', gotIt: 'يلا نلعب',
     h1t: 'تحرّك', h1: 'اسحب بإصبعك في أي مكان عشان تتحرك على طول مرماك. مرماك دايم تحت.',
     h2t: 'صدّ', h2: 'ردّ اللؤلؤ بعيد عن مرماك بالصدّام.',
     h3t: 'اضرب', h3: 'اضغط «اضرب» لحظة وصول اللؤلؤة عشان ترجعها بقوة مضاعفة.',
@@ -3791,7 +3798,7 @@ function hostVerdict(pl, v) {
 function flagsOf(p) { return (p.alive ? 1 : 0) | (p.smashOn ? 2 : 0) | (p.wide ? 4 : 0) | (p.shield ? 8 : 0) | (p.guard ? 16 : 0) | ((p.conn || !p.remote) ? 32 : 0) | (p.king ? 64 : 0) | (p.slow ? 128 : 0) | (p.small ? 256 : 0); }
 function packSnap(S, hc) {
   return JSON.stringify(['s', G.mid, S.tick, r3(S.t), hc, S.phase === 'cd' ? 0 : S.phase === 'play' ? 1 : 2,
-    S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1, p.bricks, p.fireN > 0 ? p.fireN : 0, p.slow ? r3(p.slowUntil - S.t) : 0, p.small ? r3(p.smallUntil - S.t) : 0, p.wide ? r3(p.wideUntil - S.t) : 0, r3(p.pvel || 0), r3(p.pt == null ? p.p : p.pt)]; }),
+    S.players.map(function (p) { return [r3(p.p), p.lives, flagsOf(p), p.pts, p.score, p.conc, p.saves, p.place, Math.round(p.lat * 1000), p.king ? r3(p.kw || 0.78) : 1, p.bricks, p.fireN > 0 ? p.fireN : 0, p.slow ? r3(p.slowUntil - S.t) : 0, p.small ? r3(p.smallUntil - S.t) : 0, p.wide ? r3(p.wideUntil - S.t) : 0, r3(p.pvel || 0), r3(p.pt == null ? p.p : p.pt), p.smashes | 0]; }),
     S.balls.map(function (b) { return [b.id, r3(b.x), r3(b.y), r3(b.vx), r3(b.vy), b.owner, b.seq, b.st, b.tent, b.hotUntil > S.t ? 1 : 0, b.hits | 0, b.bomb ? Math.max(0.01, r3(b.fuseAt - S.t)) : 0, b.gold ? 1 : 0, b.ghostUntil > S.t ? r3(b.ghostUntil - S.t) : 0]; }),
     S.orbs.map(function (o) { return [o.id, r3(o.x), r3(o.y), o.ty]; }),
     [S.core.tele === null ? null : r3(S.core.tele), S.core.next < 0 ? -1 : r3(S.core.next - S.t)],
@@ -3914,6 +3921,7 @@ function applySnap(m, nowMs) {
     var a = ps[i], pl = S.players[i], f = a[2];
     pl.lives = a[1]; pl.alive = !!(f & 1); pl.wide = !!(f & 4); pl.shield = !!(f & 8); pl.guard = !!(f & 16); pl.conn = !!(f & 32); pl.king = !!(f & 64); pl.slow = !!(f & 128); pl.small = !!(f & 256);
     pl.fireN = a[11] | 0; pl.fireUntil = pl.fireN ? S.t + 30 : -1; pl.slowUntil = S.t + (+a[12] || 0); pl.smallUntil = S.t + (+a[13] || 0); pl.wideUntil = S.t + (+a[14] || 0);   // timers, for the power chips on screen
+    if (a[17] != null) pl.smashes = a[17] | 0;
     pl.pts = a[3]; pl.score = a[4]; pl.conc = a[5]; pl.saves = a[6]; pl.place = a[7]; pl.lat = a[8] / 1000; pl.kw = a[9] || 1; if (a[10] != null) pl.bricks = a[10];
     if (i !== G.me) { netSample(S, pl, a[0], a[15], a[16], G.synced ? m[4] - G.offset : nowMs - 60, nowMs); pl.smashOn = !!(f & 2); pl.smashUntil = pl.smashOn ? S.t + 0.15 : -1; }
   }
@@ -8357,13 +8365,14 @@ function showResults() {
     [a, im2, n, g0, g1, g2].forEach(function (e) { row.appendChild(e); }); list.appendChild(row);
   }
   var aw = $('res-awards'); aw.textContent = '';
-  [['awardGoals', 'score', T('goals')], ['awardSaves', 'saves', T('saves')]].forEach(function (d) {
+  [['awardGoals', 'score', T('goals')], ['awardSaves', 'saves', T('saves')], ['awardSmash', 'smashes', '']].forEach(function (d) {
     var top = ps.slice().sort(function (x, y) { return y[d[1]] - x[d[1]]; })[0]; if (!top || !top[d[1]]) return;
     var c = document.createElement('div'); c.className = 'award'; setC(c, COLORS[top.col]);
     var im = document.createElement('img'); im.alt = ''; im.src = portraitURL(top.ch, COLORS[top.col]);
     var t = document.createElement('div'); var b1 = document.createElement('small'); b1.textContent = T(d[0]); var b2 = document.createElement('b'); b2.textContent = top.name + ' (' + top[d[1]] + ')';
     t.appendChild(b1); t.appendChild(b2); c.appendChild(im); c.appendChild(t); aw.appendChild(c);
   });
+  aw.classList.toggle('three', aw.children.length === 3);
   resXP(S); resEco(S);
   $('res-more').hidden = !aw.childNodes.length && $('res-log').hidden; $('res-more').open = false;
   var host = ROOM.role === 'host' || ROOM.role === 'solo';
