@@ -2449,7 +2449,7 @@ function hostRules(S, dt) {
 
 /* Bumpers ease into motion and ease to a stop (still capped at OMEGA), so they glide instead of jerking. */
 function glide(pl, span, f, acc, dt, gain) {
-  var vmax = OMEGA * f * (pl.king ? 0.85 : 1) * (pl.slow ? 0.45 : 1) * (pl.gw ? 0.8 : 1) / span,   // Face-Off bumpers are a touch slower: a wide goal is hard to cover
+  var vmax = OMEGA * f * (pl.king ? 0.85 : 1) * (pl.slow ? 0.45 : 1) * (pl.gw ? 1.2 : 1) / span,   // Face-Off goals are wider, so the bumpers are quicker to match
     v = pl.pvel || 0, want = clamp((pl.pt - pl.p) * (gain || 16), -vmax, vmax), a = vmax * acc * dt;
   v += clamp(want - v, -a, a); pl.p += v * dt;
   if (pl.p > 1) { pl.p = 1; if (v > 0) v = 0; } else if (pl.p < -1) { pl.p = -1; if (v < 0) v = 0; }
@@ -3583,7 +3583,7 @@ function beginMatch(role) {
   clearTimeout(G.overTimer);
   if (role === 'client') { S.noEv = true; G.lastHost = nowMs; G.simClock = nowMs; }
   S.players.forEach(function (p) { p.lastIn = nowMs; p.conn = true; });
-  CM.me = G.me; CM.flush = false; INPUT.pt = 0; INPUT.smashQ = false;
+  CM.me = G.me; CM.flush = false; INPUT.pt = S.players[G.me] ? S.players[G.me].p : 0; INPUT.smashQ = false;   // your bumper stays where it starts (Face-Off starts you off to one side)
   resetFx();
   showScreen('game'); wakeLock();
 }
@@ -6954,9 +6954,9 @@ function bonkCheck(slices) {
   var now = performance.now() / 1000, B = GFX.bonk || (GFX.bonk = {});
   for (var i = 0; i < slices.length; i++) for (var j = i + 1; j < slices.length; j++) {
     var a = slices[i], b = slices[j]; if (!a || !b || a.si !== b.si || !a.alive || !b.alive) continue;
-    var k = i + ':' + j, touch = Math.abs(a.pu - b.pu) < a.hw + b.hw - 0.01, was = B[k];
-    if (touch && !was && now - (B.t || 0) > 0.7) {
-      B.t = now; [i, j].forEach(function (q) { setMood(q, 'hurt', 0.45); var sl = GFX.slots[q]; if (sl) { sl.hurtT = now; sl.recoil = 0.22; } });
+    var k = i + ':' + j, touch = Math.abs(a.pu - b.pu) < a.hw + b.hw - 0.01, was = B[k], hard = Math.abs((a.pv || 0) - (b.pv || 0)) > 1.6;   // only a real crash, not sliding past
+    if (touch && !was && hard && now - (B['t' + k] || 0) > 2.5) {
+      B['t' + k] = now; [i, j].forEach(function (q) { setMood(q, 'hurt', 0.35); });
       sfx('wall', true); if (i === G.me || j === G.me) buzz(12);
     }
     B[k] = touch;
