@@ -1341,6 +1341,27 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
 @keyframes rvPop { 0% { opacity: 0; transform: scale(0.2) rotate(-12deg); } 70% { opacity: 1; transform: scale(1.12) rotate(3deg); } 100% { transform: none; } }
 @keyframes rvSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .reveal.on .rv-card, .reveal.on .rv-art, .reveal.on .rv-rays { animation: none; } }
+
+/* ---- teams ---- */
+.tmrow { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.tmc { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 10px; border: 0; border-radius: 14px; font: inherit; font-weight: 800; color: var(--ink); background: var(--soft); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 35%, transparent); transition: transform 0.12s var(--spring, ease), box-shadow 0.15s; }
+.tmc i { width: 14px; height: 14px; flex: none; border-radius: 50%; background: var(--c); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18); }
+.tmc b { font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmc small { font-size: 0.74rem; font-weight: 800; padding: 1px 7px; border-radius: 99px; color: var(--ct, #fff); background: var(--c); }
+.tmc.on { background: var(--card); box-shadow: 0 0 0 2px var(--c), var(--e2); }
+.tmc:active { transform: scale(0.96); }
+.score.teams { flex-wrap: wrap; row-gap: 12px; }
+.score.teams.many { display: flex; }
+.tgrp { display: flex; gap: 4px; padding: 4px 5px; border-radius: 19px; background: color-mix(in srgb, var(--c) 30%, rgba(255, 255, 255, 0.25)); box-shadow: inset 0 0 0 2px var(--c); }
+.tgrp .sc { width: 46px; flex-basis: 46px; }
+.tgrp .sc img { width: 32px; height: 32px; }
+.tgrp .sc:not(:first-child) > b { display: none; }                     /* one shared count per team */
+.podium.teams .tpics { display: flex; justify-content: center; margin-bottom: -6px; }
+.podium.teams .tpics img { width: 40px; height: 40px; margin-inline: -7px; border-radius: 50%; border: 2.5px solid #fff; background: radial-gradient(circle at 50% 30%, #fff, #dfe5ff); }
+.podium.teams .p1 .tpics img { width: 48px; height: 48px; }
+.podium.teams .tpics.n4 img, .podium.teams .tpics.n5 img { width: 30px; height: 30px; margin-inline: -6px; border-width: 2px; }
+.podium.teams .p1 .tpics.n4 img, .podium.teams .p1 .tpics.n5 img { width: 34px; height: 34px; }
+.podium.teams .tpics.n3 img { width: 34px; height: 34px; }
 </style>
 </head>
 <body>
@@ -1516,6 +1537,7 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
         <div id="qrbox" class="qrbox" hidden><canvas id="qr" width="120" height="120"></canvas><span data-t="scan"></span></div>
       </header>
       <div class="sec-h"><span class="lbl" data-t="players"></span><span id="lob-count" class="count"></span><button id="b-mylook" class="btn soft xs" type="button"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M15.2 4.4l4.4 4.4L9 19.4l-5.2.8.8-5.2zM17 2.6a2 2 0 0 1 2.8 0l1.6 1.6a2 2 0 0 1 0 2.8l-1 1L16 3.6z"/></svg><span data-t="mylook"></span></button></div>
+      <div id="tmrow" class="tmrow" hidden></div>
       <div id="seats" class="seats"></div>
       <div id="summary" class="summary" hidden></div>
       <div id="hostctl" class="setup">
@@ -1537,6 +1559,8 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
           <p id="mode-desc" class="mode-desc"></p>
         <div class="kv" id="kv-ck" hidden><span class="lbl" data-t="crownBy"></span><div id="seg-ck" class="seg"><button type="button" data-v="0" data-t="ckPts"></button><button type="button" data-v="1" data-t="ckTime"></button></div></div>
         <div class="kv"><span id="tgt-lbl" class="lbl"></span><div id="seg-tgt" class="seg"><button type="button"></button><button type="button"></button><button type="button"></button></div></div>
+        <div class="kv" id="kv-tm"><span class="lbl" data-t="teamsT"></span><div id="seg-tm" class="seg"><button type="button" data-v="0" data-t="tmOff"></button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button></div></div>
+        <div class="kv" id="kv-fo" hidden><span class="lbl" data-t="arenaT"></span><div id="seg-fo" class="seg"><button type="button" data-v="0" data-t="foRing"></button><button type="button" data-v="1" data-t="foFace"></button></div></div>
         </section>
         <section class="grp">
           <div class="grp-h"><span data-t="map"></span></div>
@@ -1719,7 +1743,7 @@ function livesMode(m) { m = m | 0; return m === MODE_LIVES || m === MODE_BULLET 
 /* Fortress: every goal is guarded by a low wall of 5 bricks. A pearl that gets past your bumper smashes the brick
    it hits and bounces back; only through a gap does it score. Lose a life and your wall is rebuilt. */
 var NB = 5, BRICKS = (1 << NB) - 1;
-function brickIdx(S, pl, b) { var sd = S.sides[pl.side], u = -b.x * sd.s + b.y * sd.c, gh = goalHalf(pl); return clamp(Math.floor((u + gh) / (2 * gh) * NB), 0, NB - 1); }
+function brickIdx(S, pl, b) { var sd = S.sides[pl.side], u = -b.x * sd.s + b.y * sd.c - (pl.lc || 0), gh = goalHalf(pl); return clamp(Math.floor((u + gh) / (2 * gh) * NB), 0, NB - 1); }
 function brickBlock(S, b, seat, predict) {
   var pl = S.players[seat]; if (!pl || !pl.alive || (S.cfg.mode | 0) !== MODE_FORT) return false;
   var i = brickIdx(S, pl, b); if (!((pl.bricks >> i) & 1)) return false;
@@ -1811,20 +1835,23 @@ var WHIRL_R = 0.42;
 
 function newMatch(roster, cfg) {
   setSize(cfg.size, cfg.pad);
-  var n = roster.length, K = sideCount(n), sides = makeSides(K), ss = seatSides(n);
+  var n = roster.length, ST = seating(roster.map(function (r) { return r.team; }), cfg), K = ST.K, sides = makeSides(K), TM = teamsOn(cfg) ? cfg.tm | 0 : 0;
   var lay = (cfg.hazards && LAYOUTS[cfg.layout | 0]) || LAYOUTS[0];             // map obstacles are an option, off unless the host turns them on
   var S = {
     t: 0, tick: 0, phase: 'cd', cdShown: 4, cfg: cfg, seed: (Math.random() * 1e6) | 0,
-    K: K, sides: sides, corners: cornerPosts(K), lay: lay, whirl: lay.whirl || 0,
+    K: K, sides: sides, fo: foOn(cfg), corners: cornerPosts(K), lay: lay, whirl: lay.whirl || 0,
     players: [], balls: [], orbs: [], posts: [], ev: [], eid: 0, noEv: false,
     core: { next: -1, tele: null, spin: 0 }, endT: 0, ot: false, crown: -1, crownAt: 0, cwarn: -1,
     nextBall: 1, nextOrb: 1, orbAt: 7, ballsWanted: cfg.mode === MODE_BULLET || cfg.mode === MODE_FRENZY ? 1 : cfg.balls > 0 ? cfg.balls : Math.max(1, Math.round(n / 2.5)), moreAt: 12, places: n, winner: -1, overAt: 0, bombAt: -1, goldAt: -1, goalsN: 0
   };
+  S.tm = TM; S.teams = [];
+  if (TM) for (var q = 0; q < TM; q++) { var nq = roster.filter(function (r) { return (r.team | 0) === q; }).length; S.teams.push({ i: q, n: nq, lives: cfg.lives * nq, alive: nq > 0, place: 0 }); }
+  S.tplaces = S.teams.filter(function (x) { return x.alive; }).length;
   roster.forEach(function (r, i) {
-    var sd = sides[ss[i]]; sd.seat = i;
+    var A = ST.at[i], sd = sides[A.side]; if (sd.seat < 0) sd.seat = i; (sd.seats || (sd.seats = [])).push(i);
     S.players.push({
-      seat: i, id: r.id, name: r.name, ch: r.ch, col: r.col, lv: r.lv | 0, cos: r.cos || null, bot: !!r.bot, remote: !!r.remote, conn: true,
-      side: sd.i, a0: sd.a, L: sd.L, alive: true, lives: cfg.lives, pts: 0, conc: 0, bricks: BRICKS,
+      seat: i, id: r.id, name: r.name, ch: r.ch, col: r.col, team: TM ? clamp(r.team | 0, 0, TM - 1) : -1, lv: r.lv | 0, cos: r.cos || null, bot: !!r.bot, remote: !!r.remote, conn: true,
+      side: sd.i, a0: sd.a, L: sd.L, lc: A.lc, lw: A.lw, alive: true, lives: TM ? cfg.lives * S.teams[clamp(r.team | 0, 0, TM - 1)].n : cfg.lives, pts: 0, conc: 0, bricks: BRICKS,
       p: 0, pt: 0, pn: 0, pv: 0, pvel: 0, smashUntil: -1, smashCd: 0, smashN: 0, smashOn: false,
       wideUntil: -1, wide: false, shield: false, shieldUntil: -1, guardUntil: -1, guard: false, slowUntil: -1, slow: false, smallUntil: -1, small: false, fireN: 0, fireUntil: -1,
       score: 0, saves: 0, place: 0, lat: 0, lastIn: 0, botT: Math.random() * 0.1, lastAimed: -9, cr: 0, steals: 0
@@ -1834,13 +1861,66 @@ function newMatch(roster, cfg) {
   return S;
 }
 
+/* Face-Off: two teams, two goals. A square arena whose two facing sides are the teams' goals (the other two are
+   walls); each goal is split into one lane per player, so everyone still has their own bumper and stretch of goal. */
+function foOn(cfg) { return !!cfg.fo && (cfg.tm | 0) === 2 && (cfg.mode | 0) !== MODE_CROWN; }
+/* where everyone sits: { K: sides, at: [{ side, lc: lane centre, lw: lane half-width (0 = the whole goal) }] } */
+function seating(teams, cfg) {
+  var n = teams.length, out = [];
+  if (foOn(cfg)) {
+    var gh = Math.min(GOAL_MAX, Math.tan(Math.PI / 4) * GOAL_F), by = [[], []];
+    teams.forEach(function (t, i) { by[t === 1 ? 1 : 0].push(i); });
+    [0, 1].forEach(function (t) { var L = by[t], m = L.length; L.forEach(function (seat, j) { out[seat] = { side: t * 2, lc: m > 1 ? -gh + gh / m * (2 * j + 1) : 0, lw: m > 1 ? gh / m : 0 }; }); });
+    return { K: 4, at: out };
+  }
+  var ss = seatSides(n), TM = teamsOn(cfg) ? cfg.tm | 0 : 0, order = TM ? teamOrder(teams, TM) : null;
+  for (var i = 0; i < n; i++) out.push({ side: ss[order ? order.indexOf(i) : i], lc: 0, lw: 0 });
+  return { K: sideCount(n), at: out };
+}
+/* teams sit in turn round the ring (A B C A B C), so no team gets two sides next to each other.
+   teams: each seat's team; returns the seats in the order they go round the ring */
+function teamOrder(teams, TM) {
+  var by = [], order = [], t, k; for (t = 0; t < TM; t++) by.push([]);
+  teams.forEach(function (x, i) { by[clamp(x | 0, 0, TM - 1)].push(i); });
+  for (k = 0; order.length < teams.length; k++) for (t = 0; t < TM; t++) if (by[t][k] != null) order.push(by[t][k]);
+  return order;
+}
+/* ---------- teams ----------
+   cfg.tm teams (2-5) share one pool of lives each (lives x players) in the lives modes, and one score in the
+   points modes. Crown is one king against everyone, so it has no teams. A pearl into a teammate's goal still
+   costs the team, but nobody scores for it. */
+function teamsOn(cfg) { return (cfg.tm | 0) >= 2 && (cfg.mode | 0) !== MODE_CROWN; }
+function mates(S, a, b) { return !!S.tm && a >= 0 && b >= 0 && S.players[a] && S.players[b] && S.players[a].team === S.players[b].team; }
+function teamPts(S, t) { var n = 0; S.players.forEach(function (p) { if (p.team === t) n += p.pts; }); return n; }
+function teamRank(S) {                                                      // teams best first, for the points and timed modes
+  return S.teams.map(function (tm) { var sc = 0, sv = 0; S.players.forEach(function (p) { if (p.team === tm.i) { sc += p.score; sv += p.saves; } }); return { t: tm.i, pts: teamPts(S, tm.i), lives: tm.lives, alive: tm.alive, sc: sc, sv: sv }; })
+    .filter(function (r) { return S.teams[r.t].n > 0; });
+}
+function teamOut(S, t) {
+  var tm = S.teams[t]; if (!tm || !tm.alive) return;
+  tm.alive = false; tm.place = S.tplaces--;
+  S.players.forEach(function (p) { if (p.team === t && p.alive) { p.alive = false; p.shield = false; p.place = tm.place; ev(S, ['out', p.seat, tm.place]); } else if (p.team === t) p.place = tm.place; });
+  var left = S.teams.filter(function (x) { return x.alive; });
+  if (left.length <= 1) teamWin(S, left[0] ? left[0].i : -1);
+}
+function teamWin(S, t) {
+  if (t >= 0) { S.teams[t].place = 1; S.players.forEach(function (p) { if (p.team === t) p.place = 1; }); }
+  var best = -1; S.players.forEach(function (p) { if (p.team === t && (best < 0 || p.score > S.players[best].score || (p.alive && !S.players[best].alive))) best = p.seat; });
+  S.winTeam = t; finish(S, best);
+}
+/* points and timed modes: whole teams are placed by their combined score */
+function teamPlaces(S) {
+  var R = teamRank(S).sort(function (a, b) { return (b.pts - a.pts) || (b.sc - a.sc) || (b.sv - a.sv) || (a.t - b.t); });
+  R.forEach(function (r, i) { S.teams[r.t].place = i + 1; S.players.forEach(function (p) { if (p.team === r.t) p.place = i + 1; }); });
+  return R[0] ? R[0].t : -1;
+}
 function ev(S, a) { if (S.noEv) return; S.ev.push([++S.eid, S.t].concat(a)); }
 function ramp(S) { return Math.min(0.55, Math.max(0, S.t - 4) / 160); }
 function speedK(S) { return S.cfg.speed * (1 + ramp(S)); }
-function goalHalf(pl) { return Math.min(GOAL_MAX, pl.L * GOAL_F); }
-function padHalf(pl) { return Math.min(PAD_MAX, pl.L * PAD_F) * (pl.wide ? 1.5 : 1) * (pl.small ? 0.6 : 1) * (pl.king ? pl.kw || 0.78 : 1); }   // the crown is heavy: the king's bumper shrinks the longer they keep it
+function goalHalf(pl) { return pl.lw || Math.min(GOAL_MAX, pl.L * GOAL_F); }               // a Face-Off player guards their own lane of the team's goal
+function padHalf(pl) { return Math.min(PAD_MAX, pl.L * PAD_F, pl.lw ? pl.lw * 0.62 : 9) * (pl.wide ? 1.5 : 1) * (pl.small ? 0.6 : 1) * (pl.king ? pl.kw || 0.78 : 1); }   // the crown is heavy: the king's bumper shrinks the longer they keep it
 function padSpan(pl) { return Math.max(0.001, goalHalf(pl) - padHalf(pl) * 0.55); }
-function padU(pl) { return pl.p * padSpan(pl); }
+function padU(pl) { return (pl.lc || 0) + pl.p * padSpan(pl); }
 function aliveList(S) { return S.players.filter(function (p) { return p.alive; }); }
 /* where a side's point u sits in the arena (x, y) */
 function sidePt(sd, u, d) { d = d == null ? AP : d; return { x: sd.c * d - sd.s * u, y: sd.s * d + sd.c * u }; }
@@ -1851,6 +1931,12 @@ function sideOf(S, x, y) {
   return best;
 }
 function sideOwner(S, si) { var sd = S.sides[si]; return sd ? sd.seat : -1; }
+/* whose bumper guards the point u along side sd (Face-Off goals are shared, one lane each); -1 = a wall there */
+function seatAt(S, sd, u) {
+  if (!sd.seats || sd.seats.length < 2) return sd.seat;
+  for (var i = 0; i < sd.seats.length; i++) { var p = S.players[sd.seats[i]]; if (Math.abs(u - p.lc) <= p.lw + 1e-6) return p.seat; }
+  return -1;
+}
 
 function trySmash(S, pl) {
   if (S.t < pl.smashCd || !pl.alive) return false;
@@ -1904,7 +1990,8 @@ function useShield(S, pl) {
 
 function finish(S, winner) {
   if (S.phase === 'over') return;
-  if (!livesMode(S.cfg.mode)) {
+  if (S.tm && !livesMode(S.cfg.mode) && S.winTeam == null) { var wt = teamPlaces(S); S.winTeam = wt; S.players.forEach(function (p) { if (p.team === wt && (winner < 0 || S.players[winner].team !== wt || p.score > S.players[winner].score)) winner = p.seat; }); }
+  else if (!livesMode(S.cfg.mode) && !S.tm) {
     var crown = S.cfg.mode === MODE_CROWN, held = crown && S.cfg.crownBy && winner >= 0 ? winner : -1;   // timed Crown: whoever wears it at the end wins
     var order = S.players.slice().sort(function (a, b) { return (held >= 0 ? (b.seat === held) - (a.seat === held) : 0) || (crown ? b.cr - a.cr : 0) || (b.pts - a.pts) || (b.score - a.score) || (b.saves - a.saves) || (a.seat - b.seat); });
     order.forEach(function (p, i) { p.place = i + 1; });
@@ -1917,6 +2004,11 @@ function finish(S, winner) {
 /* a player who quits a competitive match is out on the spot (no bot finishing it for them) */
 function forfeit(S, seat) {
   var pl = S.players[seat]; if (!pl || !pl.alive || S.phase === 'over') return;
+  if (S.tm) {                                                              // their side becomes a wall; the team plays on while anyone is left
+    pl.alive = false; pl.shield = false; ev(S, ['out', seat, 0]);
+    if (!S.players.some(function (p) { return p.team === pl.team && p.alive; })) { if (livesMode(S.cfg.mode)) teamOut(S, pl.team); else { S.teams[pl.team].alive = false; if (S.teams.filter(function (x) { return x.alive; }).length <= 1) skipToEnd(S); } }
+    return;
+  }
   pl.lives = 0; pl.alive = false; pl.place = S.places--; pl.shield = false;
   ev(S, ['out', seat, pl.place]);
   var al = aliveList(S);
@@ -1924,6 +2016,13 @@ function forfeit(S, seat) {
 }
 function skipToEnd(S) {
   if (S.phase === 'over') return;
+  if (S.tm) {
+    if (!livesMode(S.cfg.mode)) { finish(S, -1); return; }
+    var tr = S.teams.filter(function (x) { return x.alive; }).sort(function (a, b) { return (b.lives - a.lives) || (a.i - b.i); });
+    for (var k = tr.length - 1; k >= 1; k--) teamOut(S, tr[k].i);
+    if (S.phase !== 'over') teamWin(S, tr[0] ? tr[0].i : -1);
+    return;
+  }
   if (livesMode(S.cfg.mode)) {
     var al = aliveList(S).sort(function (a, b) { return (b.lives - a.lives) || (b.score - a.score) || (b.saves - a.saves) || (a.seat - b.seat); });
     al.forEach(function (p, i) { p.place = i + 1; });
@@ -1932,6 +2031,7 @@ function skipToEnd(S) {
 }
 function leaders(S) {
   var top = -1e9, n = 0, who = -1;
+  if (S.tm) { teamRank(S).forEach(function (r) { if (r.pts > top) { top = r.pts; n = 1; who = r.t; } else if (r.pts === top) n++; }); return { top: top, n: n, who: who }; }
   S.players.forEach(function (p) { if (p.pts > top) { top = p.pts; n = 1; who = p.seat; } else if (p.pts === top) n++; });
   return { top: top, n: n, who: who };
 }
@@ -1942,18 +2042,20 @@ function goal(S, b, seat) {
   if (!pl || !pl.alive || S.phase !== 'play') return;
   var mode = S.cfg.mode | 0;
   pl.guardUntil = S.t + 1.1; pl.guard = true; pl.conc++;
-  var sc = (b.owner >= 0 && b.owner !== seat && S.players[b.owner]) ? b.owner : -1, scp = sc >= 0 ? S.players[sc] : null;
+  var sc = (b.owner >= 0 && b.owner !== seat && S.players[b.owner] && !mates(S, b.owner, seat)) ? b.owner : -1, scp = sc >= 0 ? S.players[sc] : null;   // into a teammate's goal: nobody scores
   if (scp) { scp.score++; if (scp.bot && Math.random() < 0.08) ev(S, ['emo', sc, (Math.random() * 4) | 0]); }
   var lm = livesMode(mode);
   if (b.bomb) ev(S, ['boom', r3(b.x), r3(b.y), seat]);
   S.goalsN++;
-  if (lm) pl.lives--;
+  if (lm && S.tm) { var TMo = S.teams[pl.team]; TMo.lives--; S.players.forEach(function (p) { if (p.team === pl.team) p.lives = TMo.lives; }); }
+  else if (lm) pl.lives--;
   else if (mode === MODE_CROWN) crownGoal(S, seat, sc);
   else if (scp) scp.pts += b.gold ? 3 : 1;                                  // points: a pearl you sent into someone else's goal (a golden one is worth 3)
   ev(S, ['goal', seat, sc, r3(b.x), r3(b.y), lm ? pl.lives : pl.pts, scp ? scp.pts : 0, b.gold ? 1 : 0]);
   if (mode === MODE_FRENZY && S.phase === 'play' && maxBalls(S) > normalBalls(S)) ev(S, ['more', maxBalls(S)]);
   if (mode === MODE_FORT && pl.lives > 0) { pl.bricks = BRICKS; ev(S, ['walls', seat]); }   // a fresh wall after every life lost
-  if (lm) {
+  if (lm && S.tm) { if (S.teams[pl.team].lives <= 0) teamOut(S, pl.team); }
+  else if (lm) {
     if (pl.lives <= 0) {
       pl.alive = false; pl.place = S.places--; pl.shield = false;
       ev(S, ['out', seat, pl.place]);
@@ -1961,7 +2063,7 @@ function goal(S, b, seat) {
       if (al.length <= 1) { if (al[0]) al[0].place = 1; finish(S, al[0] ? al[0].seat : -1); }
     }
   } else if (toTarget(mode)) {
-    if (scp && scp.pts >= (S.cfg.target || 10)) finish(S, sc);
+    if (scp && (S.tm ? teamPts(S, scp.team) : scp.pts) >= (S.cfg.target || 10)) finish(S, sc);
   } else if (S.ot && mode === MODE_TIME) {
     if (leaders(S).n === 1) finish(S, -1);
   }
@@ -2008,8 +2110,8 @@ function applyClientBounce(S, b, pl, v, extraAge, quiet) {
 }
 
 function cross(S, b, si, M) {
-  var sd = S.sides[si], u = -b.x * sd.s + b.y * sd.c, seat = sd.seat, pl = seat >= 0 ? S.players[seat] : null, t = S.t;
-  if (!pl || !pl.alive || Math.abs(u) > goalHalf(pl)) { reflectSide(b, sd, u); if (M.onWall) M.onWall(b, 0); return; }
+  var sd = S.sides[si], u = -b.x * sd.s + b.y * sd.c, seat = seatAt(S, sd, u), pl = seat >= 0 ? S.players[seat] : null, t = S.t;
+  if (!pl || !pl.alive || Math.abs(u - (pl.lc || 0)) > goalHalf(pl)) { reflectSide(b, sd, u); if (M.onWall) M.onWall(b, 0); return; }
   var covers = Math.abs(u - padU(pl)) <= padHalf(pl) + 0.042;
   var safe = pl.guard || pl.shield;
   var sm, v, key;
@@ -2139,7 +2241,7 @@ function normalBalls(S) { var n = 0; for (var i = 0; i < S.balls.length; i++) if
 /* Gold Rush: now and then a golden pearl rolls out; sending it into someone's goal is worth 3 points */
 function spawnGold(S) {
   var al = aliveList(S); if (!al.length) return;
-  var pick = al[(Math.random() * al.length) | 0], tp = sidePt(S.sides[pick.side], (Math.random() * 1.4 - 0.7) * goalHalf(pick), AP);
+  var pick = al[(Math.random() * al.length) | 0], tp = sidePt(S.sides[pick.side], (pick.lc || 0) + (Math.random() * 1.4 - 0.7) * goalHalf(pick), AP);
   var a = Math.atan2(tp.y, tp.x), sp = BASE_SP * speedK(S) * 1.05, r0 = S.cfg.core ? CORE_R + BR + 0.01 : 0.02;
   S.balls.push({ id: S.nextBall++, x: Math.cos(a) * r0, y: Math.sin(a) * r0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, owner: -1, seq: 0, st: LIVE, tent: -1, tentUntil: 0,
     hotUntil: -1, born: S.t, pendSeat: -1, pendUntil: 0, gold: 1 });
@@ -2147,14 +2249,14 @@ function spawnGold(S) {
 }
 function spawnBomb(S) {
   var al = aliveList(S); if (!al.length) return;
-  var pick = al[(Math.random() * al.length) | 0], tp = sidePt(S.sides[pick.side], (Math.random() * 1.4 - 0.7) * goalHalf(pick), AP);
+  var pick = al[(Math.random() * al.length) | 0], tp = sidePt(S.sides[pick.side], (pick.lc || 0) + (Math.random() * 1.4 - 0.7) * goalHalf(pick), AP);
   var a = Math.atan2(tp.y, tp.x), sp = BASE_SP * speedK(S) * 0.85, r0 = S.cfg.core ? CORE_R + BR + 0.01 : 0.02;
   S.balls.push({ id: S.nextBall++, x: Math.cos(a) * r0, y: Math.sin(a) * r0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, owner: -1, seq: 0, st: LIVE, tent: -1, tentUntil: 0,
     hotUntil: -1, born: S.t, pendSeat: -1, pendUntil: 0, bomb: 1, fuseAt: S.t + BOMB_FUSE + Math.random() * 3 });
   ev(S, ['bombnew', r3(a)]);
 }
 function boomBomb(S, b) {
-  var seat = sideOwner(S, sideOf(S, b.x, b.y)), pl = seat >= 0 ? S.players[seat] : null;
+  var bsd = S.sides[sideOf(S, b.x, b.y)], seat = seatAt(S, bsd, -b.x * bsd.s + b.y * bsd.c), pl = seat >= 0 ? S.players[seat] : null;
   if (!pl || !pl.alive) {                                                    // a wall side: the nearest player takes it
     pl = null; var bd = 9;
     aliveList(S).forEach(function (p) { var q = padXY(S, p), d = Math.hypot(q.x - b.x, q.y - b.y); if (d < bd) { bd = d; pl = p; } });
@@ -2181,7 +2283,7 @@ function botThink(S, pl, dt) {
     var b = S.balls[i]; if (b.st !== LIVE) continue;
     var f = firstSide(S, b); if (!f || f.si !== pl.side) continue;
     var u = -(b.x + b.vx * f.s) * sd.s + (b.y + b.vy * f.s) * sd.c;
-    if (Math.abs(u) > goalHalf(pl) + 0.06) continue;
+    if (Math.abs(u - (pl.lc || 0)) > goalHalf(pl) + 0.06) continue;
     if (f.s < bt) { bt = f.s; best = { u: u, b: b, s: f.s }; }
   }
   if (!best) { pl.pt *= 0.85; return; }
@@ -2195,7 +2297,7 @@ function botThink(S, pl, dt) {
     var vr = best.b.vx * sd.c + best.b.vy * sd.s, vt = -best.b.vx * sd.s + best.b.vy * sd.c, refl = Math.atan2(vt, Math.max(1e-6, vr));
     off = clamp((want - 0.4 * refl) / 0.62, -0.6, 0.6); e *= 0.8;
   } else if (lvl >= 3) off = (hash3(best.b.id, best.b.seq, pl.seat + 31) - 0.5) * 0.9;   // Expert hits it at an angle instead of straight back
-  pl.pt = clamp((best.u - off * hw + e) / padSpan(pl), -1, 1);
+  pl.pt = clamp((best.u - (pl.lc || 0) - off * hw + e) / padSpan(pl), -1, 1);
   if (best.s < 0.13 && S.t >= pl.smashCd && hash3(best.b.id, best.b.seq, pl.seat + 77) < ([0.08, 0.28, 0.5, 0.72][lvl] || 0.28)) trySmash(S, pl);
 }
 
@@ -2270,7 +2372,7 @@ function hostRules(S, dt) {
       S.hunt = false;
       if (pick) {
         pick.lastAimed = t;
-        var tp = sidePt(S.sides[pick.side], (Math.random() * 1.7 - 0.85) * goalHalf(pick), AP);
+        var tp = sidePt(S.sides[pick.side], (pick.lc || 0) + (Math.random() * 1.7 - 0.85) * goalHalf(pick), AP);
         c.tele = Math.atan2(tp.y, tp.x); ev(S, ['tele']);
       }
     }
@@ -2349,7 +2451,7 @@ function advance(S, dt, M, mode) {
   if (M.host) { while (S.ev.length && S.t - S.ev[0][1] > 0.7) S.ev.shift(); }
 }
 
-if (typeof module !== 'undefined') module.exports = { pwList: pwList, PW_N: PW_N, padHalf: padHalf, grant: grant, glide: glide, MODE_FORT: MODE_FORT, MODE_GOLD: MODE_GOLD, MODE_FRENZY: MODE_FRENZY, MODE_BULLET: MODE_BULLET, MODE_BOMB: MODE_BOMB, tierOf: tierOf, livesMode: livesMode, MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, HOLD: HOLD, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
+if (typeof module !== "undefined") module.exports = { foOn: foOn, seating: seating, seatAt: seatAt, teamsOn: teamsOn, teamRank: teamRank, skipToEnd: skipToEnd, goal: goal, pwList: pwList, PW_N: PW_N, padHalf: padHalf, grant: grant, glide: glide, MODE_FORT: MODE_FORT, MODE_GOLD: MODE_GOLD, MODE_FRENZY: MODE_FRENZY, MODE_BULLET: MODE_BULLET, MODE_BOMB: MODE_BOMB, tierOf: tierOf, livesMode: livesMode, MODE_CROWN: MODE_CROWN, MAXP: MAXP, newMatch: newMatch, advance: advance, STEP: STEP, trySmash: trySmash, aliveList: aliveList, padU: padU, padHalf: padHalf, goalHalf: goalHalf, RC: RC, LIVE: LIVE, PEND: PEND, HOLD: HOLD, sideOf: sideOf, LAYOUTS: LAYOUTS, MODE_LIVES: MODE_LIVES, MODE_POINTS: MODE_POINTS, MODE_TIME: MODE_TIME };
 
 /* ================= CHARACTERS & COLOURS =================
    Ten original goofy creatures built in code, each with a name and a nickname. The body takes
@@ -2744,6 +2846,8 @@ var STR = {
     testBuy: 'Test purchase: no money is charged. Real payments come with the App Store and Google Play apps.', gemsAdded: '+{n} gems added', practiceT: 'Practice', practiceNote: 'Practice with bots. Play with friends to earn XP, coins and pass rewards.', soonT: 'Coming soon', gemsSoon: 'Gem packs open when SmashBo launches on the App Store and Google Play', gemsLater: 'Gem packs open when SmashBo launches on the App Store and Google Play. Until then you earn gems from the season pass, weekly challenges and every 5th level.', popular: 'Popular', bestV: 'Best value',
     seasonT: 'Season 1: {n}', tierT: 'Tier {n}', premT: 'Premium', freeT: 'Free', getPrem: 'Unlock Premium', premOn: 'Premium unlocked', claim: 'Claim', claimAll: 'Claim all',
     passNote: 'Earn pass XP from every match and from challenges.', xpTo: '{a} / {b} XP to tier {n}', passDone: 'All tiers reached',
+    arenaT: 'Arena', foRing: 'Ring', foFace: 'Face-Off', foNote: 'Two goals, one per team; each player guards a lane.',
+    teamsT: 'Teams', tmOff: 'Off', teamN: '{c} team', teamOut: '{n} is out', yourTeamOut: 'Your team is out', teamWin: 'Your team wins!', tmNoteL: 'Each team shares its lives.', tmNoteP: 'Teammates score together.',
     collect: 'Collect', collectAll: 'Collect all', collected: 'Collected', gotC: '+{c} coins, +{x} pass XP', gotCG: '+{c} coins, +{g} gems, +{x} pass XP', passTierUp: 'Season Pass tier {n} reached!',
     matchT: 'Match', lvShort: 'Level {n}', walletT: 'Your coins',
     dailyCh: 'Daily challenges', weeklyCh: 'Weekly challenges', resetIn: 'New ones in {t}', chDone: 'Challenge complete!', hm: '{h}h {m}m', dh: '{d}d {h}h',
@@ -2834,6 +2938,8 @@ var STR = {
     testBuy: 'شراء تجريبي: ما ينخصم أي مبلغ. الدفع الحقيقي يجي مع تطبيق آب ستور وقوقل بلاي.', gemsAdded: 'انضافت {n} جوهرة', practiceT: 'تمرين', practiceNote: 'تمرين مع البوتات. العب مع ربعك عشان تحصل خبرة وعملات وجوائز التذكرة.', soonT: 'قريبًا', gemsSoon: 'باقات الجواهر تفتح لما ينزل سماش بو على آب ستور وقوقل بلاي', gemsLater: 'باقات الجواهر تفتح لما ينزل سماش بو على آب ستور وقوقل بلاي. لين ذاك الوقت تحصل جواهر من تذكرة الموسم والتحديات الأسبوعية وكل خامس مستوى.', popular: 'الأكثر طلب', bestV: 'أفضل قيمة',
     seasonT: 'الموسم 1: {n}', tierT: 'المرحلة {n}', premT: 'المميزة', freeT: 'مجانية', getPrem: 'افتح المميزة', premOn: 'المميزة مفتوحة', claim: 'استلم', claimAll: 'استلم الكل',
     passNote: 'اجمع نقاط التذكرة من كل مباراة ومن التحديات.', xpTo: '{a} / {b} نقطة للمرحلة {n}', passDone: 'وصلت كل المراحل',
+    arenaT: 'الساحة', foRing: 'دائرة', foFace: 'وجهًا لوجه', foNote: 'مرميين، واحد لكل فريق، وكل لاعب يحمي جزءه.',
+    teamsT: 'الفرق', tmOff: 'بدون', teamN: 'الفريق {c}', teamOut: 'طلع {n}', yourTeamOut: 'طلع فريقك', teamWin: 'فاز فريقك!', tmNoteL: 'كل فريق يتشارك نفس الأرواح.', tmNoteP: 'نقاط الفريق تنجمع مع بعض.',
     collect: 'استلم', collectAll: 'استلم الكل', collected: 'تم الاستلام', gotC: '+{c} عملة، +{x} نقطة تذكرة', gotCG: '+{c} عملة، +{g} جوهرة، +{x} نقطة تذكرة', passTierUp: 'وصلت المرحلة {n} في التذكرة!',
     matchT: 'المباراة', lvShort: 'المستوى {n}', walletT: 'رصيدك',
     dailyCh: 'تحديات اليوم', weeklyCh: 'تحديات الأسبوع', resetIn: 'جديدة بعد {t}', chDone: 'خلّصت التحدي!', hm: '{h}س {m}د', dh: '{d}ي {h}س',
@@ -3333,7 +3439,7 @@ function commsStrings() {
    and receives the state about 20-30 times a second, then predicts in between. */
 var SPEEDS = [0.85, 1, 1.22];
 var ME = { id: '', pid: '', name: '', ch: 0, col: 0 };
-var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, crs: 90, ck: 0, balls: 0, gpts: 15, sp: 1, pw: 1, pws: 127, pad: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1, comp: 0 }, mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
+var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, crs: 90, ck: 0, balls: 0, gpts: 15, sp: 1, pw: 1, pws: 127, pad: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1, comp: 0, tm: 0, fo: 0 }, tcol: [0, 5, 3, 2, 6], mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
 var G = { S: null, role: 'none', me: -1, mid: 0, acc: 0, quiet: false, verdicts: new Map(), seenV: new Map(), early: new Map(), lastEid: 0, vis: {},
   offset: 0, lat: 0, synced: false, pings: [], lastTick: -1, lastHost: 0, stale: false, smashN: 0, inT: 0, snapT: 0, relT: 0, overTimer: null };
 var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
@@ -3342,7 +3448,7 @@ var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
 function cfgObj() {
   var P = plOf(ROOM.cfg.comp), c = P ? Object.assign({}, ROOM.cfg, P.rules) : ROOM.cfg, m = MAPS[ROOM.mapNow] || MAPS[0];
   return { mode: c.mode | 0, lives: c.lives, target: (c.mode | 0) === 6 ? c.gpts || 15 : c.pts, mins: c.mins, crownT: c.crn || 45, crownBy: c.ck ? 1 : 0, crownS: c.crs || 90, balls: c.balls | 0, speed: (SPEEDS[c.sp] || 1) * ([1.12, 1, 0.88][c.size == null ? 1 : c.size | 0] || 1),   // a bigger arena: the pearls take longer to cross it
-    pw: !!c.pw && (c.pws == null || (c.pws | 0) > 0), pws: c.pws == null ? 127 : c.pws | 0, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, pad: c.pad == null ? 1 : c.pad | 0, map: ROOM.mapNow, layout: m.layout };
+    pw: !!c.pw && (c.pws == null || (c.pws | 0) > 0), pws: c.pws == null ? 127 : c.pws | 0, bot: c.bot, core: !!c.core, hazards: !!c.haz, size: c.size | 0, pad: c.pad == null ? 1 : c.pad | 0, map: ROOM.mapNow, layout: m.layout, tm: P ? 0 : c.tm | 0, fo: P ? 0 : c.fo ? 1 : 0 };
 }
 /* the map on show in the lobby: the chosen one, or the last one played when it is random */
 function lobbyMap() { return ROOM.cfg.map >= 0 ? ROOM.cfg.map : ROOM.mapNow; }
@@ -3353,13 +3459,13 @@ function pickMap() {
 }
 function prof() { return { name: ME.name || T('guest'), ch: ME.ch, col: ME.col, lv: myLevel(), pid: ME.pid, rk: rkWire(), cos: myCos() }; }
 function seatRk(t, p) { t.pid = okPid(p.pid) ? p.pid : ''; t.rk = rkClean(p.rk, p.sr, p.gp); t.cos = cosClean(p.cos); return t; }
-function mySeat(o) { return Object.assign({ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), bot: false, pid: ME.pid, rk: rkWire(), cos: myCos() }, o); }
+function mySeat(o) { return Object.assign({ id: ME.id, name: cleanName(ME.name), ch: ME.ch, col: ME.col, pc: ME.col, lv: myLevel(), bot: false, pid: ME.pid, rk: rkWire(), cos: myCos() }, o); }
 function seatRks(s) { return s.id === ME.id ? rkWire() : s.rk || rkClean(); }
 function cleanName(s) { s = String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12); return s || T('guest'); }
 function ci(v, a, b) { v = v | 0; return v < a ? a : v > b ? b : v; }
 function humans() { return ROOM.seats.filter(function (s) { return !s.bot; }); }
 function freeCol(want, exceptId) {
-  var u = {}; humans().forEach(function (s) { if (s.id !== exceptId) u[s.col] = 1; });
+  var u = {}; humans().forEach(function (s) { if (s.id !== exceptId) u[s.pc != null ? s.pc : s.col] = 1; });     // each player's own colour (in a team match everyone wears their team's)
   if (!u[want]) return want;
   for (var i = 0; i < COLORS.length; i++) if (!u[i]) return i;
   return want;
@@ -3367,6 +3473,11 @@ function freeCol(want, exceptId) {
 function syncBots() {
   var hs = humans(), bots = ROOM.seats.filter(function (s) { return s.bot; });
   var want = ROOM.cfg.comp ? 0 : Math.max(0, Math.min(ROOM.bots, MAXP - hs.length)), u = {}, uc = {}, i;
+  if (tmOn()) {                                                       // teams: bots top every team up to the same size
+    var T = ROOM.cfg.tm | 0, big = 0, cn = []; for (i = 0; i < T; i++) cn.push(0);
+    hs.forEach(function (s) { if (s.team >= 0 && s.team < T) cn[s.team]++; }); cn.forEach(function (x) { big = Math.max(big, x); });
+    var tot = Math.max(hs.length + want, 2 * T, big * T); tot = Math.min(MAXP, Math.ceil(tot / T) * T); want = Math.max(0, Math.min(MAXP, tot) - hs.length);
+  }
   while (bots.length > want) bots.pop();
   hs.forEach(function (s) { u[s.col] = 1; uc[s.ch] = 1; });
   bots.forEach(function (b) {
@@ -3382,12 +3493,35 @@ function syncBots() {
     bots.push({ id: 'bot' + rid(5), name: '', ch: ch, col: col, bot: true, seen: 0, joinedAt: performance.now() / 1000, cos: botCos() });
   }
   ROOM.seats = hs.concat(bots);
+  assignTeams();
+}
+/* ---------- teams in the room ----------
+   Players pick their team (new ones join the smallest), bots fill whichever team is short, and everyone wears
+   their team's colour. With teams off, everyone gets their own colour back. */
+function tmOn() { var c = ROOM.cfg; return (c.tm | 0) >= 2 && (c.mode | 0) !== MODE_CROWN && !c.comp; }
+function assignTeams() {
+  var hs = humans(), bots = ROOM.seats.filter(function (s) { return s.bot; }), i;
+  if (!tmOn()) { hs.forEach(function (s) { if (s.pc != null && s.col !== s.pc) s.col = freeCol(s.pc, s.id); }); return; }
+  var T = ROOM.cfg.tm | 0, cn = []; for (i = 0; i < T; i++) cn.push(0);
+  function least() { var b = 0; for (var k = 1; k < T; k++) if (cn[k] < cn[b]) b = k; return b; }
+  hs.forEach(function (s) { if (s.team >= 0 && s.team < T) cn[s.team]++; else s.team = -1; });
+  hs.forEach(function (s) { if (s.team < 0) { s.team = least(); cn[s.team]++; } });
+  bots.forEach(function (b) { b.team = least(); cn[b.team]++; });
+  for (i = 0; i < T; i++) if (ROOM.tcol[i] == null) ROOM.tcol[i] = [0, 5, 3, 2, 6][i];
+  ROOM.seats.forEach(function (s) { s.col = ROOM.tcol[s.team]; });
+}
+/* a player moves to another team, or a team picks its colour (any colour no other team wears) */
+function setTeam(seat, t) { if (!tmOn() || !seat || t < 0 || t >= (ROOM.cfg.tm | 0) || seat.team === t) return false; seat.team = t; syncBots(); return true; }
+function setTeamCol(t, k) {
+  if (!tmOn() || t < 0 || t >= (ROOM.cfg.tm | 0) || k < 0 || k >= COLORS.length) return false;
+  for (var i = 0; i < (ROOM.cfg.tm | 0); i++) if (i !== t && ROOM.tcol[i] === k) return false;
+  ROOM.tcol[t] = k; assignTeams(); return true;
 }
 
 /* ---------- starting and ending a match ---------- */
 function beginMatch(role) {
   var roster = ROOM.seats.map(function (s) {
-    return { id: s.id, name: s.bot ? chName(s.ch) : s.name, ch: s.ch, col: s.col, bot: !!s.bot, lv: s.bot ? 0 : s.lv || 1, cos: s.id === ME.id ? myCos() : cosClean(s.cos),
+    return { id: s.id, name: s.bot ? chName(s.ch) : s.name, ch: s.ch, col: s.col, team: s.team | 0, bot: !!s.bot, lv: s.bot ? 0 : s.lv || 1, cos: s.id === ME.id ? myCos() : cosClean(s.cos),
       remote: !s.bot && (role === 'client' ? s.id !== ROOM.hostId : s.id !== ME.id) };
   });
   var S = newMatch(roster, cfgObj()), nowMs = performance.now();
@@ -3492,8 +3626,8 @@ function wallFx(b, soft) {
 }
 function lobbyMsg() {
   var c = ROOM.cfg, now = performance.now();
-  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15, c.comp | 0, c.pws == null ? 127 : c.pws | 0, c.pad == null ? 1 : c.pad | 0], map: ROOM.mapNow, bots: ROOM.bots,
-    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1, s.bot || s.id === ME.id ? 0 : Math.min(999, s.rtt | 0), s.dir ? 1 : 0, s.bot ? '' : s.pid || '', s.bot ? 0 : seatRks(s), 0, s.id === ME.id ? myCos() : s.cos || 0]; }),
+  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15, c.comp | 0, c.pws == null ? 127 : c.pws | 0, c.pad == null ? 1 : c.pad | 0, c.tm | 0, c.fo ? 1 : 0], tcol: ROOM.tcol.slice(0, 5), map: ROOM.mapNow, bots: ROOM.bots,
+    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1, s.bot || s.id === ME.id ? 0 : Math.min(999, s.rtt | 0), s.dir ? 1 : 0, s.bot ? '' : s.pid || '', s.bot ? 0 : seatRks(s), 0, s.id === ME.id ? myCos() : s.cos || 0, s.team == null ? -1 : s.team]; }),
     wait: ROOM.waiting.map(function (w) { return [w.id, w.name, w.ch, w.col]; }) }];
 }
 function sendLobby() { if (ROOM.role === 'host') hostBroadcast(lobbyMsg()); if (UI.screen === 'lobby') renderLobby(); }
@@ -3533,7 +3667,7 @@ function onHostMsg(id, m) {
     if (!seat && !w) {
       if (humans().length + ROOM.waiting.length >= MAXP) { hostSendTo(id, ['err', 'full']); return; }
       t = { id: id, name: cleanName(p.name), ch: ci(p.ch, 0, CHARS.length - 1), col: ci(p.col, 0, COLORS.length - 1), lv: ci(p.lv, 1, LV_MAX), bot: false, seen: now, joinedAt: now / 1000 }; seatRk(t, p);
-      if (ROOM.phase === 'lobby') { t.col = freeCol(t.col, id); ROOM.seats.push(t); syncBots(); } else ROOM.waiting.push(t);
+      t.col = t.pc = freeCol(t.col, id); if (ROOM.phase === 'lobby') { ROOM.seats.push(t); syncBots(); } else ROOM.waiting.push(t);
       sfx('join'); roomNote(t, 'joinedT');
     }
     sendLobby();
@@ -3541,7 +3675,7 @@ function onHostMsg(id, m) {
     p = m[1] || {};
     if (seat && ROOM.phase !== 'lobby') { seatRk(seat, p); seat.lv = ci(p.lv, 1, LV_MAX); return; }   // after a match: the new level and rank, ready for the room
     t = (ROOM.phase === 'lobby' ? seat : null) || w; if (!t) return;
-    t.name = cleanName(p.name); seatRk(t, p); t.lv = ci(p.lv, 1, LV_MAX); t.ch = ci(p.ch, 0, CHARS.length - 1); t.col = freeCol(ci(p.col, 0, COLORS.length - 1), id);
+    t.name = cleanName(p.name); seatRk(t, p); t.lv = ci(p.lv, 1, LV_MAX); t.ch = ci(p.ch, 0, CHARS.length - 1); t.col = t.pc = freeCol(ci(p.col, 0, COLORS.length - 1), id);
     if (t === seat) syncBots(); sendLobby();
   } else if (k === 'p') {
     hostSendTo(id, ['q', m[1], Math.round(now)]);
@@ -3551,6 +3685,8 @@ function onHostMsg(id, m) {
     if (seat && G.S) G.S.players.forEach(function (pl) { if (pl.id === id) pl.lastIn = 0; });
     if (seat) seat.seen = now - 4500; sendLobby();
   }
+  else if (k === 'team') { if (seat && ROOM.phase === 'lobby' && setTeam(seat, m[1] | 0)) sendLobby(); }
+  else if (k === 'tcol') { if (seat && ROOM.phase === 'lobby' && setTeamCol(seat.team, m[1] | 0)) sendLobby(); }
   else if (k === 'i') hostInput(id, m, now);
   else if (k === 'rtc') { if (seat || w) hostRtc(id, m[1]); }
   else if (k === 'chat') { if (seat || w) hostChat(id, m[1]); }
@@ -3664,10 +3800,11 @@ function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
   ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
-  ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: ci(q[16], 0, PLAYLISTS.length), pws: q[17] == null ? 127 : ci(q[17], 0, 127), pad: q[18] == null ? 1 : ci(q[18], 0, 2), sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 3), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2) };
+  ROOM.cfg = { mode: ci(q[0], 0, 8), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: ci(q[16], 0, PLAYLISTS.length), pws: q[17] == null ? 127 : ci(q[17], 0, 127), pad: q[18] == null ? 1 : ci(q[18], 0, 2), sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 3), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2), tm: q[19] == null ? 0 : ci(q[19], 0, 5), fo: q[20] ? 1 : 0 };
+  if (Array.isArray(d.tcol)) ROOM.tcol = d.tcol.map(function (k) { return ci(k, 0, COLORS.length - 1); });
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000, before = {}; ROOM.seats.concat(ROOM.waiting).forEach(function (x) { was[x.id] = x.joinedAt; if (!x.bot) before[x.id] = x.name; });
-  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), rtt: a[7] | 0, dir: !!a[8], pid: okPid(a[9]) ? a[9] : '', rk: rkClean(a[10], a[10], a[11]), cos: cosClean(a[12]), joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
+  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), rtt: a[7] | 0, dir: !!a[8], pid: okPid(a[9]) ? a[9] : '', rk: rkClean(a[10], a[10], a[11]), cos: cosClean(a[12]), team: a[13] == null ? -1 : a[13] | 0, joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
   ROOM.waiting = (d.wait || []).map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3] }; });
   if (ROOM.joined) {                                                  // who came in and who left, since the last update
     var after = {}, seatOf = {}; ROOM.seats.concat(ROOM.waiting).forEach(function (x) { if (!x.bot) { after[x.id] = x.name; seatOf[x.id] = x; } });
@@ -3933,7 +4070,7 @@ function profChanged() {
   }
   if (ROOM.role !== 'host' && ROOM.role !== 'solo') return;
   var s = ROOM.seats.find(function (x) { return x.id === ME.id; }); if (!s) return;
-  s.name = cleanName(ME.name); s.lv = myLevel(); s.ch = ME.ch; s.col = ME.col = freeCol(ME.col, ME.id); s.cos = myCos();
+  s.name = cleanName(ME.name); s.lv = myLevel(); s.ch = ME.ch; s.col = s.pc = ME.col = freeCol(ME.col, ME.id); s.cos = myCos();
   syncBots(); sendLobby(); if (ROOM.role === 'solo') renderLobby();
 }
 function keyMove(me, dt) {
@@ -6673,10 +6810,12 @@ function disposeTree(root) {
     ms.forEach(function (m) { if (m.map && m.map !== glowTex() && m.map !== _spillT) m.map.dispose(); if (m !== sceneMat('lit') && m !== sceneMat('glow') && m !== sceneMat('flat')) m.dispose(); });
   });
 }
+/* the lobby shows the arena as it will be: everyone in their seat, teams in turn, or Face-Off's two goals */
+function lobbySeating() { var tms = ROOM.seats.map(function (s) { return s.team; }); if (tms.length < 2) tms.push(tmOn() ? 1 : 0); return seating(tms, cfgObj()); }
 function stageFor() {
   var S = G.S, n, occ = [], K, i, map = 0, core = false, haz = false;
   if (UI.full && S) { K = S.K; for (i = 0; i < K; i++) occ.push(S.sides[i].seat >= 0); map = S.cfg.map | 0; core = !!S.cfg.core; haz = !!S.cfg.hazards; }
-  else if (UI.screen === 'lobby') { n = Math.max(2, ROOM.seats.length); K = sideCount(n); for (i = 0; i < K; i++) occ.push(false); seatSides(n).forEach(function (s) { occ[s] = true; }); map = lobbyMap(); core = !!ROOM.cfg.core; haz = !!ROOM.cfg.haz; }
+  else if (UI.screen === 'lobby') { var ST = lobbySeating(); K = ST.K; for (i = 0; i < K; i++) occ.push(false); ST.at.forEach(function (a) { occ[a.side] = true; }); map = lobbyMap(); core = !!ROOM.cfg.core; haz = !!ROOM.cfg.haz; }
   else { K = 4; occ = [false, false, false, false]; map = UI.homeMap || 0; }
   return { K: K, occ: occ, map: map, core: core, haz: haz };
 }
@@ -6737,11 +6876,11 @@ function gfxSlices() {
       var vp = drawP(p, i, now), span = padSpan(p);
       var pvv = p.vpLast == null ? 0 : (vp - p.vpLast) * span / Math.max(0.008, (now - p.vpT) / 1000); p.vpLast = vp; p.vpT = now;
       if (vp !== p.p) p.pvS = (p.pvS || 0) * 0.7 + pvv * 0.3;
-      out.push({ si: p.side, K: S.K, a0: sd.a, L: sd.L, gh: goalHalf(p), hw: padHalf(p), pu: vp * span, pv: vp !== p.p ? p.pvS : p.pv, col: p.col, ch: p.ch, alive: p.alive, pl: p, pod: true });
+      out.push({ si: p.side, K: S.K, a0: sd.a, L: sd.L, gh: goalHalf(p), lc: p.lc || 0, hw: padHalf(p), pu: (p.lc || 0) + vp * span, pv: vp !== p.p ? p.pvS : p.pv, col: p.col, ch: p.ch, alive: p.alive, pl: p, pod: true });
     }
   } else if (UI.screen === 'lobby') {
-    n = Math.max(2, ROOM.seats.length); var K = sideCount(n), ss = seatSides(n), L = Math.tan(Math.PI / K);
-    for (i = 0; i < ROOM.seats.length; i++) { var f = { L: L, wide: false }; out.push({ si: ss[i], K: K, a0: ss[i] * TAU / K, L: L, gh: goalHalf(f), hw: padHalf(f), pu: 0, pv: 0, col: ROOM.seats[i].col, ch: ROOM.seats[i].ch, alive: true, pod: true, seat: ROOM.seats[i] }); }
+    var ST = lobbySeating(), K = ST.K, L = Math.tan(Math.PI / K);
+    for (i = 0; i < ROOM.seats.length; i++) { var A = ST.at[i], f = { L: L, wide: false, lc: A.lc, lw: A.lw }, sj = A.side; out.push({ si: sj, K: K, a0: sj * TAU / K, L: L, gh: goalHalf(f), lc: A.lc, hw: padHalf(f), pu: A.lc, pv: 0, col: ROOM.seats[i].col, ch: ROOM.seats[i].ch, alive: true, pod: true, seat: ROOM.seats[i] }); }
   }
   return out;
 }
@@ -6761,18 +6900,18 @@ function syncSlot(S, sl, now, dt) {
   if (S.cosK !== ck) { S.cosK = ck; applySlotCos(S, cos || COS0); }
   S.scale += ((live ? 1 : 0) - S.scale) * Math.min(1, dt * (live ? 6 : 10));
   S.seal += ((live ? 0 : 1) - S.seal) * Math.min(1, dt * 5);
-  var key = sl.a0.toFixed(3) + ':' + sl.gh.toFixed(3) + ':' + SIZE;
+  var key = sl.a0.toFixed(3) + ':' + sl.gh.toFixed(3) + ':' + (sl.lc || 0).toFixed(3) + ':' + SIZE;
   if (key !== S.key) {
-    S.key = key; var gh = sl.gh * R3;
+    S.key = key; var gh = sl.gh * R3, lz = (sl.lc || 0) * R3;           // a Face-Off lane sits off the middle of the goal
     S.grp.rotation.y = -sl.a0;
-    S.glow.position.set(R3 + 1.8, 0.03, 0); S.glow.scale.set(3.6, gh * 2.1, 1);
-    S.line.position.set(R3 - 0.12, 0.03, 0); S.line.scale.set(0.12, 0.06, gh * 2);
-    S.curtain.position.set(R3 * DECK_AP - 0.15, 1.2, 0); S.curtain.scale.set(gh * 2, 2.4, 1);
-    S.barrier.position.set(R3 + 0.05, 0.65, 0); S.barrier.scale.set(gh * 2, 1.3, 1);
-    S.sealW.position.set(R3 + 0.35, 0, 0); S.sealW.scale.set(0.7, 1, gh * 2 + 0.2);
-    S.sealT.position.set(R3 + 0.35, 0, 0); S.sealT.scale.set(0.36, 0.1, gh * 2 + 0.2);
+    S.glow.position.set(R3 + 1.8, 0.03, lz); S.glow.scale.set(3.6, gh * 2.1, 1);
+    S.line.position.set(R3 - 0.12, 0.03, lz); S.line.scale.set(0.12, 0.06, gh * 2);
+    S.curtain.position.set(R3 * DECK_AP - 0.15, 1.2, lz); S.curtain.scale.set(gh * 2, 2.4, 1);
+    S.barrier.position.set(R3 + 0.05, 0.65, lz); S.barrier.scale.set(gh * 2, 1.3, 1);
+    S.sealW.position.set(R3 + 0.35, 0, lz); S.sealW.scale.set(0.7, 1, gh * 2 + 0.2 * (sl.lc ? 0 : 1));
+    S.sealT.position.set(R3 + 0.35, 0, lz); S.sealT.scale.set(0.36, 0.1, gh * 2 + 0.2 * (sl.lc ? 0 : 1));
     S.s = charScale(sl.K);
-    S.net.position.set(R3 - 0.02, 0, 0); S.netHalf = gh + 0.05; S.netDep = 1.05; S.netH = 1.0; netShape(S, 0);
+    S.net.position.set(R3 - 0.02, 0, lz); S.netHalf = gh + (sl.lc ? 0 : 0.05); S.netDep = 1.05; S.netH = 1.0; netShape(S, 0);
   }
   S.sealW.visible = S.sealT.visible = S.seal > 0.01;
   if (S.sealW.visible) { var sh = 1.0 * S.seal; S.sealW.scale.y = sh; S.sealW.position.y = sh / 2; S.sealT.position.y = sh + 0.05; }
@@ -6792,7 +6931,7 @@ function syncSlot(S, sl, now, dt) {
       S.bmask = mk; var gw = sl.gh * R3, bw = gw * 2 / 5;
       for (var bi = 0; bi < 5; bi++) {
         var on = (sl.pl.bricks >> bi) & 1;
-        _m4.compose(_v.set(R3 + 0.04, 0.26, -gw + bw * (bi + 0.5)), _q0, _s3.set(on ? 0.46 : 0.0001, on ? 0.52 : 0.0001, on ? bw * 0.88 : 0.0001));
+        _m4.compose(_v.set(R3 + 0.04, 0.26, (sl.lc || 0) * R3 - gw + bw * (bi + 0.5)), _q0, _s3.set(on ? 0.46 : 0.0001, on ? 0.52 : 0.0001, on ? bw * 0.88 : 0.0001));
         S.bricks.setMatrixAt(bi, _m4);
       }
       S.bricks.instanceMatrix.needsUpdate = true;
@@ -7002,7 +7141,7 @@ function netUpdate(sl, now, alive) {
 /* a goal on this slot: where along the goal (sim x, y of the pearl) */
 function netHit(seat, x, y) {
   var S = G.S, sl = GFX.slots[seat], pl = S && S.players[seat]; if (!sl || !pl) return;
-  var sd = S.sides[pl.side], u = -x * sd.s + y * sd.c, d = x * sd.c + y * sd.s, now = performance.now() / 1000;
+  var sd = S.sides[pl.side], u = -x * sd.s + y * sd.c - (pl.lc || 0), d = x * sd.c + y * sd.s, now = performance.now() / 1000;
   sl.netT = now; sl.netU = clamp(u * R3, -sl.netHalf + 0.3, sl.netHalf - 0.3);
   sl.npT = now; sl.npX0 = Math.max(R3 - 0.3, Math.min(R3 + 0.6, d * R3));
 }
@@ -7045,12 +7184,20 @@ function fxEvent(a) {
   } else if (k === 'out') {
     pl = S.players[a[1]]; if (!pl) return; sl = GFX.slots[a[1]];
     if (sl && sl.used) knockOut(sl, pl);
-    showTitle(T('ko'), T('isOut', { n: pl.name }), 'ko', 1700, COLORS[pl.col]);
-    sfx('out'); if (a[1] === me) { buzz(300); setTimeout(function () { toast(T('youOut')); }, 1800); }
+    var tko = S.tm && pl.team >= 0 && a[2] > 0;                              // a whole team goes out together: one title for the team
+    if (tko && (G.tko || (G.tko = {}))[G.mid + ':' + pl.team]) return;
+    if (tko) G.tko[G.mid + ':' + pl.team] = 1;
+    showTitle(T('ko'), tko ? T('teamOut', { n: teamName(pl.col) }) : T('isOut', { n: pl.name }), 'ko', 1700, COLORS[pl.col]);
+    var mineOut = a[1] === me || (tko && S.players[me] && S.players[me].team === pl.team);
+    sfx('out'); if (mineOut) { buzz(300); setTimeout(function () { toast(T(tko ? 'yourTeamOut' : 'youOut')); }, 1800); }
     var left = S.players.filter(function (p) { return p.alive; }).length;
   } else if (k === 'over') {
     pl = S.players[a[1]]; if (G.role === 'client') S.winner = a[1];
-    if (pl) { setMood(a[1], 'cheer', 60); showTitle(a[1] === me ? T('youWin') : T('winner'), pl.name, 'win', 2600, COLORS[pl.col]); GFX.confetti = now + 6; GFX.confAt = a[1]; }
+    if (pl && S.tm && pl.team >= 0) {                                         // teams: the whole team cheers
+      var ours = S.players[me] && S.players[me].team === pl.team;
+      S.players.forEach(function (p) { if (p.team === pl.team) setMood(p.seat, 'cheer', 60); });
+      showTitle(ours ? T('teamWin') : T('winner'), teamName(pl.col), 'win', 2600, COLORS[pl.col]); GFX.confetti = now + 6; GFX.confAt = a[1];
+    } else if (pl) { setMood(a[1], 'cheer', 60); showTitle(a[1] === me ? T('youWin') : T('winner'), pl.name, 'win', 2600, COLORS[pl.col]); GFX.confetti = now + 6; GFX.confAt = a[1]; }
     sfx('win'); musicStop(); if (pl) setTimeout(function () { if (AU.on) voice(pl.ch, 'happy', 0.2); }, 1100);
     onMatchOver();
   } else if (k === 'ot') { showTitle(T('otT'), mode === MODE_CROWN ? T('otCrownS') : T('otS'), 'final', 1900); sfx('go'); }
@@ -7509,7 +7656,7 @@ function unpile(boxes) {
   boxes.forEach(function (b) { if (b.y !== b.el._py) { b.el._py = b.y; b.el.style.transform = 'translate(' + b.x.toFixed(1) + 'px,' + b.y.toFixed(1) + 'px) translate(-50%,-100%)'; } });
 }
 function tagsUpdate(now, slices) {
-  var box = $('tags'), S = G.S, i, mode = S ? S.cfg.mode | 0 : 0;
+  var box = $('tags'), S = G.S, i, mode = S ? S.cfg.mode | 0 : 0, boxes = [];
   for (i = 0; i < MAXP; i++) {
     var el = box.children[i], sl = slices[i], slot = GFX.slots[i], intro = UI.screen === 'game' && S && S.phase === 'cd' && sl && sl.pl && sl.pl.seat === G.me;
     var on = sl && sl.pod && slot.used && sl.alive !== false && (UI.screen === 'lobby' || intro);
@@ -7520,8 +7667,9 @@ function tagsUpdate(now, slices) {
     el.className = 'tag' + (mine ? ' me' : ''); setC(el, COLORS[sl.col]);
     podPos(sl, slot, _v); _v.y = 3.0 * slot.s + 0.5; var p = scr(_v);
     el.hidden = !p.ok; placeEl(el, p.x, p.y, true);
+    if (!el.hidden) boxes.push({ el: el, x: el._px, y: el._py, w: el._w || 80, h: 24 });     // Face-Off: several names along one goal, nudged apart
   }
-  var gb = $('gates').children, eb = $('emos').children, game = (UI.screen === 'game' || UI.screen === 'results') && S, boxes = [];
+  var gb = $('gates').children, eb = $('emos').children, game = (UI.screen === 'game' || UI.screen === 'results') && S;
   for (i = 0; i < MAXP; i++) {
     var g = gb[i], pl = game && S.players[i], sl2 = slices[i], sl3 = GFX.slots[i];
     var showG = pl && sl2 && i !== G.me && UI.screen === 'game' && S.phase === 'cd';         // who is who, during the countdown only; the row at the top keeps score
@@ -7778,7 +7926,9 @@ function buildPickers() {
     COLORS.forEach(function (c, k) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'sw'; setC(b, c); b.setAttribute('data-k', k);
       b.setAttribute('aria-label', 'Colour ' + (k + 1));
-      b.addEventListener('click', function () { if (b.classList.contains('taken')) return; UI.tapAt = performance.now(); auInit(); sfx('click'); ME.col = k; saveProfile(); GFX.pickAt = performance.now() / 1000; refreshPickers(); profChanged(); });
+      b.addEventListener('click', function () { if (b.classList.contains('taken')) return; UI.tapAt = performance.now(); auInit(); sfx('click');
+        if (ROOM.role !== 'none' && tmOn() && UI.screen === 'lobby') { myTeamCol(k); return; }   // in a team room this is your team's colour
+        ME.col = k; saveProfile(); GFX.pickAt = performance.now() / 1000; refreshPickers(); profChanged(); });
       box.appendChild(b);
     });
   })(boxes[i]);
@@ -7866,11 +8016,13 @@ function refreshPickers() {
     if (bs[i].offsetParent !== null) setPortrait(im, k, hex);
   }
   var taken = {};
-  if (ROOM.role !== 'none') ROOM.seats.forEach(function (s) { if (!s.bot && s.id !== ME.id) taken[s.col] = 1; });
+  var tsel = -1, mine = ROOM.role !== 'none' && tmOn() ? ROOM.seats.find(function (s) { return s.id === ME.id; }) : null;
+  if (mine) { tsel = ROOM.tcol[mine.team]; for (var tq = 0; tq < (ROOM.cfg.tm | 0); tq++) if (tq !== mine.team) taken[ROOM.tcol[tq]] = 1; }
+  else if (ROOM.role !== 'none') ROOM.seats.forEach(function (s) { if (!s.bot && s.id !== ME.id) taken[s.col] = 1; });
   bs = document.querySelectorAll('.sw');
   for (i = 0; i < bs.length; i++) {
     k = +bs[i].getAttribute('data-k');
-    bs[i].classList.toggle('sel', k === ME.col); bs[i].classList.toggle('taken', !!taken[k]);
+    bs[i].classList.toggle('sel', k === (tsel >= 0 ? tsel : ME.col)); bs[i].classList.toggle('taken', !!taken[k]);
     bs[i].setAttribute('aria-pressed', k === ME.col ? 'true' : 'false'); bs[i].setAttribute('aria-disabled', taken[k] ? 'true' : 'false');
   }
   if (UI.viewCh != null && (UI.screen !== 'home' || chOwned(UI.viewCh))) UI.viewCh = null;   // bought it, or left home: back to your own
@@ -8007,7 +8159,10 @@ function renderLobby() {
   $('lob-code').textContent = online ? ROOM.code : '';
   $('lob-code').hidden = !online; $('b-copy').hidden = !online; $('s-lobby').classList.toggle('solo', !online);
   drawQR();
-  var box = $('seats'), all = ROOM.seats.map(function (s) { return { s: s, w: false }; }).concat(ROOM.waiting.map(function (s) { return { s: s, w: true }; }));
+  var tmo = tmOn(), box = $('seats'), all = ROOM.seats.map(function (s, k) { return { s: s, w: false, k: k }; });
+  if (tmo) all.sort(function (a, b) { return ((a.s.team | 0) - (b.s.team | 0)) || (a.k - b.k); });   // teammates side by side
+  all = all.concat(ROOM.waiting.map(function (s) { return { s: s, w: true }; }));
+  teamRow();
   $('lob-count').textContent = all.length + '/' + MAXP;
   while (box.children.length < MAXP) {
     var cell = document.createElement('div'); cell.className = 'seat';
@@ -8049,10 +8204,14 @@ function renderLobby() {
     var pm = c.pw ? (c.pws == null ? 127 : c.pws | 0) : 0, pp = document.createElement('span'); pp.className = 'pill pwp'; pp.appendChild(document.createTextNode(T('pw') + ': '));   // which superpowers are on, as their signs
     if (!pm) pp.appendChild(document.createTextNode(T('pwOff'))); else for (var pk = 0; pk < PW_N; pk++) if ((pm >> pk) & 1 && !(pk === PW_SPLIT && mode === MODE_BULLET)) { var ic = document.createElement('i'); ic.innerHTML = pwSVG(pk); ic.title = T('pw' + pk); pp.appendChild(ic); }
     sum.appendChild(pp);
+    if (tmo) { var tp = document.createElement('span'); tp.className = 'pill'; tp.textContent = (c.tm | 0) === 2 && c.fo ? T('foFace') : T('teamsT') + ': ' + (c.tm | 0); sum.insertBefore(tp, sum.children[1] || null); }
   }
   if (host) {
     $('bots-n').textContent = String(ROOM.seats.filter(function (x) { return x.bot; }).length);
-    seg('modes', mode); $('mode-desc').textContent = T(MODE_NAMES[mode] + 'S');
+    seg('modes', mode); $('mode-desc').textContent = T(MODE_NAMES[mode] + 'S') + (tmo ? (LANG === 'ar' ? '. ' : '. ') + T(livesMode(mode) ? 'tmNoteL' : 'tmNoteP') : '');
+    $('kv-tm').hidden = mode === MODE_CROWN; seg('seg-tm', tmo ? c.tm | 0 : 0);
+    $('kv-fo').hidden = !(tmo && (c.tm | 0) === 2); seg('seg-fo', c.fo ? 1 : 0);
+    if (tmo && (c.tm | 0) === 2 && c.fo) $('mode-desc').textContent += ' ' + T('foNote');
     $('tgt-lbl').textContent = T(['tgtLives', 'tgtPoints', 'tgtTime', c.ck ? 'tgtTime' : 'tgtCrown', 'tgtLives', 'tgtLives', 'tgtPoints', 'tgtLives', 'tgtLives'][mode]);
     var tb = $('seg-tgt').querySelectorAll('button');
     targetsFor(c).forEach(function (v, k) { tb[k].setAttribute('data-v', v); tb[k].textContent = targetText(mode, v, c.ck); });
@@ -8073,8 +8232,21 @@ function showResults() {
   var held = mode === MODE_CROWN && S.cfg.crownBy;
   function mainVal(p) { return livesMode(mode) ? (p.alive ? String(Math.max(0, p.lives)) : 'KO') : held ? p.pts + T('secS') : String(p.pts); }
   $('res-mode').textContent = T(MODE_NAMES[mode]) + (LANG === 'ar' ? '، ' : ', ') + mapName(S.cfg.map);
-  var pod = $('podium'); pod.textContent = '';
-  [1, 0, 2].forEach(function (k) {
+  var pod = $('podium'); pod.textContent = ''; pod.classList.toggle('teams', !!S.tm);
+  if (S.tm) {                                                               // teams: each step of the podium is a whole team
+    var tr = []; for (var q = 0; q < S.tm; q++) { var mem = ps.filter(function (p) { return p.team === q; }); if (mem.length) tr.push({ t: q, m: mem, place: mem[0].place || 99 }); }
+    tr.sort(function (a, b) { return a.place - b.place; });
+    [1, 0, 2].forEach(function (k) {
+      var T0 = tr[k], d = document.createElement('div'); d.className = 'pod p' + (k + 1); if (!T0) { pod.appendChild(d); return; }
+      var m0 = T0.m[0]; setC(d, COLORS[m0.col]);
+      var pics = document.createElement('div'); pics.className = 'tpics n' + Math.min(5, T0.m.length); T0.m.slice(0, 5).forEach(function (p) { var im = document.createElement('img'); im.alt = ''; im.src = portraitURL(p.ch, COLORS[p.col]); pics.appendChild(im); });
+      var base = document.createElement('div'); base.className = 'base';
+      var rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = String(k + 1);
+      var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = teamName(m0.col);
+      var vl = document.createElement('span'); vl.className = 'val'; vl.textContent = livesMode(mode) ? (m0.lives > 0 && T0.place === 1 ? '\u2665 ' + m0.lives : 'KO') : '\u2605 ' + teamPts(S, T0.t);
+      base.appendChild(rk); base.appendChild(nm); base.appendChild(vl); d.appendChild(pics); d.appendChild(base); pod.appendChild(d);
+    });
+  } else [1, 0, 2].forEach(function (k) {
     var p = ps[k], d = document.createElement('div'); d.className = 'pod p' + (k + 1);
     if (!p) { pod.appendChild(d); return; }
     setC(d, COLORS[p.col]);
@@ -8209,12 +8381,21 @@ function hudBuild() {
   box.classList.toggle('many', S.players.length > 5); box.classList.toggle('nob', (S.cfg.mode | 0) === MODE_CROWN && !!S.cfg.crownBy); box.classList.toggle('hearts', livesMode(S.cfg.mode | 0)); box.classList.toggle('stars', !livesMode(S.cfg.mode | 0));   // timed Crown has no points to show
   box.style.setProperty('--cols', Math.ceil(S.players.length / 2));
   S.players.forEach(function () { UI.hud.push(null); });
-  hudOrder(S).forEach(function (i) {
+  function card(i, into) {
     var p = S.players[i], el = document.createElement('div'); el.className = 'sc' + (i === G.me ? ' me' : ''); setC(el, COLORS[p.col]);
     var im = document.createElement('img'); im.alt = ''; im.src = portraitURL(p.ch, COLORS[p.col]); var b = document.createElement('b'), nm = document.createElement('i');
     nm.textContent = i === G.me ? T('you') : p.name;
-    el.appendChild(im); el.appendChild(b); el.appendChild(nm); box.appendChild(el); UI.hud[i] = { el: el, b: b, val: null, alive: true, lead: false };
-  });
+    el.appendChild(im); el.appendChild(b); el.appendChild(nm); into.appendChild(el); UI.hud[i] = { el: el, b: b, val: null, alive: true, lead: false };
+  }
+  box.classList.toggle('teams', !!S.tm);
+  if (S.tm) {                                                                // teammates side by side, your team first; one shared count per team
+    var ord = hudOrder(S), mt = S.players[G.me] ? S.players[G.me].team : 0;
+    for (var k = 0; k < S.tm; k++) {
+      var t = (mt + k) % S.tm, mem = ord.filter(function (i) { return S.players[i].team === t; }); if (!mem.length) continue;
+      var gp = document.createElement('div'); gp.className = 'tgrp'; setC(gp, COLORS[S.players[mem[0]].col]); box.appendChild(gp);
+      mem.forEach(function (i) { card(i, gp); });
+    }
+  } else hudOrder(S).forEach(function (i) { card(i, box); });
   UI.infoTxt = null; UI.clk = null; hudInfo(S);
 }
 /* the clock (time mode) or the target (points mode) */
@@ -8330,10 +8511,10 @@ function hudTick() {
   if (UI.screen !== 'game' || !G.S) return;
   var S = G.S, me = S.players[G.me], now = performance.now(), i, mode = S.cfg.mode | 0, top = -1e9;
   hudPowers(S, me);
-  if (!livesMode(mode)) S.players.forEach(function (p) { top = Math.max(top, p.pts); });
+  if (!livesMode(mode)) S.players.forEach(function (p) { top = Math.max(top, S.tm ? teamPts(S, p.team) : p.pts); });
   if (mode === MODE_CROWN) top = 1e9;                                           // in Crown the crown itself marks the leader
   for (i = 0; i < UI.hud.length && i < S.players.length; i++) {
-    var h = UI.hud[i], p = S.players[i]; if (!h) continue; var val = livesMode(mode) ? Math.max(0, p.lives) : p.pts, lead = !livesMode(mode) && top > 0 && p.pts === top;
+    var h = UI.hud[i], p = S.players[i]; if (!h) continue; var pp = S.tm ? teamPts(S, p.team) : p.pts, val = livesMode(mode) ? Math.max(0, p.lives) : pp, lead = !livesMode(mode) && top > 0 && pp === top;
     if (h.val !== val) { h.val = val; h.b.textContent = String(val); }
     if (h.alive !== p.alive) { h.alive = p.alive; h.el.classList.toggle('out', !p.alive); }
     if (h.lead !== lead) { h.lead = lead; h.el.classList.toggle('lead', lead); }
@@ -8388,6 +8569,34 @@ function wakeLock() { try { if (navigator.wakeLock) navigator.wakeLock.request('
 function movePt(dx) {
   var S = G.S, me = S && S.players[G.me]; if (!me || !me.alive) return;
   INPUT.pt = clamp(clamp(INPUT.pt, me.p - 0.9, me.p + 0.9) + VIEW.padDir * 1.35 * dx / (VIEW.pxPerUnit * padSpan(me)), -1, 1);
+}
+/* team names come from their colour: "Red team" / "الفريق الأحمر" */
+var COL_NAMES = { en: ['Red', 'Orange', 'Yellow', 'Green', 'Cyan', 'Blue', 'Purple', 'Pink', 'Lime', 'Brown', 'Black', 'Grey', 'White', 'Navy', 'Maroon'],
+  ar: ['الأحمر', 'البرتقالي', 'الأصفر', 'الأخضر', 'السماوي', 'الأزرق', 'البنفسجي', 'الوردي', 'الليموني', 'البني', 'الأسود', 'الرمادي', 'الأبيض', 'الكحلي', 'العنابي'] };
+function colName(k) { return (COL_NAMES[LANG] || COL_NAMES.en)[k] || ''; }
+function teamName(k) { return T('teamN', { c: colName(k) }); }
+/* the team chips over the seats: tap one to play for that team */
+function teamRow() {
+  var row = $('tmrow'), on = tmOn(), T0 = ROOM.cfg.tm | 0, mine = ROOM.seats.find(function (s) { return s.id === ME.id; });
+  row.hidden = !on; if (!on) return;
+  while (row.children.length > T0) row.removeChild(row.lastChild);
+  for (var t = 0; t < T0; t++) {
+    var b = row.children[t]; if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'tmc'; b.innerHTML = '<i></i><b></b><small></small>'; row.appendChild(b); }
+    var n = ROOM.seats.filter(function (s) { return s.team === t; }).length, k = ROOM.tcol[t];
+    b.setAttribute('data-t', t); setC(b, COLORS[k]); b.children[1].textContent = colName(k); b.children[2].textContent = String(n);
+    b.classList.toggle('on', !!mine && mine.team === t); b.setAttribute('aria-label', teamName(k));
+  }
+}
+function myTeamTap(t) {
+  var mine = ROOM.seats.find(function (s) { return s.id === ME.id; }); if (!mine || mine.team === t) return;
+  sfx('click');
+  if (ROOM.role === 'host' || ROOM.role === 'solo') { if (setTeam(mine, t)) { sendLobby(); renderLobby(); } }
+  else if (ROOM.role === 'client') { mine.team = t; renderLobby(); clientRelay(['team', t]); }
+}
+function myTeamCol(k) {
+  var mine = ROOM.seats.find(function (s) { return s.id === ME.id; }); if (!mine) return;
+  if (ROOM.role === 'host' || ROOM.role === 'solo') { if (setTeamCol(mine.team, k)) { sendLobby(); renderLobby(); } }
+  else if (ROOM.role === 'client') clientRelay(['tcol', k]);
 }
 function hostSet(fn) { return function (e) { var b = e.target.closest('button'); if (!b || !(ROOM.role === 'host' || ROOM.role === 'solo')) return; sfx('click'); fn(b.getAttribute('data-v')); sendLobby(); renderLobby(); }; }
 function initUI() {
@@ -8467,9 +8676,12 @@ function initUI() {
     if (navigator.share && /^https?:$/.test(location.protocol)) { navigator.share({ title: 'SmashBo', text: msg, url: url }).catch(function () {}); return; }
     try { navigator.clipboard.writeText(txt).then(copied, fallback); } catch (e) { fallback(); }
   });
-  $('bots-minus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.max(0, ROOM.seats.filter(function (x) { return x.bot; }).length - 1); syncBots(); sendLobby(); renderLobby(); });
-  $('bots-plus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.min(MAXP - humans().length, ROOM.seats.filter(function (x) { return x.bot; }).length + 1); syncBots(); sendLobby(); renderLobby(); });
-  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 8); }));
+  $('bots-minus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.max(0, ROOM.seats.filter(function (x) { return x.bot; }).length - (tmOn() ? ROOM.cfg.tm | 0 : 1)); syncBots(); sendLobby(); renderLobby(); });
+  $('bots-plus').addEventListener('click', function () { sfx('click'); ROOM.bots = Math.min(MAXP - humans().length, ROOM.seats.filter(function (x) { return x.bot; }).length + (tmOn() ? ROOM.cfg.tm | 0 : 1)); syncBots(); sendLobby(); renderLobby(); });
+  $('modes').addEventListener('click', hostSet(function (v) { ROOM.cfg.mode = ci(v, 0, 8); syncBots(); }));
+  $('seg-tm').addEventListener('click', hostSet(function (v) { ROOM.cfg.tm = ci(v, 0, 5); if (ROOM.cfg.tm === 1) ROOM.cfg.tm = 0; syncBots(); }));
+  $('seg-fo').addEventListener('click', hostSet(function (v) { ROOM.cfg.fo = v === '1' ? 1 : 0; }));
+  $('tmrow').addEventListener('click', function (e) { var b = e.target.closest('.tmc'); if (b) myTeamTap(+b.getAttribute('data-t')); });
   $('seg-tgt').addEventListener('click', hostSet(function (v) { var c = ROOM.cfg; c[tgtKey(c)] = +v; }));
   $('seg-ck').addEventListener('click', hostSet(function (v) { ROOM.cfg.ck = +v ? 1 : 0; }));
   $('balls-minus').addEventListener('click', function () { if (!(ROOM.role === 'host' || ROOM.role === 'solo')) return; sfx('click'); ROOM.cfg.balls = Math.max(0, (ROOM.cfg.balls | 0) - 1); sendLobby(); renderLobby(); });
