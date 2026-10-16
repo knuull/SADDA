@@ -1448,6 +1448,33 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
 .wheel.landed .wh-card > b { animation: whPop 0.4s ease-out; }
 .modes.pick button.star { background: linear-gradient(135deg, color-mix(in srgb, #ff6fc4 18%, var(--soft)), color-mix(in srgb, #5aa8ff 18%, var(--soft))); }
 @media (prefers-reduced-motion: reduce) { .wh-chip.on, .wheel.landed .wh-card > b { animation: none; } }
+
+/* ---- team page: each team's colour and players ---- */
+.tmedit { flex: none; width: 44px; height: 40px; border: 0; border-radius: 14px; display: grid; place-items: center; color: var(--accent); background: var(--soft); }
+.tmedit:active { transform: scale(0.94); }
+.tsl { display: flex; flex-direction: column; gap: 10px; }
+.tsc { padding: 10px 12px 12px; border-radius: var(--r4); background: var(--soft); box-shadow: inset 4px 0 0 var(--c); }
+[dir="rtl"] .tsc { box-shadow: inset -4px 0 0 var(--c); }
+.tsh { display: flex; align-items: center; gap: 8px; }
+.tsh i { width: 16px; height: 16px; border-radius: 50%; background: var(--c); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18); }
+.tsh b { flex: 1; font-weight: 800; font-size: 1rem; }
+.tsh small { min-width: 24px; padding: 1px 8px; border-radius: 99px; text-align: center; font-weight: 800; color: var(--ct, #fff); background: var(--c); }
+.tscol { display: flex; gap: 6px; overflow-x: auto; padding: 8px 2px 4px; scrollbar-width: none; }
+.tscol::-webkit-scrollbar { display: none; }
+.tsw { flex: none; width: 30px; height: 30px; border: 0; padding: 0; border-radius: 50%; background: var(--c); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18); }
+.tsw.sel { box-shadow: 0 0 0 2.5px var(--card), 0 0 0 5px var(--c); }
+.tsw.taken { opacity: 0.25; }
+.tsm { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.tsp { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 6px; border-radius: 12px; background: var(--card); }
+.tsp img { width: 36px; height: 36px; border-radius: 11px; background: var(--soft-2); flex: none; }
+.tsp b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.tsp.me b { color: var(--accent); }
+.tsp small { font-size: 0.72rem; font-weight: 800; color: var(--muted); }
+.tsp.bot { opacity: 0.7; }
+.tsmv { display: flex; gap: 6px; }
+.tsgo { width: 34px; height: 34px; border: 0; border-radius: 10px; display: grid; place-items: center; color: var(--ct, #fff); background: var(--c); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18); }
+[dir="rtl"] .tsgo svg { transform: scaleX(-1); }
+.tsgo:active { transform: scale(0.92); }
 /* League look: a night-match sports broadcast. Graphite pages, one volt-lime call to action, sharp
    corners, condensed sports type for anything shouted (Changa) and a clean modern face for reading (Readex Pro). */
 :root[data-look="league"] {
@@ -1948,6 +1975,14 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
       <div id="maps" class="maps pick"></div>
     </div>
   </div>
+  <div id="teamsheet" class="sheet-ov" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ts-title">
+      <div class="sheet-head"><h2 id="ts-title" class="sheet-title" data-t="tsT"></h2><button class="ibtn sm soft x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <p class="note" id="ts-note"></p>
+      <div id="ts-list" class="tsl"></div>
+      <div class="actions row"><button id="b-tshuf" class="btn soft" type="button" data-t="tsShuf"></button><button id="b-tsok" class="btn primary grow" type="button" data-t="done"></button></div>
+    </div>
+  </div>
   <div id="rulesheet" class="sheet-ov" hidden>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rs-title">
       <div class="sheet-head"><h2 id="rs-title" class="sheet-title" data-t="rulesT"></h2><button class="ibtn sm soft x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -2149,6 +2184,8 @@ button.rchip.done em { font-style: normal; padding: 2px 9px; border-radius: 99px
       <div id="seg-theme" class="seg"><button type="button" data-v="auto" data-t="gAuto"></button><button type="button" data-v="light" data-t="thLight"></button><button type="button" data-v="dark" data-t="thDark"></button></div>
       <div class="lbl" data-t="smashSide"></div>
       <div id="seg-smash" class="seg"><button type="button" data-v="l" data-t="sideL"></button><button type="button" data-v="r" data-t="sideR"></button></div>
+      <div class="lbl" data-t="fpsT"></div>
+      <div id="seg-fps" class="seg"><button type="button" data-v="30">30</button><button type="button" data-v="60">60</button><button type="button" data-v="120">120</button></div>
       <div class="lbl" data-t="graphics"></div>
       <div id="seg-gfx" class="seg"><button type="button" data-v="auto" data-t="gAuto"></button><button type="button" data-v="high" data-t="gHigh"></button><button type="button" data-v="low" data-t="gLow"></button></div>
       <button id="b-how2" class="btn soft" type="button" data-t="howBtn"></button>
@@ -3638,7 +3675,7 @@ var STR = {
     mGold: 'Gold Rush', mGoldS: 'Golden pearl = 3 points', mFrenzy: 'Frenzy', mFrenzyS: 'Every goal adds a pearl',
     goldIn: 'GOLDEN PEARL!', goldInS: 'Worth 3 points', goldGot: '{n} scored gold!', moreT: '{n} PEARLS!', frenzyN: 'Pearls: {n}',
     otCrown: 'Grab the crown!', otCrownS: 'Whoever grabs the crown wins', heldCol: 'Held',
-        theme: 'Theme', thLight: 'Light', thDark: 'Dark', lookT: 'Style', lookBlue: 'Blue', lookNight: 'Night', lookClassic: 'Classic',
+        theme: 'Theme', thLight: 'Light', thDark: 'Dark', fpsT: 'Frame rate (FPS)', tsT: 'Teams', tsShuf: 'Shuffle', tsNoteH: 'Tap a colour to dress a team. Tap the arrows to move a player to another team. Bots fill whichever team is short.', tsNoteG: 'Tap an arrow to switch team. You can pick your own team\'s colour.', tsMove: 'Move to {t}', botTag: 'Bot', lookT: 'Style', lookBlue: 'Blue', lookNight: 'Night', lookClassic: 'Classic',
     smashSide: 'SMASH button', sideL: 'Left', sideR: 'Right',
     crownFirst: 'Steal the crown and keep it!'
   },
@@ -3735,7 +3772,7 @@ var STR = {
     mGold: 'حمّى الذهب', mGoldS: 'اللؤلؤة الذهبية = ٣ نقاط', mFrenzy: 'فوضى', mFrenzyS: 'كل هدف يزيد لؤلؤة',
     goldIn: 'لؤلؤة ذهبية!', goldInS: 'تسوى ٣ نقاط', goldGot: '{n} سجّل الذهبية!', moreT: '{n} لؤلؤات!', frenzyN: 'اللؤلؤ: {n}',
     otCrown: 'خذ التاج!', otCrownS: 'اللي ياخذ التاج يفوز', heldCol: 'مدة التاج',
-        theme: 'المظهر', thLight: 'فاتح', thDark: 'داكن', lookT: 'الستايل', lookBlue: 'أزرق', lookNight: 'ليلي', lookClassic: 'كلاسيك',
+        theme: 'المظهر', thLight: 'فاتح', thDark: 'داكن', fpsT: 'معدل الإطارات (FPS)', tsT: 'الفرق', tsShuf: 'خلط', tsNoteH: 'اضغط على لون عشان تلبسه الفريق. واضغط على الأسهم عشان تنقل لاعب لفريق ثاني. البوتات تكمّل الفريق الناقص.', tsNoteG: 'اضغط على سهم عشان تغيّر فريقك. وتقدر تختار لون فريقك.', tsMove: 'انقل إلى {t}', botTag: 'بوت', lookT: 'الستايل', lookBlue: 'أزرق', lookNight: 'ليلي', lookClassic: 'كلاسيك',
     smashSide: 'زر الضربة', sideL: 'يسار', sideR: 'يمين',
     crownFirst: 'اسرق التاج وخلّه معك!'
   }
@@ -4262,7 +4299,12 @@ function tmCount() { var P = plOf(ROOM.cfg.comp); return P ? P.rules.tm | 0 : RO
 function compReady() { var P = plOf(ROOM.cfg.comp), hs = humans(); if (!P) return true; if (!P.need) return hs.length >= 2; return hs.length === P.need && [0, 1].every(function (t) { return hs.filter(function (s) { return s.team === t; }).length === P.need / 2; }); }
 function assignTeams() {
   var hs = humans(), bots = ROOM.seats.filter(function (s) { return s.bot; }), i;
-  if (!tmOn()) { hs.forEach(function (s) { if (s.pc != null && s.col !== s.pc) s.col = freeCol(s.pc, s.id); }); return; }
+  if (!tmOn()) {                                                     // teams off: everyone back in their own colour, and no two alike
+    var used = {};
+    hs.forEach(function (s) { if (s.pc != null && s.col !== s.pc) s.col = freeCol(s.pc, s.id); used[s.col] = 1; });
+    bots.forEach(function (b) { b.team = -1; if (used[b.col]) { for (var k = 0; k < COLORS.length; k++) if (!used[k]) { b.col = k; break; } } used[b.col] = 1; });
+    return;
+  }
   var T = tmCount(), cn = []; for (i = 0; i < T; i++) cn.push(0);
   function least() { var b = 0; for (var k = 1; k < T; k++) if (cn[k] < cn[b]) b = k; return b; }
   hs.forEach(function (s) { if (s.team >= 0 && s.team < T) cn[s.team]++; else s.team = -1; });
@@ -4389,7 +4431,7 @@ function wallFx(b, soft) {
 function lobbyMsg() {
   var c = ROOM.cfg, now = performance.now();
   return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15, c.comp | 0, c.pws == null ? 127 : c.pws | 0, c.pad == null ? 1 : c.pad | 0, c.tm | 0, c.fo ? 1 : 0, c.wr || 8], tcol: ROOM.tcol.slice(0, 5), map: ROOM.mapNow, bots: ROOM.bots,
-    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1, s.bot || s.id === ME.id ? 0 : Math.min(999, s.rtt | 0), s.dir ? 1 : 0, s.bot ? '' : s.pid || '', s.bot ? 0 : seatRks(s), 0, s.id === ME.id ? myCos() : s.cos || 0, s.team == null ? -1 : s.team]; }),
+    seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1, s.bot || s.id === ME.id ? 0 : Math.min(999, s.rtt | 0), s.dir ? 1 : 0, s.bot ? '' : s.pid || '', s.bot ? 0 : seatRks(s), 0, s.id === ME.id ? myCos() : s.cos || 0, s.team == null ? -1 : s.team, s.bot || s.pc == null ? -1 : s.pc]; }),
     wait: ROOM.waiting.map(function (w) { return [w.id, w.name, w.ch, w.col]; }) }];
 }
 function sendLobby() { if (ROOM.role === 'host') hostBroadcast(lobbyMsg()); if (UI.screen === 'lobby') renderLobby(); }
@@ -4566,7 +4608,7 @@ function applyLobby(d) {
   if (Array.isArray(d.tcol)) ROOM.tcol = d.tcol.map(function (k) { return ci(k, 0, COLORS.length - 1); });
   ROOM.mapNow = ci(d.map, 0, MAPS.length - 1);
   var was = {}, nowS = performance.now() / 1000, before = {}; ROOM.seats.concat(ROOM.waiting).forEach(function (x) { was[x.id] = x.joinedAt; if (!x.bot) before[x.id] = x.name; });
-  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), rtt: a[7] | 0, dir: !!a[8], pid: okPid(a[9]) ? a[9] : '', rk: rkClean(a[10], a[10], a[11]), cos: cosClean(a[12]), team: a[13] == null ? -1 : a[13] | 0, joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
+  ROOM.seats = d.seats.map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3], bot: !!a[4], away: !!a[5], lv: ci(a[6], 0, LV_MAX), rtt: a[7] | 0, dir: !!a[8], pid: okPid(a[9]) ? a[9] : '', rk: rkClean(a[10], a[10], a[11]), cos: cosClean(a[12]), team: a[13] == null ? -1 : a[13] | 0, pc: a[14] == null || a[14] < 0 ? null : ci(a[14], 0, COLORS.length - 1), joinedAt: was[a[0]] != null ? was[a[0]] : nowS }; });
   ROOM.waiting = (d.wait || []).map(function (a) { return { id: a[0], name: a[1], ch: a[2], col: a[3] }; });
   if (ROOM.joined) {                                                  // who came in and who left, since the last update
     var after = {}, seatOf = {}; ROOM.seats.concat(ROOM.waiting).forEach(function (x) { if (!x.bot) { after[x.id] = x.name; seatOf[x.id] = x; } });
@@ -4580,9 +4622,10 @@ function applyLobby(d) {
     ROOM.joined = true; hideToast(); sfx('join'); NET.rtcTries = 0; clientRtcStart();
     try { history.replaceState(null, '', '#' + ROOM.code); } catch (e) {}
     socPresence();
-    if (seated && seated.col !== ME.col) toast(T('colTaken'));
+    if (seated && (seated.pc != null ? seated.pc : seated.col) !== ME.col) toast(T('colTaken'));
   }
-  if (seated && (seated.col !== ME.col)) { ME.col = seated.col; saveProfile(); refreshPickers(); }
+  var myCol = seated ? (seated.pc != null ? seated.pc : seated.col) : -1;          // my own colour, never my team's (that one is only for this room)
+  if (seated && myCol !== ME.col) { ME.col = myCol; saveProfile(); refreshPickers(); }
   ROOM.phase = d.ph;
   if (d.ph === 'game') {
     if (G.mid !== d.mid || !G.S || G.role !== 'client') {
@@ -4845,10 +4888,14 @@ function keyMove(me, dt) {
   INPUT.keyWas = !!d;
 }
 
-/* Frame pacing: a match runs as fast as the screen goes, up to 120 frames a second (90/120 Hz phones and
-   monitors), 30 with Battery saver; menus stay at 30 to save battery. A phone that cannot keep 120 up drops
-   to a steady 60 first, before any picture quality is touched. */
-function fpsCap() { return UI.screen === 'game' && !UI.paused ? (GFX.quality === 'low' ? 30 : GFX.no120 ? 60 : 120) : 30; }
+/* Frame pacing, the biggest battery saving: a match runs at 60 frames a second (120 when picked in Settings, on
+   90/120 Hz screens; 30 with Battery saver). Menus run slower still. A phone that cannot keep 120 up drops to a
+   steady 60 first, before any picture quality is touched. */
+function fpsCap() {
+  if (UI.screen === 'game' && !UI.paused) return GFX.quality === 'low' || UI.fps === 30 ? 30 : UI.fps === 120 && !GFX.no120 ? 120 : 60;
+  var idle = performance.now() - (UI.tapAt || 0) > 40000;              // menus: 30, 20 under a sheet, 15 once nobody has touched the phone for a while
+  return idle ? 15 : UI.sheet ? 20 : 30;
+}
 function frame(ts) {
   requestAnimationFrame(frame);
   var d = ts - (frame.raf || ts); frame.raf = ts;
@@ -6514,15 +6561,15 @@ function buildWhirl() {
    the close-ups (home stage, portraits) are extra smooth, the arena ones lighter. Models face +Z. */
 var GEO = {}, CLOD = 0;
 function gk(k) { return k + CLOD; }
-function gSph() { var k = gk('s'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 32, 22) : new THREE.SphereGeometry(1, 20, 14)); }
-function gSphH() { var k = gk('h'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 48, 34) : new THREE.SphereGeometry(1, 30, 22)); }
-function gSphL() { var k = gk('sl'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 16, 12) : new THREE.SphereGeometry(1, 12, 8)); }   // tiny bits: pearls, patches, sparkles
-function gCone() { var k = gk('c'); return GEO[k] || (GEO[k] = new THREE.ConeGeometry(1, 1, CLOD ? 20 : 12)); }
-function gCyl() { var k = gk('y'); return GEO[k] || (GEO[k] = new THREE.CylinderGeometry(1, 1, 1, CLOD ? 32 : 20)); }
+function gSph() { var k = gk('s'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 32, 22) : new THREE.SphereGeometry(1, 14, 10)); }
+function gSphH() { var k = gk('h'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 48, 34) : new THREE.SphereGeometry(1, 22, 15)); }
+function gSphL() { var k = gk('sl'); return GEO[k] || (GEO[k] = CLOD ? new THREE.SphereGeometry(1, 16, 12) : new THREE.SphereGeometry(1, 8, 6)); }   // tiny bits: pearls, patches, sparkles
+function gCone() { var k = gk('c'); return GEO[k] || (GEO[k] = new THREE.ConeGeometry(1, 1, CLOD ? 20 : 8)); }
+function gCyl() { var k = gk('y'); return GEO[k] || (GEO[k] = new THREE.CylinderGeometry(1, 1, 1, CLOD ? 32 : 12)); }
 function gBox() { return GEO.b || (GEO.b = new THREE.BoxGeometry(1, 1, 1)); }
-function gHemi() { var k = gk('hm'); return GEO[k] || (GEO[k] = new THREE.SphereGeometry(1, CLOD ? 40 : 26, CLOD ? 14 : 10, 0, TAU, 0, Math.PI / 2)); }
-function gSmile() { var k = gk('sm'); return GEO[k] || (GEO[k] = new THREE.TorusGeometry(1, 0.19, CLOD ? 12 : 8, CLOD ? 28 : 18, Math.PI)); }
-function gTor(r, t) { var k = gk('t' + r + t); return GEO[k] || (GEO[k] = new THREE.TorusGeometry(r, t, CLOD ? 14 : 9, CLOD ? 48 : 30)); }
+function gHemi() { var k = gk('hm'); return GEO[k] || (GEO[k] = new THREE.SphereGeometry(1, CLOD ? 40 : 16, CLOD ? 14 : 6, 0, TAU, 0, Math.PI / 2)); }
+function gSmile() { var k = gk('sm'); return GEO[k] || (GEO[k] = new THREE.TorusGeometry(1, 0.19, CLOD ? 12 : 5, CLOD ? 28 : 12, Math.PI)); }
+function gTor(r, t) { var k = gk('t' + r + t); return GEO[k] || (GEO[k] = new THREE.TorusGeometry(r, t, CLOD ? 14 : 6, CLOD ? 48 : 20)); }
 
 var CHAR_FACE = (function () { try { var m = /[?&]face=(\w+)/.exec(location.search); return m ? m[1] : LOOK === 'party' ? 'toon' : 'human'; } catch (e) { return 'human'; } })();
 var ROLES = ['c', 'd', 'dd', 'l', 'w', 'k', 'cr', 'y', 'pk', 'ch', 'r', 'g', 'm', 'tg', 's1', 's2', 's3', 's4', 'hb', 'hd', 'gl', 'sv', 'bl', 'rd', 'x', 'yb', 'i0', 'i1', 'i2', 'i3', 'i4', 'i5', 'i6', 'hy', 'hr', 'hg', 'hp', 'hc', 'jn', 'ag'];
@@ -6679,7 +6726,7 @@ function paintGeo(geo, hex) {
 }
 function paintAll(root, hex) { root.traverse(function (o) { if (o.isMesh && o.geometry.userData.roles && (o.material === TOON || o.material === EYE)) paintGeo(o.geometry, hex); }); }
 
-function gLimb() { return GEO.lb || (GEO.lb = new THREE.CylinderGeometry(1, 0.8, 1, 16)); }
+function gLimb() { var k = gk('lb'); return GEO[k] || (GEO[k] = new THREE.CylinderGeometry(1, 0.8, 1, CLOD ? 16 : 10)); }
 /* ---------- the cast: eight goofy creatures ----------
    Each one is a soft one-piece bean (a lathe with a squircle profile) with googly eyes whose pupils
    wobble on springs, a big rubbery mouth, noodle arms with mitten hands and stubby legs.
@@ -6722,9 +6769,9 @@ function creR(S, y) {                                          // bean radius at
 }
 function creLathe(S, y0, y1, key) {
   key += CLOD; if (GEO[key]) return GEO[key];
-  var p = [], N = CLOD ? 48 : 32;
+  var p = [], N = CLOD ? 48 : 18;
   for (var i = 0; i <= N; i++) { var t = (1 - Math.cos(Math.PI * i / N)) / 2, y = y0 + (y1 - y0) * t; p.push(new THREE.Vector2(Math.max(0.0005, creR(S, y)), y)); }
-  return (GEO[key] = new THREE.LatheGeometry(p, CLOD ? 64 : 40));
+  return (GEO[key] = new THREE.LatheGeometry(p, CLOD ? 64 : 24));
 }
 /* the front surface of the bean: depth at (x, y), and the outward normal there */
 function creZ(S, x, y) { var r = creR(S, y); return S.D * Math.sqrt(Math.max(0, r * r - x * x)); }
@@ -7243,7 +7290,7 @@ function buildHuman(ch, hex) {
   R.headY = yc;
   pt(bean, gCyl(), sk, 0, T.H + 0.02, 0, 0.12, 0.16, 0.12);
   if (rb) { pt(bean, gBox(), sk, 0, yc, 0, hx * 1.8, hy * 1.75, hz * 1.75); pt(bean, gSph(), sk, 0, yc, 0, hx * 0.98, hy * 0.98, hz * 0.98); }
-  else { pt(bean, gSphH(), sk, 0, yc, 0, hx, hy, hz); pt(bean, gSph(), sk, 0, yc - 0.15, 0.02, hx * 0.8, hy * 0.62, hz * 0.88); }   // skull and a rounder jaw
+  else { pt(bean, gSphH(), sk, 0, yc, 0, hx, hy, hz); pt(bean, gSph(), sk, 0, yc - 0.13, -0.04, hx * 0.8, hy * 0.6, hz * 0.84); }   // skull and a rounder jaw, tucked in so it never reads as a snout
   function zAt(x, y) { var u = x / hx, v = (y - yc) / hy; return hz * Math.sqrt(Math.max(0.02, 1 - u * u - v * v)) * (rb ? 1.0 : 1); }
   function nrm(x, y) { return new THREE.Vector3(x / (hx * hx), (y - yc) / (hy * hy), zAt(x, y) / (hz * hz)).normalize(); }
   R.zAt = zAt;
@@ -7263,22 +7310,25 @@ function buildHuman(ch, hex) {
     var wh = new THREE.Group(); bean.add(wh); whitesIn(wh); bakeVC(wh, hex, 0, true, eyeMat());
   } else { HUM_ACC[ch](bean, R, H, yc, zAt, nrm); whitesIn(bean); bean.userData.grad = [0, yc + hy]; bakeVC(bean, hex, 1, true); }
   if (R.glass) bean.add(R.glass);
+  var face = CLOD ? bean : new THREE.Group(); if (!CLOD) bean.add(face);   // in the arena the face is one still mesh: 6 fewer draws a player
   EYES.forEach(function (q, i) {
     var x = q[0], y = yc + q[1], r = q[2], z = zAt(x, y) - r * 0.42;
-    var eg = new THREE.Group(); eg.position.set(x, y, z); eg.scale.set(r, r * 1.12, r * 0.85); bean.add(eg);
-    var lid = new THREE.Group(); eg.add(lid); pt(lid, gHemi(), sk, 0, 0, 0, 1.08); bakeVC(lid, hex, 1, false);
+    var eg = new THREE.Group(); eg.position.set(x, y, z); eg.scale.set(r, r * 1.12, r * 0.85); face.add(eg);
+    var lid = new THREE.Group(); eg.add(lid); pt(lid, gHemi(), sk, 0, 0, 0, 1.08); if (CLOD) bakeVC(lid, hex, 1, false); else lid.rotation.x = H.lid;
     var pu = new THREE.Group(); eg.add(pu); var dg = CLOD ? gSph() : gSphL();
+    if (!CLOD) pu.position.set(0, -0.08, 0.965);
     pt(pu, dg, H.ey, 0, 0, -0.005, 0.62, 0.64, 0.065); pt(pu, dg, 'k', 0, 0, 0.01, 0.3, 0.32, 0.07); pt(pu, gSphL(), 'w', -0.2, 0.22, 0.05, 0.13, 0.13, 0.03);
-    bakeVC(pu, hex, 0, false, eyeMat());
-    var br = new THREE.Group(), by = y + r * 1.45 + 0.02; br.position.set(x, by, zAt(x, by) + 0.01); bean.add(br);
+    if (CLOD) bakeVC(pu, hex, 0, false, eyeMat());
+    var br = new THREE.Group(), by = y + r * 1.45 + 0.02; br.position.set(x, by, zAt(x, by) + 0.01); face.add(br);
     if (i < 2) {
       pt(br, gSph(), H.robot ? 'k' : H.hr === 'hg' ? 'hg' : H.hr, 0, 0, 0, r * 1.05, r * (H.f ? 0.2 : 0.3), r * 0.3, 0, 0, x ? -Math.sign(x) * H.brow : 0);
       if (H.f) for (var k = 0; k < 3; k++) pt(br, gBox(), 'k', x * 0.15 + (k - 1) * r * 0.4 + Math.sign(x) * r * 0.55, -r * 1.25, 0.0, 0.016, r * 0.32, 0.016, 0, 0, (k - 1) * 0.35 + Math.sign(x) * 0.4);
-      bakeVC(br, hex, 0, false);
+      if (CLOD) bakeVC(br, hex, 0, false);
     }
-    var E = { g: eg, lid: lid, pu: pu, s: x < 0 ? -1 : x > 0 ? 1 : 0, x: 0, y: 0, vx: 0, vy: 0, bx: 0, by: 0 };
-    R.eyes.push(E); R.brows.push({ g: br, s: E.s || 1, y: br.position.y });
+    var E = CLOD ? { g: eg, lid: lid, pu: pu, s: x < 0 ? -1 : x > 0 ? 1 : 0, x: 0, y: 0, vx: 0, vy: 0, bx: 0, by: 0 } : { g: eg, lid: new THREE.Object3D(), pu: new THREE.Object3D(), s: x < 0 ? -1 : 1, x: 0, y: 0, vx: 0, vy: 0, bx: 0, by: 0 };
+    R.eyes.push(E); R.brows.push({ g: CLOD ? br : new THREE.Object3D(), s: E.s || 1, y: br.position.y });
   });
+  if (!CLOD) { flattenParts(face); bakeVC(face, hex, 0, false); }
   // mouth: a wide grin line, and an open mouth with teeth for laughs and shouts
   var my = yc - 0.2, mw = 0.14, mz = zAt(0, my), mn = nrm(0, my), tilt = -Math.atan2(mn.y, mn.z);
   var sm = new THREE.Group(); sm.position.set(0, my, mz - 0.012); sm.rotation.x = tilt; bean.add(sm);
@@ -7305,6 +7355,17 @@ function buildHuman(ch, hex) {
   return R;
 }
 
+/* lift every coloured part inside nested groups up to the top group, keeping where it sits, so one bake makes one mesh */
+function flattenParts(top) {
+  top.updateMatrixWorld(true);
+  var inv = new THREE.Matrix4().copy(top.matrixWorld).invert(), parts = [], groups = [];
+  top.traverse(function (o) { if (o !== top && o.isMesh && o.userData.role && o.parent !== top) parts.push(o); });
+  parts.forEach(function (o) {
+    var M = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld), g = (o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone()); g.applyMatrix4(M);
+    var m = new THREE.Mesh(g); m.userData.role = o.userData.role; o.parent.remove(o); top.add(m);
+  });
+  top.children.slice().forEach(function (c) { if (!c.isMesh) top.remove(c); });
+}
 /* hair: a cap of hair over the top of the head, cut at the forehead */
 function hairCap(b, H, yc, k) {
   k = k || 1;
@@ -8535,8 +8596,8 @@ function gfxResize() {
   if (!GFX.ok) return;
   GFX.cam.fov = wide ? 42 : 50;
   var pr = GFX.pr;                                              // the home stage is a close-up at 30 fps: draw it extra sharp
-  if (UI.screen === 'home' && GFX.quality !== 'low') pr = Math.max(pr, Math.min(window.devicePixelRatio || 1, 2.5));
-  if (UI.screen === 'game' && GFX.quality === 'auto') pr = Math.max(1, Math.min(pr, Math.sqrt(2.4e6 / Math.max(1, VIEW.W * VIEW.H))));   // big tablet screens: cap the pixels drawn each frame
+  if (UI.screen === 'home' && GFX.quality !== 'low') pr = Math.max(pr, Math.min(window.devicePixelRatio || 1, GFX.quality === 'high' ? 2.5 : 2.25));
+  if (UI.screen === 'game' && GFX.quality === 'auto') pr = Math.max(1, Math.min(pr, Math.sqrt(1.8e6 / Math.max(1, VIEW.W * VIEW.H))));   // big tablet screens: cap the pixels drawn each frame
   var szk = VIEW.W + 'x' + VIEW.H + '@' + pr;                     // only touch the canvas when its size really changes: a resize to the same size still costs a hitch
   if (GFX.szk !== szk) { GFX.szk = szk; if (GFX.r.getPixelRatio() !== pr) GFX.r.setPixelRatio(pr); GFX.r.setSize(VIEW.W, VIEW.H, false); }
   GFX.fit = {}; PT.mat.uniforms.sc.value = VIEW.H * pr * 0.9;
@@ -8772,7 +8833,7 @@ function gfxStepDown() {                                        // 120 fps goes 
 }
 function gfxQuality(q) {
   GFX.quality = q || 'auto'; document.documentElement.setAttribute('data-gq', /[?&]norender/.test(location.search) ? 'low' : GFX.quality); var dpr = window.devicePixelRatio || 1;
-  GFX.pr = q === 'low' ? Math.min(dpr, 1.5) : q === 'high' ? Math.min(dpr, 3) : Math.min(dpr, 2.75);   // Auto starts sharp (near the screen's own pixels) and steps down only if frames come late
+  GFX.pr = q === 'low' ? Math.min(dpr, 1.5) : q === 'high' ? Math.min(dpr, 3) : Math.min(dpr, 2.25);   // Auto starts sharp (near the screen's own pixels) and steps down only if frames come late
   GFX.prMin = Math.min(GFX.pr, dpr >= 2 ? 1.5 : 1);
   GFX.lowShadows = q === 'low'; if (GFX.sun) { GFX.sun.castShadow = q !== 'low'; shadowSize(q === 'high' ? 2048 : 1024); }
   outlineMat().visible = q !== 'low'; GFX.slow = 0; GFX.fr = 0; GFX.late = 0; GFX.deg = 0;
@@ -8952,10 +9013,11 @@ function matchXP(S, p) {
   return Math.min(150, xp);
 }
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} return null; }
-function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, vol: AU.vol, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', xp: UI.xp || 0, sv2: UI.srv == null ? -1 : UI.srv, th: UI.theme || 'auto', look2: UI.look || LOOK, how: !!UI.howSeen, plays: UI.plays || 0, rks: UI.rks }); }
+function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, vol: AU.vol, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', xp: UI.xp || 0, sv2: UI.srv == null ? -1 : UI.srv, th: UI.theme || 'auto', fps: UI.fps || 60, look2: UI.look || LOOK, how: !!UI.howSeen, plays: UI.plays || 0, rks: UI.rks }); }
 function loadProfile() {
   var p = store('sadda.profile') || {};
   UI.look = LOOKS.indexOf(p.look2) >= 0 ? p.look2 : 'blue';
+  UI.fps = [30, 60, 120].indexOf(+p.fps) >= 0 ? +p.fps : 60;
   ME.name = typeof p.name === 'string' ? p.name.slice(0, 12) : '';
   ME.ch = ci(p.ch == null ? Math.random() * BASE_CH : p.ch, 0, CHARS.length - 1); ME.col = ci(p.col == null ? Math.random() * 8 : p.col, 0, COLORS.length - 1);
   var vo = p.vol && typeof p.vol === 'object' ? p.vol : {};                 // older phones saved sound and music as on/off
@@ -9032,7 +9094,7 @@ function soundButtons() {
     m.querySelector('.mxv').textContent = v ? v + '%' : T('off');
     r.setAttribute('aria-label', lb); var b = m.querySelector('.mxi'); b.setAttribute('aria-label', lb); b.setAttribute('aria-pressed', v ? 'false' : 'true');
   });
-  if (GFX.quality) seg('seg-gfx', GFX.quality);
+  if (GFX.quality) seg('seg-gfx', GFX.quality); seg('seg-fps', String(UI.fps || 60));
   seg('seg-smash', UI.smashL ? 'l' : 'r'); seg('seg-theme', UI.theme || 'auto'); seg('seg-look', LOOK); $('app').classList.toggle('smash-l', !!UI.smashL);
 }
 
@@ -9204,7 +9266,7 @@ function refreshPickers() {
   lvChip($('pf-lv'), myLevel()); xpShow($('xp-lv').parentNode.parentNode, $('xp-lv'), $('xp-txt'), $('xp-fill'), UI.xp || 0);
 }
 /* ---------- bottom sheets on the home screen: how to play, and your player ---------- */
-var SHEETS = ['playsheet', 'profsheet', 'socsheet', 'shopsheet', 'passsheet', 'modesheet', 'mapsheet', 'rulesheet'];
+var SHEETS = ['playsheet', 'profsheet', 'socsheet', 'shopsheet', 'passsheet', 'modesheet', 'mapsheet', 'rulesheet', 'teamsheet'];
 function sheetReset(o) { clearTimeout(o._outT); o.classList.remove('out'); var sh = o.querySelector('.sheet'); if (sh) { sh.style.transform = ''; sh.style.transition = ''; } }
 function openSheet(id) {
   SHEETS.forEach(function (s) { if (s !== id) { sheetReset($(s)); $(s).hidden = true; } });
@@ -9358,7 +9420,7 @@ function renderLobby() {
   var tmo = tmOn(), box = $('seats'), all = ROOM.seats.map(function (s, k) { return { s: s, w: false, k: k }; });
   if (tmo) all.sort(function (a, b) { return ((a.s.team | 0) - (b.s.team | 0)) || (a.k - b.k); });   // teammates side by side
   all = all.concat(ROOM.waiting.map(function (s) { return { s: s, w: true }; }));
-  teamRow();
+  teamRow(); renderTeamSheet();
   $('lob-count').textContent = all.length + '/' + MAXP;
   while (box.children.length < MAXP) {
     var cell = document.createElement('div'); cell.className = 'seat';
@@ -9783,13 +9845,73 @@ function teamName(k) { return T('teamN', { c: colName(k) }); }
 function teamRow() {
   var row = $('tmrow'), on = tmOn(), T0 = tmCount(), mine = ROOM.seats.find(function (s) { return s.id === ME.id; });
   row.hidden = !on; if (!on) return;
-  while (row.children.length > T0) row.removeChild(row.lastChild);
+  var ed = row.querySelector('.tmedit');
+  if (!ed) { ed = document.createElement('button'); ed.type = 'button'; ed.className = 'tmedit'; ed.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 7h10.2a3 3 0 0 1 5.6 0H20a1 1 0 0 1 0 2h-.2a3 3 0 0 1-5.6 0H4a1 1 0 0 1 0-2zm0 8h.2a3 3 0 0 1 5.6 0H20a1 1 0 0 1 0 2H9.8a3 3 0 0 1-5.6 0H4a1 1 0 0 1 0-2z"/></svg>'; row.appendChild(ed); }
+  ed.setAttribute('aria-label', T('tsT'));
+  var chips = row.querySelectorAll('.tmc'); for (var c = chips.length - 1; c >= T0; c--) row.removeChild(chips[c]);
   for (var t = 0; t < T0; t++) {
-    var b = row.children[t]; if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'tmc'; b.innerHTML = '<i></i><b></b><small></small>'; row.appendChild(b); }
+    var b = row.querySelectorAll('.tmc')[t]; if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'tmc'; b.innerHTML = '<i></i><b></b><small></small>'; row.insertBefore(b, ed); }
     var n = ROOM.seats.filter(function (s) { return s.team === t; }).length, k = ROOM.tcol[t];
     b.setAttribute('data-t', t); setC(b, COLORS[k]); b.children[1].textContent = colName(k); b.children[2].textContent = String(n);
     b.classList.toggle('on', !!mine && mine.team === t); b.setAttribute('aria-label', teamName(k));
   }
+}
+/* the team page: every team with its colour and its players. The host picks any team's colour and moves anyone;
+   a joined player moves themselves and picks their own team's colour. Bots just fill whichever team is short. */
+function amHost() { return ROOM.role === 'host' || ROOM.role === 'solo'; }
+function teamsUsed(t) { var u = {}; for (var i = 0; i < tmCount(); i++) if (i !== t && ROOM.tcol[i] != null) u[ROOM.tcol[i]] = 1; return u; }
+function renderTeamSheet() {
+  var box = $('ts-list'); if (!box || $('teamsheet').hidden) return;
+  if (!tmOn()) { closeSheet('teamsheet', true); return; }
+  var T0 = tmCount(), host = amHost(), mine = ROOM.seats.find(function (s) { return s.id === ME.id; });
+  $('ts-note').textContent = T(host ? 'tsNoteH' : 'tsNoteG');
+  $('b-tshuf').hidden = !host;
+  box.textContent = '';
+  for (var t = 0; t < T0; t++) {
+    var k = ROOM.tcol[t], card = document.createElement('section'); card.className = 'tsc'; setC(card, COLORS[k]);
+    var mem = ROOM.seats.filter(function (s) { return s.team === t; });
+    var hd = document.createElement('div'); hd.className = 'tsh'; hd.innerHTML = '<i></i><b></b><small></small>';
+    hd.children[1].textContent = teamName(k); hd.children[2].textContent = String(mem.length); card.appendChild(hd);
+    if (host || (mine && mine.team === t)) {                                // the colour row
+      var used = teamsUsed(t), row = document.createElement('div'); row.className = 'tscol';
+      COLORS.forEach(function (c, ci2) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'tsw' + (ci2 === k ? ' sel' : '') + (used[ci2] ? ' taken' : ''); setC(b, c);
+        b.setAttribute('data-t', t); b.setAttribute('data-k', ci2); b.setAttribute('aria-label', colName(ci2)); row.appendChild(b);
+      });
+      card.appendChild(row);
+    }
+    var ul = document.createElement('div'); ul.className = 'tsm';
+    mem.forEach(function (s) {
+      var r = document.createElement('div'); r.className = 'tsp' + (s.id === ME.id ? ' me' : '') + (s.bot ? ' bot' : '');
+      var im = document.createElement('img'); im.alt = ''; setPortrait(im, s.ch, COLORS[s.col]); r.appendChild(im);
+      var nm = document.createElement('b'); nm.textContent = s.bot ? chName(s.ch) : s.name; r.appendChild(nm);
+      if (s.bot) { var bt = document.createElement('small'); bt.textContent = T('botTag'); r.appendChild(bt); }
+      else if (host || s.id === ME.id) {                                      // move buttons: one dot per other team
+        var mv = document.createElement('span'); mv.className = 'tsmv';
+        for (var o = 0; o < T0; o++) if (o !== t) { var mb = document.createElement('button'); mb.type = 'button'; mb.className = 'tsgo'; setC(mb, COLORS[ROOM.tcol[o]]); mb.setAttribute('data-id', s.id); mb.setAttribute('data-to', o); mb.setAttribute('aria-label', T('tsMove', { t: teamName(ROOM.tcol[o]) })); mb.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></svg>'; mv.appendChild(mb); }
+        r.appendChild(mv);
+      }
+      ul.appendChild(r);
+    });
+    card.appendChild(ul); box.appendChild(card);
+  }
+}
+function openTeams() { if (!tmOn()) return; sfx('click'); openSheet('teamsheet'); renderTeamSheet(); }
+function teamMove(id, t) {
+  var s = ROOM.seats.find(function (x) { return x.id === id; }); if (!s || s.bot) return;
+  if (amHost()) { if (setTeam(s, t)) { sfx('click'); sendLobby(); renderLobby(); } }
+  else if (id === ME.id) myTeamTap(t);
+}
+function teamColour(t, k) {
+  if (amHost()) { if (setTeamCol(t, k)) { sfx('click'); sendLobby(); renderLobby(); } }
+  else { var mine = ROOM.seats.find(function (s) { return s.id === ME.id; }); if (mine && mine.team === t) { sfx('click'); myTeamCol(k); } }
+}
+function shuffleTeams() {
+  if (!amHost() || !tmOn()) return;
+  var hs = ROOM.seats.filter(function (s) { return !s.bot; }), T0 = tmCount(), i;
+  for (i = hs.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0, x = hs[i]; hs[i] = hs[j]; hs[j] = x; }
+  var off = (Math.random() * T0) | 0; hs.forEach(function (s, n) { s.team = (n + off) % T0; });
+  sfx('click'); syncBots(); sendLobby(); renderLobby();
 }
 function myTeamTap(t) {
   var mine = ROOM.seats.find(function (s) { return s.id === ME.id; }); if (!mine || mine.team === t) return;
@@ -9829,7 +9951,7 @@ function initUI() {
   $('b-profile').addEventListener('click', function () { auInit(); sfx('click'); openSheet('profsheet'); });
   $('b-mylook').addEventListener('click', function () { sfx('click'); openSheet('profsheet'); });
   $('b-profok').addEventListener('click', function () { sfx('click'); closeSheet('profsheet'); });
-  ['playsheet', 'profsheet', 'socsheet', 'modesheet', 'mapsheet', 'rulesheet'].forEach(function (id) {
+  ['playsheet', 'profsheet', 'socsheet', 'modesheet', 'mapsheet', 'rulesheet', 'teamsheet'].forEach(function (id) {
     $(id).addEventListener('click', function (e) { if (e.target === this || e.target.closest('[data-close]')) { sfx('click'); closeSheet(id); } });
   });
   $('in-code').addEventListener('input', function () { this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); });
@@ -9896,7 +10018,13 @@ function initUI() {
   document.querySelectorAll('#seg-play img[data-art]').forEach(function (im) { im.src = teamArtURL(im.getAttribute('data-art')); });
   document.querySelectorAll('#modes button').forEach(function (b) { var im = document.createElement('img'); im.alt = ''; im.className = 'ma'; im.src = modeArtURL(+b.getAttribute('data-v')); b.insertBefore(im, b.firstChild); });
   $('seg-tm').addEventListener('click', hostSet(function (v) { ROOM.cfg.tm = ci(v, 2, 5); syncBots(); }));
-  $('tmrow').addEventListener('click', function (e) { var b = e.target.closest('.tmc'); if (b) myTeamTap(+b.getAttribute('data-t')); });
+  $('tmrow').addEventListener('click', function (e) { if (e.target.closest('.tmedit')) { openTeams(); return; } var b = e.target.closest('.tmc'); if (b) myTeamTap(+b.getAttribute('data-t')); });
+  $('ts-list').addEventListener('click', function (e) {
+    var g = e.target.closest('.tsgo'); if (g) { teamMove(g.getAttribute('data-id'), +g.getAttribute('data-to')); return; }
+    var w = e.target.closest('.tsw'); if (w && !w.classList.contains('taken')) teamColour(+w.getAttribute('data-t'), +w.getAttribute('data-k'));
+  });
+  $('b-tshuf').addEventListener('click', shuffleTeams);
+  $('b-tsok').addEventListener('click', function () { sfx('click'); closeSheet('teamsheet'); });
   $('seg-tgt').addEventListener('click', hostSet(function (v) { var c = ROOM.cfg; c[tgtKey(c)] = +v; }));
   $('seg-ck').addEventListener('click', hostSet(function (v) { ROOM.cfg.ck = +v ? 1 : 0; }));
   $('balls-minus').addEventListener('click', function () { if (!(ROOM.role === 'host' || ROOM.role === 'solo')) return; sfx('click'); ROOM.cfg.balls = Math.max(0, (ROOM.cfg.balls | 0) - 1); sendLobby(); renderLobby(); });
@@ -9929,6 +10057,7 @@ function initUI() {
   $('seg-theme').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; sfx('click'); UI.theme = b.getAttribute('data-v'); saveProfile(); applyTheme(); soundButtons(); });
   try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); } catch (e) {}
   $('seg-smash').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; sfx('click'); UI.smashL = b.getAttribute('data-v') === 'l'; saveProfile(); soundButtons(); });
+  $('seg-fps').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; sfx('click'); UI.fps = +b.getAttribute('data-v'); GFX.no120 = false; saveProfile(); seg('seg-fps', String(UI.fps)); });
   $('seg-gfx').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; sfx('click'); gfxQuality(b.getAttribute('data-v')); saveProfile(); seg('seg-gfx', GFX.quality); });
   $('b-quit').addEventListener('click', function () {
     var now = performance.now();
