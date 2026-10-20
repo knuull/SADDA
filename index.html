@@ -2520,6 +2520,8 @@ html[data-game="cars"] .seat:not(.empty) img:not([src]), html[data-game="cars"] 
 :root[data-look][data-look][data-look] .tog.obs small { font-size: 0.74rem; font-weight: 500; color: var(--pa-ink3); }
 /* SmashBo's obstacles live on that switch now, not in More options */
 :root[data-look][data-look][data-look] #rulesheet :is([data-t="haz"], #seg-haz, [data-t="hazInfo"]) { display: none; }
+/* Car Knockout items in the Shop: the 3D picture of your car wearing it */
+:root[data-look][data-look][data-look] img.art.ckpic { width: 100%; max-width: 132px; aspect-ratio: 1; height: auto; object-fit: contain; }
 /* ================= LAST SIGHT: its own look inside the one design system =================
    The same panels, type, spacing and controls as the other two games; LAST SIGHT trades the gold accent for a cold
    ice cyan, and its match HUD is a thin, sharp tactical layer over a dark cinematic stage. */
@@ -6236,7 +6238,7 @@ if (typeof module !== 'undefined') module.exports = { LS_OPS: LS_OPS, LS_WEAPONS
    player's full set of steps before it locks (a slow line only delays the reveal, it never costs anyone a step), and
    players pass through each other (bumping into someone you cannot see would give them away); they are pushed apart
    before anyone is shown. World: metres, x right, y down the screen. */
-var LS_STEP = 1 / 60, LS_R = 0.42, LS_HIT = 0.46, LS_SPEED = 2.3, LS_SPEED_S = 3.3, LS_AMMO = 2;
+var LS_STEP = 1 / 60, LS_R = 0.42, LS_HIT = 0.46, LS_SPEED = 2.65, LS_SPEED_S = 3.8, LS_AMMO = 2;
 var LS_T = { intro: 2.6, remember: 2.0, vanish: 0.45, lock: 0.75, fire: 1.3, result: 1.0, shrink: 0.9, roundEnd: 3.8, reveal: 0.7, live: 8, collapse: 10 };
 var LS_GRACE = 0.9, LS_VCAP = 14, LS_CYCLES = 5, LS_TBMAX = 4, LS_FINAL = 2.5;
 var LS_PROJ_V = 24, LS_PROJ_R = 0.1, LS_COOL = 0.45, LS_PROJ_LIFE = 1.6;
@@ -12277,10 +12279,11 @@ function ckStrip(B, col, p, q, z, th, dp) { var dx = q[0] - p[0], dy = q[1] - p[
 var CK_FIN = {};
 function ckFinMat(f) {
   if (!f) return ckMats().paint; if (CK_FIN[f]) return CK_FIN[f];
-  var P = THREE.MeshPhysicalMaterial || THREE.MeshStandardMaterial, o = [null, { roughness: 0.78, metalness: 0.05, clearcoat: 0 }, { roughness: 0.42, metalness: 0.85, clearcoat: 0.3, clearcoatRoughness: 0.3 }, { roughness: 0.06, metalness: 1, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.6 }, { roughness: 0.25, metalness: 0.3, clearcoat: 1, clearcoatRoughness: 0.04, sheen: 1 }, { roughness: 0.3, metalness: 0.5, clearcoat: 1, clearcoatRoughness: 0.1 }, { roughness: 0.18, metalness: 1, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.4 }][f] || {};
+  var P = THREE.MeshPhysicalMaterial || THREE.MeshStandardMaterial, o = [null, { roughness: 0.78, metalness: 0.05, clearcoat: 0 }, { roughness: 0.42, metalness: 0.85, clearcoat: 0.3, clearcoatRoughness: 0.3 }, { roughness: 0.04, metalness: 1, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 2.6 }, { roughness: 0.25, metalness: 0.3, clearcoat: 1, clearcoatRoughness: 0.04, sheen: 1 }, { roughness: 0.3, metalness: 0.5, clearcoat: 1, clearcoatRoughness: 0.1 }, { roughness: 0.18, metalness: 1, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.4 }][f] || {};
   var m = new P(Object.assign({ vertexColors: true, envMapIntensity: 1.1 }, o));
   if (f === 5) { m.map = canvasTex(64, 64, function (g) { for (var y = 0; y < 64; y += 8) for (var x = 0; x < 64; x += 8) { g.fillStyle = ((x + y) / 8) % 2 ? '#ffffff' : '#9aa0a8'; g.fillRect(x, y, 8, 8); } }); m.map.wrapS = m.map.wrapT = THREE.RepeatWrapping; }
   if (f === 6) m.color = LC('#ffd27a');
+  if (f === 3) { m.color = LC('#e8ecf2'); m.emissive = LC('#1a1d22'); }                  // chrome reads as polished metal in the paint's own tint, not a dark mirror
   if (CKM) CKM['fin' + f] = m; return (CK_FIN[f] = m);
 }
 function ckBuildCar(type, hex, lod, fin) {
@@ -14055,6 +14058,16 @@ function lsSeg(B, col, a, b, r0, r1, caps) {
   if (caps !== false) { B.add(lsSphG(12), col, a[0], a[1], a[2], r0, r0, r0); B.add(lsSphG(12), col, b[0], b[1], b[2], r1, r1, r1); }
 }
 function lsShade(h, k) { return shade(h, k); }
+/* fitted armour: a curved plate with real thickness and softened edges that wraps round a limb or the chest (lathe
+   profile turned through arc radians, centred on the front, +z). rB/rT: inner radius at the bottom and top; h: height;
+   t: thickness. Shared per shape, so every operative's plates cost one geometry. */
+function lsArmor(rB, rT, h, t, arc) {
+  return lsG('ar' + [rB, rT, h, t, arc].join(':'), function () {
+    var e = t * 0.55, P = [[rB, -h / 2], [rB + t * 0.7, -h / 2 + e * 0.3], [rB + t, -h / 2 + e], [rT + t, h / 2 - e], [rT + t * 0.7, h / 2 - e * 0.3], [rT, h / 2]];
+    var g = new THREE.LatheGeometry(P.map(function (q) { return new THREE.Vector2(q[0], q[1]); }), arc > 6 ? 24 : 14, -arc / 2, arc);
+    g.computeVertexNormals(); return g;
+  });
+}
 
 /* ---------- materials (shared by everyone) ---------- */
 function lsMats() {
@@ -14101,26 +14114,27 @@ function lsBuildOp(k) {
   ['L', 'R'].forEach(function (s) {
     var sx = s === 'L' ? 1 : -1;
     var leg = part('leg' + s, function (B, Cl) {
-      lsSeg(B, Bc, [0, 0, 0], [0, -0.42, 0.01], 0.085 * bu, 0.066 * bu);
-      lsPut(B, lsRBox(), lsShade(A, -0.05), sx * 0.02, -0.18, 0.06, 0.1 * bu, 0.16, 0.05);                     // thigh plate
-      lsPut(B, lsRBox(), dark, sx * 0.075 * bu, -0.2, 0, 0.035, 0.12, 0.08);                                     // side pocket
+      lsSeg(B, Bc, [0, 0, 0], [0, -0.42, 0.01], 0.097 * bu, 0.074 * bu);
+      lsPut(B, lsArmor(0.078 * bu, 0.092 * bu, 0.2, 0.018, 2.3), lsShade(A, -0.05), 0, -0.19, 0.004, 1, 1, 1, 0, sx * 0.25, 0);   // thigh plate, fitted round the front
+      lsPut(B, lsRBox(), dark, sx * 0.09 * bu, -0.22, -0.005, 0.03, 0.11, 0.075);                                 // side pocket
     });
     leg.position.set(sx * 0.095 * bu, -0.02, 0); hips.add(leg);
     var shin = part('shin' + s, function (B) {
-      lsSeg(B, Bc, [0, 0, 0], [0, -0.37, -0.01], 0.064 * bu, 0.05);
-      lsPut(B, lsRBox(), lsShade(A, 0.05), 0, -0.02, 0.055, 0.11, 0.1, 0.06);                                     // knee pad
-      lsPut(B, lsRBox(), lsShade(A, -0.1), 0, -0.2, 0.045, 0.09, 0.2, 0.04);                                      // shin guard
-      lsPut(B, lsRBox(), boot, 0, -0.42, 0.045, 0.125, 0.12, 0.26);                                               // boot
-      lsPut(B, lsRBox(), '#0b0c0f', 0, -0.475, 0.045, 0.13, 0.03, 0.27);                                          // sole
+      lsSeg(B, Bc, [0, 0, 0], [0, -0.37, -0.01], 0.074 * bu, 0.058);
+      lsPut(B, lsSphG(16), lsShade(A, 0.02), 0, -0.01, 0.045, 0.058 * bu, 0.056, 0.04);                          // knee pad
+      lsPut(B, lsArmor(0.062, 0.074 * bu, 0.22, 0.016, 2.0), lsShade(A, -0.1), 0, -0.2, -0.004);                   // shin guard
+      lsPut(B, lsRBox(), boot, 0, -0.395, 0.0, 0.125, 0.15, 0.16);                                                // boot: the ankle
+      lsPut(B, lsSphG(16), boot, 0, -0.43, 0.085, 0.066, 0.055, 0.1);                                             // the rounded toe
+      lsPut(B, lsRBox(), '#0b0c0f', 0, -0.475, 0.04, 0.135, 0.03, 0.27);                                          // sole
     });
     shin.position.y = -0.42; leg.add(shin);
   });
   var torso = part('torso', function (B, Cl, G) {
     var chest = [[0.001, 0], [0.13 * bu, 0.0], [0.142 * bu, 0.12], [0.19 * sh, 0.3], [0.205 * sh, 0.42], [0.17 * sh, 0.52], [0.07, 0.58], [0.001, 0.59]];
     lsPut(B, lsLathe('ch' + sh + bu, chest, 20), Bc, 0, 0, 0, 1, 1, 0.66);
-    lsPut(B, lsRBox(), A, 0, 0.33, 0.085, 0.3 * sh, 0.26, 0.09);                                                   // chest plate
-    lsPut(B, lsRBox(), lsShade(A, -0.12), 0, 0.17, 0.08, 0.22 * bu, 0.11, 0.07);                                  // ab plate
-    lsPut(B, lsRBox(), lsShade(A, -0.08), 0, 0.33, -0.09, 0.3 * sh, 0.28, 0.08);                                  // back plate
+    lsPut(B, lsArmor(0.16 * sh, 0.2 * sh, 0.27, 0.03, 2.5), A, 0, 0.33, 0, 1, 1, 0.7);                             // chest plate, curved to the chest
+    lsPut(B, lsArmor(0.142 * bu, 0.15 * bu, 0.11, 0.022, 2.1), lsShade(A, -0.12), 0, 0.17, 0, 1, 1, 0.7);         // ab plate
+    lsPut(B, lsArmor(0.17 * sh, 0.2 * sh, 0.28, 0.026, 2.2), lsShade(A, -0.08), 0, 0.33, 0, 1, 1, 0.7, 0, Math.PI, 0);   // back plate
     lsPut(B, lsTorus(0.075, 0.024), dark, 0, 0.555, 0, 1, 1, 0.9, Math.PI / 2, 0, 0);                             // collar
     lsPut(G, lsBoxG(), C, 0.06 * sh, 0.38, 0.132, 0.05, 0.014, 0.004); lsPut(G, lsBoxG(), C, -0.06 * sh, 0.38, 0.132, 0.05, 0.014, 0.004);   // light strips
     lsPut(G, lsBoxG(), C, 0, 0.25, 0.13, 0.012, 0.06, 0.004);
@@ -14132,14 +14146,14 @@ function lsBuildOp(k) {
   ['L', 'R'].forEach(function (s) {
     var sx = s === 'L' ? 1 : -1;
     var arm = part('arm' + s, function (B) {
-      lsSeg(B, Bc, [0, 0, 0], [0, -0.27, 0], 0.058 * bu, 0.048 * bu);
-      if (O.gear !== 'pauldrons') lsPut(B, lsRBox(), A, sx * 0.012, -0.04, 0, 0.11 * bu, 0.12, 0.12);              // shoulder pad
-      lsPut(B, lsRBox(), lsShade(A, -0.1), sx * 0.01, -0.16, 0.0, 0.08 * bu, 0.09, 0.085);
+      lsSeg(B, Bc, [0, 0, 0], [0, -0.27, 0], 0.066 * bu, 0.054 * bu);
+      if (O.gear !== 'pauldrons') lsPut(B, lsSphG(16), A, sx * 0.012, -0.02, 0, 0.085 * bu, 0.075, 0.085);         // shoulder pad
+      lsPut(B, lsArmor(0.056 * bu, 0.064 * bu, 0.1, 0.014, 6.3), lsShade(A, -0.1), 0, -0.15, 0);                  // upper arm band
     });
     arm.position.set(sx * 0.215 * sh, 0.47, 0); torso.add(arm);
     var fore = part('fore' + s, function (B, Cl, G) {
-      lsSeg(B, Bc, [0, 0, 0], [0, -0.245, 0], 0.048 * bu, 0.04);
-      lsPut(B, lsRBox(), lsShade(A, 0.02), 0, -0.13, 0, 0.085, 0.14, 0.085);                                       // bracer
+      lsSeg(B, Bc, [0, 0, 0], [0, -0.245, 0], 0.056 * bu, 0.046);
+      lsPut(B, lsArmor(0.046, 0.055 * bu, 0.14, 0.014, 6.3), lsShade(A, 0.02), 0, -0.13, 0);                       // bracer
       lsPut(G, lsBoxG(), C, sx * 0.043, -0.13, 0, 0.004, 0.1, 0.012);
       lsPut(B, lsRBox(), glove, 0, -0.29, 0.005, 0.07, 0.09, 0.08);                                                // glove
     });
@@ -14907,10 +14921,10 @@ function lsLights(W) {
 /* ---------- the camera ---------- */
 function lsScr(x, y, z) { var v = _lv.set(x, y, z).project(LSG.cam); return { x: (v.x + 1) / 2 * VIEW.W, y: (1 - v.y) / 2 * VIEW.H, ok: v.z < 1 }; }
 /* frame a box of half sizes hx, hz (metres) into the screen rect R (pixels), pitched el radians */
-function lsCamFit(hx, hz, R, el, dt, drift, cx, cz) {
+function lsCamFit(hx, hz, R, el, dt, drift, cx, cz, wOnly) {
   var cam = LSG.cam, W = VIEW.W, H = VIEW.H, asp = W / Math.max(1, H); cam.aspect = asp; cam.fov = 34;
   var vf = cam.fov * Math.PI / 180, kx = R.w / W, ky = R.h / H, hf = 2 * Math.atan(Math.tan(vf / 2) * asp);
-  var dW = hx / (Math.tan(hf / 2) * kx), dH = (hz * Math.sin(el) + 2.2 * Math.cos(el)) / (Math.tan(vf / 2) * ky), d = Math.max(dW, dH) * 1.04 + hz * Math.cos(el) * 0.35;
+  var dW = hx / (Math.tan(hf / 2) * kx), dH = (hz * Math.sin(el) + 2.2 * Math.cos(el)) / (Math.tan(vf / 2) * ky), d = (wOnly ? dW : Math.max(dW, dH)) * 1.04 + hz * Math.cos(el) * 0.35;   // wOnly: a short band over the room's panel, fill its width and let the floor run on under the panel
   var tx = cx || 0, tz = (cz || 0) + 0.25, px = tx + (drift ? Math.sin(performance.now() / 9000) * d * 0.035 : 0), py = Math.sin(el) * d, pz = tz + Math.cos(el) * d;
   LSG.cp = LSG.cp || new THREE.Vector3(px, py, pz); LSG.ct = LSG.ct || new THREE.Vector3(tx, 0, tz);
   var k = dt < 0 ? 1 : Math.min(1, dt * 2.6); LSG.cp.x += (px - LSG.cp.x) * k; LSG.cp.y += (py - LSG.cp.y) * k; LSG.cp.z += (pz - LSG.cp.z) * k; LSG.ct.x += (tx - LSG.ct.x) * k; LSG.ct.y += (0 - LSG.ct.y) * k; LSG.ct.z += (tz - LSG.ct.z) * k;
@@ -15128,8 +15142,19 @@ function lsGfxFrame(now, dt) {
     LSG.paths.forEach(function (m) { if (!m.visible) return; m.userData.t += dt; m.material.opacity = Math.max(0, 0.75 - m.userData.t * 0.22); if (m.material.opacity <= 0) m.visible = false; });
     // the camera: the whole arena, always (memory is the game)
     var ext = mode === 0 ? [src.A0 + 0.6, src.A0 + 0.6] : [src.HW0 + 0.6, src.HH0 + 0.6], R2;
-    if (scn === 'game') { R2 = lsGameRect(); var spec = !me || !me.alive || me.sit; lsCamFit(ext[0], ext[1], R2, 0.96, dt, spec || V.phase === 'roundEnd'); }
-    else { var fr = ckPanelFree(); R2 = fr ? { x: fr.x0, y: fr.y0, w: fr.x1 - fr.x0, h: fr.y1 - fr.y0 } : { x: 0, y: 0, w: VIEW.W, h: VIEW.H }; lsCamFit(ext[0] * (fr && fr.bottom ? 1 : 1.05), ext[1], R2, 1.0, scn === 'lobby' ? dt * 0.6 : dt, true); }
+    var wo = over && win >= 0 && V.list[win] && V.list[win].vis && V.list[win].alive && !V.list[win].sit ? V.list[win] : null;   // the match is won: the camera comes down to the winner
+    if (wo) {
+      if (scn === 'game') R2 = lsGameRect(); else { var fw = ckPanelFree(); R2 = fw ? { x: fw.x0, y: fw.y0, w: fw.x1 - fw.x0, h: fw.y1 - fw.y0 } : { x: 0, y: 0, w: VIEW.W, h: VIEW.H }; }
+      lsCamFit(2.4, 2.4, R2, 0.62, dt * 0.5, true, wo.x, wo.y);
+    }
+    if (wo) {} else if (scn === 'game') {
+      R2 = lsGameRect(); var spec = !me || !me.alive || me.sit, intro = V.phase === 'intro' && !(REDUCE || UI.rmotion);
+      // a new round opens on a high, wide view of the arena and pushes in over Get Ready, reaching the playing view
+      // exactly as Remember begins (timed by the phase clock, so it never lags into the moment that matters)
+      var iq = intro ? lsClamp(V.phaseT / LS_T.intro, 0, 1) : 0; iq = iq * iq * (3 - 2 * iq);
+      lsCamFit(ext[0] * (0.9 + 0.32 * iq), ext[1] * (0.9 + 0.32 * iq), R2, 0.96 + 0.22 * iq, intro ? dt * 2 : dt, spec || V.phase === 'roundEnd');
+    }
+    else { var fr = ckPanelFree(); R2 = fr ? { x: fr.x0, y: fr.y0, w: fr.x1 - fr.x0, h: fr.y1 - fr.y0 } : { x: 0, y: 0, w: VIEW.W, h: VIEW.H }; lsCamFit(ext[0] * (fr && fr.bottom ? 1 : 1.05), ext[1], R2, fr && fr.bottom ? 0.9 : 1.0, scn === 'lobby' ? dt * 0.6 : dt, true, 0, 0, !!(fr && fr.bottom)); }
     lsDust(dt, ext[0], ext[1], false);
     lsTags(live ? V.list : [], scn === 'game');
     if (LSG.warm !== W.key) { LSG.warm = W.key; try { GFX.r.compile(LSG.scene, cam); } catch (e) {} }
@@ -15317,11 +15342,11 @@ function matchXP(S, p) {
   return Math.min(150, xp);
 }
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} return null; }
-function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, vol: AU.vol, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', xp: UI.xp || 0, sv2: UI.srv == null ? -1 : UI.srv, th: UI.theme || 'auto', fps: UI.fps || 60, sfps: UI.showFps !== false, game: UI.game || 'smash', car: ME.car | 0, ckp: UI.ckPlays || 0, ls: lsWire(), lsp: UI.lsPlays || 0, howls: !!UI.howLs, lst: UI.lsStats, lsc: UI.lsCtl, rm: UI.rmotion ? 1 : 0, vl: UI.vlines === false ? 0 : 1, look2: UI.look || LOOK, how: !!UI.howSeen, howck: !!UI.howCk, plays: UI.plays || 0, rks: UI.rks, vc: !!UI.voice, ptt: UI.ptt !== false, mu: Object.keys(UI.muted || {}).slice(-120) }); }
+function saveProfile() { store('sadda.profile', { name: ME.name, ch: ME.ch, col: ME.col, lang: LANG, langSet: !!UI.langSet, vol: AU.vol, vib: AU.vib !== false, gfx: GFX.quality || 'auto', sm: UI.smashL ? 'l' : 'r', xp: UI.xp || 0, sv2: UI.srv == null ? -1 : UI.srv, th: UI.theme || 'auto', fps: UI.fps || 60, sfps: UI.showFps === true, game: UI.game || 'smash', car: ME.car | 0, ckp: UI.ckPlays || 0, ls: lsWire(), lsp: UI.lsPlays || 0, howls: !!UI.howLs, lst: UI.lsStats, lsc: UI.lsCtl, rm: UI.rmotion ? 1 : 0, vl: UI.vlines === false ? 0 : 1, look2: UI.look || LOOK, how: !!UI.howSeen, howck: !!UI.howCk, plays: UI.plays || 0, rks: UI.rks, vc: !!UI.voice, ptt: UI.ptt !== false, mu: Object.keys(UI.muted || {}).slice(-120) }); }
 function loadProfile() {
   var p = store('sadda.profile') || {};
   UI.look = LOOKS.indexOf(p.look2) >= 0 ? p.look2 : 'blue';
-  UI.fps = [30, 60, 120].indexOf(+p.fps) >= 0 ? +p.fps : 60; UI.showFps = p.sfps !== false;
+  UI.fps = [30, 60, 120].indexOf(+p.fps) >= 0 ? +p.fps : 60; UI.showFps = p.sfps === true;   // the frame counter is for checking speed: off unless turned on
   UI.voice = p.vc === true; UI.ptt = p.ptt !== false; UI.muted = {}; (Array.isArray(p.mu) ? p.mu : []).forEach(function (k) { if (typeof k === 'string' && k.length < 40) UI.muted[k] = 1; });   // voice chat stays off until a grown-up turns it on
   UI.game = p.game === 'cars' || p.game === 'sight' ? p.game : 'smash'; ME.car = Math.max(0, Math.min(CK_CARS.length - 1, p.car | 0)); UI.ckPlays = +p.ckp || 0;
   lsProfLoad(p);
@@ -15396,7 +15421,7 @@ function applyStrings() {
 function setLang(l) { LANG = l === 'ar' ? 'ar' : 'en'; UI.langSet = true; saveProfile(); applyStrings(); }
 function soundButtons() {
   var vb = $('t-vib'), on = AU.vib !== false; vb.classList.toggle('on', on); vb.setAttribute('aria-pressed', on ? 'true' : 'false');
-  var fb = $('t-fps'), fo = UI.showFps !== false; fb.classList.toggle('on', fo); fb.setAttribute('aria-pressed', fo ? 'true' : 'false');
+  var fb = $('t-fps'), fo = UI.showFps === true; fb.classList.toggle('on', fo); fb.setAttribute('aria-pressed', fo ? 'true' : 'false');
   document.querySelectorAll('.mix').forEach(function (m) {
     var k = m.getAttribute('data-k'), v = AU.vol[k], r = m.querySelector('input'), lb = T(m.querySelector('.mxl').getAttribute('data-t'));
     if (+r.value !== v) r.value = v;
@@ -15619,7 +15644,7 @@ function refreshPickers() {
   $('s-home').classList.toggle('chlock', lk); $('s-home').classList.toggle('chog', !!(it && it.og));
   $('b-play').hidden = lk; $('b-getch').hidden = !lk; if (lk) getChUI(sc);
   }
-  setPortrait($('pf-img'), ME.ch, hex);
+  setPortrait($('pf-img'), seatPic({ id: ME.id, ch: ME.ch, car: ME.car | 0 }), hex);   // the profile shows what I play in this game: my character, my car or my agent
   $('pf-name').textContent = ME.name || T('guest');
   socHome();
   lvChip($('pf-lv'), myLevel()); xpShow($('xp-lv').parentNode.parentNode, $('xp-lv'), $('xp-txt'), $('xp-fill'), UI.xp || 0);
@@ -16192,7 +16217,7 @@ function hudStats(S) {
   if (G.role === 'client' && G.synced && G.pings.length) ms = Math.round(G.pings[G.pings.length - 1].rtt);
   else if (G.role === 'host') S.players.forEach(function (p) { if (p.remote && p.conn) ms = Math.max(ms, Math.round(p.lat * 2000)); });
   pe.hidden = ms < 0; if (ms >= 0) { pe.textContent = ms + ' ms'; statCls(pe, ms, 150, 150); }   // only a slow line stands out
-  var fps = frame.fps || 0; fe.textContent = fps + ' FPS'; fe.hidden = UI.showFps === false;
+  var fps = frame.fps || 0; fe.textContent = fps + ' FPS'; fe.hidden = UI.showFps !== true;
 }
 /* ---------- the welcome page: your name and your server, with each server's ping ---------- */
 function srvName(i) { var s = SERVERS[i]; return i < 0 || !s ? T('srvAuto') : (LANG === 'ar' ? s.ar : s.en) + (s.url && (s.cen || s.car) ? ' (' + (LANG === 'ar' ? s.car : s.cen) + ')' : ''); }
@@ -16454,7 +16479,7 @@ function initUI() {
     m.querySelector('.mxi').addEventListener('click', function () { set(AU.vol[k] ? 0 : +m.getAttribute('data-last') || (k === 'm' ? 80 : 100)); saveProfile(); sfx('click'); });
   });
   $('t-vib').addEventListener('click', function () { AU.vib = AU.vib === false; saveProfile(); soundButtons(); sfx('click'); buzz(30); });
-  $('t-fps').addEventListener('click', function () { UI.showFps = UI.showFps === false; saveProfile(); soundButtons(); sfx('click'); });
+  $('t-fps').addEventListener('click', function () { UI.showFps = UI.showFps !== true; saveProfile(); soundButtons(); sfx('click'); });
   $('t-voice').addEventListener('click', function () {                     // on only through the grown-up check; off at once
     sfx('click');
     if (UI.voice) { UI.voice = false; saveProfile(); voiceSync(); soundButtons(); micButtons(); return; }
@@ -16645,6 +16670,46 @@ function ckPortrait(type, hex) {
   r.setRenderTarget(prev); GFX.pScene.remove(car.grp); ckFreeCar(car); if (env0) ckEnvUse(env0);
   if (url) GFX.pCache[key] = url; return url;
 }
+/* a Shop item for Car Knockout, on my own car in my colour: a paint finish, a boost trail streaming out behind, or the
+   underglow lighting the floor beneath. Drawn once in the picture studio and kept. */
+function ckItemPic(cat, i) {
+  var type = ME.car | 0, hex = COLORS[ME.col] || '#35e0ff', key = 'cki' + cat + i + ':' + type + hex; if (GFX.pCache && GFX.pCache[key]) return GFX.pCache[key];
+  if (!GFX.ok || !ckGfxInit()) return '';
+  var N = 256, r = GFX.r, prev = r.getRenderTarget(); portraitURL(0, NEUTRAL);
+  if (!CKG.iCam) { CKG.iCam = new THREE.PerspectiveCamera(30, 1, 0.5, 60); }
+  var cam = CKG.iCam; if (cat === 'x') { cam.position.set(-5.4, 2.6, 4.4); cam.lookAt(-0.9, 0.45, 0); } else { cam.position.set(4.6, 3.0, 5.2); cam.lookAt(0, 0.5, 0); }
+  var car = ckBuildCar(type, hex, false, cat === 'p' ? i : 0), s = CK_CARS[type].look === 'monster' ? 0.85 : 1, env0 = CKG.envOn, extra = new THREE.Group();
+  car.grp.scale.multiplyScalar(s); car.grp.position.y = 0.05; ckEnvUse(CKG.studio);
+  var L = (ITEM[cat + i] || {}).L || {};
+  if (cat === 'x') {                                                   // the trail: soft streaks of its colours from the back of the car
+    var cs = L.c || ['#ffb020', '#ff5a2a'];
+    for (var k = 0; k < 9; k++) {
+      var len = 1.2 + (k % 3) * 0.5, m = new THREE.Mesh(new THREE.PlaneGeometry(len, 0.16 - (k % 3) * 0.03), new THREE.MeshBasicMaterial({ color: new THREE.Color(cs[k % cs.length]), transparent: true, opacity: 0.85 - k * 0.06, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+      m.rotation.x = -Math.PI / 2 + 0.6; m.position.set(-1.95 - len / 2 - k * 0.12, 0.38 + (k % 3) * 0.1, (k % 2 ? 1 : -1) * (0.22 + (k % 4) * 0.07)); extra.add(m);
+      var d = new THREE.Mesh(new THREE.SphereGeometry(0.07 - k * 0.004, 8, 6), m.material); d.position.set(-2.1 - k * 0.42, 0.42 + Math.sin(k) * 0.12, Math.cos(k * 1.7) * 0.35); extra.add(d);
+    }
+  }
+  if (cat === 'u' && i > 0) {                                          // the glow on the floor under the car, and its light on the body
+    var gc = new THREE.Color(L.c || '#35e0ff'), tex = canvasTex(64, 64, function (g) { var gr = g.createRadialGradient(32, 32, 2, 32, 32, 31); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
+    var pad = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 3.2), new THREE.MeshBasicMaterial({ map: tex, color: gc, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    pad.rotation.x = -Math.PI / 2; pad.position.y = 0.02; extra.add(pad);
+    var pl = new THREE.PointLight(gc, 3.2, 4); pl.position.set(0, 0.15, 0); extra.add(pl);
+  }
+  GFX.pScene.add(car.grp); GFX.pScene.add(extra);
+  var url = '';
+  try {
+    r.setRenderTarget(GFX.pRT); r.setClearColor(0x000000, 0); r.clear(); r.render(GFX.pScene, cam);
+    r.readRenderTargetPixels(GFX.pRT, 0, 0, N, N, GFX.pBuf);
+    var src = GFX.pBuf, dst = GFX.pImg.data, y, x, j, o, a;
+    for (y = 0; y < N; y++) for (x = 0; x < N; x++) { j = ((N - 1 - y) * N + x) * 4; o = (y * N + x) * 4; a = src[j + 3];
+      if (a > 0 && a < 255) { dst[o] = Math.min(255, src[j] * 255 / a); dst[o + 1] = Math.min(255, src[j + 1] * 255 / a); dst[o + 2] = Math.min(255, src[j + 2] * 255 / a); } else { dst[o] = src[j]; dst[o + 1] = src[j + 1]; dst[o + 2] = src[j + 2]; } dst[o + 3] = a; }
+    var c2 = GFX.p2d, g2 = c2.getContext('2d'); g2.clearRect(0, 0, N, N); g2.putImageData(GFX.pImg, 0, 0); url = c2.toDataURL('image/png');
+  } catch (e) { url = ''; }
+  r.setRenderTarget(prev); GFX.pScene.remove(car.grp); GFX.pScene.remove(extra); ckFreeCar(car);
+  extra.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
+  if (env0) ckEnvUse(env0);
+  if (url) GFX.pCache[key] = url; return url;
+}
 /* ---------- home: the garage ---------- */
 function stepCar(d) { var n = CK_CARS.length; ME.car = (((ME.car | 0) + d) % n + n) % n; UI.tapAt = performance.now(); sfx('click'); saveProfile(); refreshPickers(); profChanged(); }
 function ckHomePlate() {
@@ -16715,7 +16780,7 @@ function ckHudTick(S) {
   if (me) { var cd = CK_SPEC.bcd, f = ckClamp((tn - me.boostAt) / cd, 0, 1); bb.style.setProperty('--cd', ((1 - f) * 360).toFixed(0) + 'deg'); bb.classList.toggle('ready', f >= 1);
     var jb = $('b-jump'), jf = ckClamp((tn - me.jumpAt) / CK_JUMP_CD, 0, 1), js = Math.ceil(CK_JUMP_CD - (tn - me.jumpAt)); jb.style.setProperty('--cd', ((1 - jf) * 360).toFixed(0) + 'deg'); jb.classList.toggle('ready', jf >= 1);
     var jt = jf >= 1 ? '' : String(Math.max(1, js)); if (jb.lastChild.textContent !== jt) jb.lastChild.textContent = jt; }
-  var fe = $('ck-fps'); fe.hidden = UI.showFps === false; if (!fe.hidden) fe.textContent = (frame.fps || 0) + ' FPS';
+  var fe = $('ck-fps'); fe.hidden = UI.showFps !== true; if (!fe.hidden) fe.textContent = (frame.fps || 0) + ' FPS';
   var now = performance.now(), fe = $('ck-feed');
   while (CKH.feed.length && now - CKH.feed[0].t > 3500) { var o = CKH.feed.shift(); if (o.el.parentNode) o.el.parentNode.removeChild(o.el); }
 }
@@ -17181,9 +17246,16 @@ function lsMapArt(k) {
   return (LSA[key] = c.toDataURL());
 }
 
+/* the loadout's pictures are drawn ahead, one at a time while the home screen sits idle, so the sheet opens full */
+function lsWarm() {
+  if (UI.game !== 'sight' || UI.screen !== 'home' || LS.S || !GFX.ok || document.hidden || UI.sheet) return;
+  var L = lsMine(), k;
+  for (k = 0; k < LS_OPS.length; k++) if (!(GFX.pCache && GFX.pCache['ls' + k])) { lsPortrait(k); return; }
+  for (k = 0; k < LS_WEAPONS.length; k++) if (!(GFX.pCache && GFX.pCache['lsw' + k + ':' + L.sk])) { lsGunPic(k, L.sk); return; }
+}
 /* ---------- wiring ---------- */
 function lsUIInit() {
-  lsPadInit();
+  lsPadInit(); setInterval(lsWarm, 350);
   $('seg-lsmo').addEventListener('click', hostSet(function (v) { ROOM.cfg.lsmo = ci(v, 0, 1); }));
   $('seg-lsr').addEventListener('click', hostSet(function (v) { ROOM.cfg.lsr = ci(v, 1, 5); }));
   $('seg-lsu').addEventListener('click', hostSet(function (v) { ROOM.cfg.lsu = [5, 10, 15].indexOf(+v) >= 0 ? +v : 5; }));
@@ -17601,7 +17673,7 @@ function itemArt(it) {
     if (cat === 'k') return lsSwatch(LS_FINISH[it.i] || LS_FINISH[0]).replace('<svg ', '<svg class="art" ');
     return lsTracerArt((LS_TRACER[it.i] || {}).c || '#ffe39a').replace('<svg ', '<svg class="art" ');
   }
-  if (it.g === 'cars') return ckItemArt(it);
+  if (it.g === 'cars') return '<img class="art ckpic" alt="" data-cat="' + it.cat + '" data-i="' + it.i + '">';   // your own car wearing it, in 3D (drawn just after, see artHydrate)
   if (cat === 'e') return EMO_SVG[L.s] || EMO_SVG[0];
   if (cat === 'c') return '<img class="art cport" alt="" data-ch="' + it.i + '">';    // a character: their portrait, in your colour (drawn just after, see artHydrate)
   if (cat === 'b') {
@@ -17662,7 +17734,7 @@ function ckItemArt(it) {
 /* ---------- the wallet on the home screen and the badges on the side buttons ---------- */
 function chalName(c) { return T(c.n === 1 && (c.k === 'win' || c.k === 'friends') ? 'ch_' + c.k + '1' : 'ch_' + c.k, { n: c.n }); }
 /* character portraits in cards are drawn a moment later, a few at a time, so opening the Shop never stalls */
-function artHydrate(root) { root.querySelectorAll('img.cport').forEach(function (im) { setPortrait(im, +im.getAttribute('data-ch'), COLORS[ME.col]); }); root.querySelectorAll('img.cgun').forEach(function (im) { var w = +im.getAttribute('data-w'); setTimeout(function () { im.src = lsGunPic(w, 0) || ''; }, 30); }); }
+function artHydrate(root) { root.querySelectorAll('img.ckpic').forEach(function (im, n) { var c = im.getAttribute('data-cat'), i = +im.getAttribute('data-i'); setTimeout(function () { var u = typeof ckItemPic === 'function' ? ckItemPic(c, i) : ''; if (u) im.src = u; else if (im.parentNode) im.outerHTML = ckItemArt({ cat: c, i: i, L: (ITEM[c + i] || {}).L }); }, 40 + n * 25); }); root.querySelectorAll('img.cport').forEach(function (im) { setPortrait(im, +im.getAttribute('data-ch'), COLORS[ME.col]); }); root.querySelectorAll('img.cgun').forEach(function (im) { var w = +im.getAttribute('data-w'); setTimeout(function () { im.src = lsGunPic(w, 0) || ''; }, 30); }); }
 function walletUI(slow) {
   if (!ECO) return;
   [['w-coins', ECO.coins], ['w-gems', ECO.gems]].forEach(function (x) { countTo($(x[0]).querySelector('b'), x[1], slow); });
