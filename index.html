@@ -2505,6 +2505,11 @@ html[data-game="cars"] .seat:not(.empty) img:not([src]), html[data-game="cars"] 
 :root[data-look][data-look][data-look] .ckko.crown { box-shadow: inset 3px 0 0 var(--pa-gold2), 0 4px 10px rgba(0, 0, 0, 0.3); }
 :root[data-look][data-look][data-look][dir="rtl"] .ckko.crown { box-shadow: inset -3px 0 0 var(--pa-gold2), 0 4px 10px rgba(0, 0, 0, 0.3); }
 :root[data-look][data-look][data-look] .ckko.crown.me { color: var(--pa-gold-ink); background: var(--pa-gold2); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
+
+/* ---------- Car Knockout: the arena shape picker (a small drawing and the name in each button) ---------- */
+:root[data-look][data-look][data-look] .seg.ckshapes button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 48px; padding: 4px 2px; font-size: 0.64rem; letter-spacing: 0.02em; }
+:root[data-look][data-look][data-look] .seg.ckshapes svg { flex: none; }
+:root[data-look][data-look][data-look] .pill svg { vertical-align: -3px; }
 </style>
 </head>
 <body>
@@ -2804,7 +2809,8 @@ html[data-game="cars"] .seat:not(.empty) img:not([src]), html[data-game="cars"] 
             <button id="b-ckmode" class="pickrow" type="button"><i class="pr-ic ckmi" aria-hidden="true"></i><span class="pr-tx"><small data-t="ckModeL"></small><b id="pr-ckmode"></b><em id="pr-ckmode-s"></em></span></button>
             <button id="b-ckmap" class="pickrow" type="button"><img class="pr-img" alt=""><span class="pr-tx"><small data-t="ckArena"></small><b id="pr-ckmap"></b><em id="pr-ckmap-s"></em></span></button>
           </div>
-          <div class="kv"><span class="lbl" data-t="ckRounds"></span><div id="seg-ckr" class="seg"><button type="button" data-v="1">1</button><button type="button" data-v="3">3</button><button type="button" data-v="5">5</button></div></div>
+          <div class="kv"><span class="lbl" data-t="ckRounds"></span><div id="seg-ckr" class="seg"><button type="button" data-v="1">1</button><button type="button" data-v="3">3</button><button type="button" data-v="5">5</button><button type="button" data-v="7">7</button></div></div>
+          <div class="kv"><span class="lbl" data-t="ckShape"></span><div id="seg-cks" class="seg ckshapes"><button type="button" data-v="0"></button><button type="button" data-v="1"></button><button type="button" data-v="2"></button><button type="button" data-v="3"></button></div></div>
         </section>
         <section class="grp casual-only" id="grp-bots">
           <div class="grp-h"><span data-t="bots"></span><div class="step"><button id="bots-minus" type="button" aria-label="Fewer bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12"/></svg></button><b id="bots-n">0</b><button id="bots-plus" type="button" aria-label="More bots"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path stroke="currentColor" stroke-width="3.4" stroke-linecap="round" d="M6 12h12M12 6v12"/></svg></button></div></div>
@@ -3866,7 +3872,7 @@ var CK_MAPS = [
 ];
 /* what is on each arena (positions are fractions of the starting radius) */
 function ckFeat(S) {
-  var R0 = S.R0, m = S.cfg.map, f = { posts: [], holes: [], vents: [], slicks: [], crane: null }, k;
+  var R0 = S.R0, m = S.cfg.map, f = { posts: [], holes: [], vents: [], slicks: [], crane: null }, k, sh = ckShape(S.cfg.shape);
   if (m === 1) for (k = 0; k < 4; k++) { var a = Math.PI / 4 + k * Math.PI / 2; f.posts.push({ x: Math.cos(a) * R0 * 0.48, y: Math.sin(a) * R0 * 0.48, r: 0.9 }); }
   if (m === 2) for (k = 0; k < 2; k++) { var a2 = k * Math.PI + Math.PI / 2; f.holes.push({ x: Math.cos(a2) * R0 * 0.45, y: Math.sin(a2) * R0 * 0.45, r: 1.6 }); }
   /* the port: a wrecking ball on a crane's cable swings through the middle of the deck, low in the middle of its swing
@@ -3875,7 +3881,8 @@ function ckFeat(S) {
   /* the crater: three vents in the rock that rumble and glow, then blast whatever is over them into the air */
   if (m === 5) for (k = 0; k < 3; k++) { var a3 = -Math.PI / 2 + k * Math.PI * 2 / 3 + Math.PI / 3; f.vents.push({ x: Math.cos(a3) * R0 * 0.42, y: Math.sin(a3) * R0 * 0.42, r: 1.9 }); }
   /* the rig: three spills of oil that drift slowly round the deck */
-  if (m === 6) for (k = 0; k < 3; k++) f.slicks.push({ d: R0 * (k === 1 ? 0.3 : 0.5), a: k * Math.PI * 2 / 3 + 0.4, w: k === 1 ? -0.09 : 0.06, r: 2.3 + R0 * 0.045 });
+  if (m === 6) for (k = 0; k < 3; k++) { var sr = 2.3 + R0 * 0.045; f.slicks.push({ d: Math.min(R0 * (k === 1 ? 0.3 : 0.5), sh.hmin * R0 - sr - 1.5), a: k * Math.PI * 2 / 3 + 0.4, w: k === 1 ? -0.09 : 0.06, r: sr }); }   // their round path stays inside any shape
+  if (!sh.circle) f.posts.concat(f.holes, f.vents).forEach(function (o) { var p = ckInside(sh, R0, o.x, o.y, o.r + 2.6); o.x = p[0]; o.y = p[1]; });   // pulled in from a near edge or corner
   return f;
 }
 function ckGs(S) { return CK_MAPS[S.cfg.map].g || 1; }               // gravity, as a share of the Earth's (the moon's is half)
@@ -3902,14 +3909,60 @@ function ckOil(S, c) {
   for (var k = 0; k < F.slicks.length; k++) { var p = ckSlick(F, k, S.rt || 0); if (Math.hypot(c.x - p[0], c.y - p[1]) < F.slicks[k].r) return 0.18; }
   return 1;
 }
+/* ---------- arena shapes: a circle, or a square, triangle or rectangle with the same floor area (so the same room to
+   play in), their corners cut off a little so a car is never trapped in a needle point. Unit size (scaled by the
+   platform's radius R, which the zone shrinks); the rules ask only how far a point is inside the edge. ---------- */
+var CK_ARENA_SHAPES = [
+  { k: 'circle', en: 'Circle', ar: 'دائرة' },
+  { k: 'square', en: 'Square', ar: 'مربع' },
+  { k: 'tri', en: 'Triangle', ar: 'مثلث' },
+  { k: 'rect', en: 'Rectangle', ar: 'مستطيل' }
+];
+var _ckShp = [];
+function ckShape(k) {
+  k = k | 0; if (_ckShp[k]) return _ckShp[k];
+  var sh = { k: k, circle: k === 0 };
+  if (sh.circle) { sh.hmin = 1; sh.ext = [-1, 1, -1, 1]; sh.per = 2 * Math.PI; return (_ckShp[k] = sh); }
+  var raw = k === 1 ? [[-1, -1], [1, -1], [1, 1], [-1, 1]] : k === 2 ? [[0, -1.1], [0.9526, 0.55], [-0.9526, 0.55]] : [[-0.62, -1], [0.62, -1], [0.62, 1], [-0.62, 1]];
+  var cut = k === 2 ? 0.16 : 0.1, pts = [];                             // corners cut: a short edge across each one
+  raw.forEach(function (v, i) { var a = raw[(i + raw.length - 1) % raw.length], b = raw[(i + 1) % raw.length], la = Math.hypot(a[0] - v[0], a[1] - v[1]), lb = Math.hypot(b[0] - v[0], b[1] - v[1]), d = cut * Math.min(la, lb);
+    pts.push([v[0] + (a[0] - v[0]) / la * d, v[1] + (a[1] - v[1]) / la * d], [v[0] + (b[0] - v[0]) / lb * d, v[1] + (b[1] - v[1]) / lb * d]); });
+  var area = 0, cy = 0, i; for (i = 0; i < pts.length; i++) { var p = pts[i], q = pts[(i + 1) % pts.length], cr = p[0] * q[1] - q[0] * p[1]; area += cr; cy += (p[1] + q[1]) * cr; } area /= 2; cy /= 6 * area;
+  var sc = Math.sqrt(Math.PI / Math.abs(area)); pts = pts.map(function (p) { return [p[0] * sc, (p[1] - cy) * sc]; });   // the circle's floor area, centred on its middle
+  sh.pts = pts; sh.n = []; sh.h = []; sh.ext = [1e9, -1e9, 1e9, -1e9]; sh.per = 0;
+  for (i = 0; i < pts.length; i++) { var A = pts[i], B = pts[(i + 1) % pts.length], ex = B[0] - A[0], ey = B[1] - A[1], L = Math.hypot(ex, ey), nx = ey / L, ny = -ex / L;
+    if (nx * A[0] + ny * A[1] < 0) { nx = -nx; ny = -ny; } sh.n.push([nx, ny]); sh.h.push(nx * A[0] + ny * A[1]); sh.per += L;
+    sh.ext[0] = Math.min(sh.ext[0], A[0]); sh.ext[1] = Math.max(sh.ext[1], A[0]); sh.ext[2] = Math.min(sh.ext[2], A[1]); sh.ext[3] = Math.max(sh.ext[3], A[1]); }
+  sh.hmin = Math.min.apply(null, sh.h);
+  return (_ckShp[k] = sh);
+}
+var _ckEN = [0, 0];
+/* how far (x, y) is inside the platform's edge, in metres (negative: beyond it), at size R; _ckEN is the edge's outward direction there */
+function ckEdgeR(sh, R, x, y) {
+  if (sh.circle) { var d = Math.hypot(x, y) || 1e-6; _ckEN[0] = x / d; _ckEN[1] = y / d; return R - d; }
+  var best = 1e9, n = sh.n, h = sh.h; for (var i = 0; i < n.length; i++) { var e = h[i] * R - (n[i][0] * x + n[i][1] * y); if (e < best) { best = e; _ckEN[0] = n[i][0]; _ckEN[1] = n[i][1]; } }
+  return best;
+}
+function ckEdge(S, x, y) { return ckEdgeR(S.shp || ckShape(0), S.R, x, y); }
+/* a point (as a fraction of the starting size along the circle) pulled in, if needed, until it is at least m metres inside */
+function ckInside(sh, R0, x, y, m) { for (var k = 0; k < 40 && ckEdgeR(sh, R0, x, y) < m; k++) { x *= 0.94; y *= 0.94; } return [x, y]; }
+/* points spaced evenly round the shape at a fraction f of its size (where the cars start): balanced for any shape */
+function ckRing(sh, R, f, n, off) {
+  var out = [], i;
+  if (sh.circle) { for (i = 0; i < n; i++) { var a = off + i * Math.PI * 2 / n; out.push([Math.cos(a) * R * f, Math.sin(a) * R * f]); } return out; }
+  var P = sh.pts, L = [], tot = 0; for (i = 0; i < P.length; i++) { var A = P[i], B = P[(i + 1) % P.length]; L.push(Math.hypot(B[0] - A[0], B[1] - A[1])); tot += L[i]; }
+  for (i = 0; i < n; i++) { var s = ((off / (Math.PI * 2) + i / n) % 1 + 1) % 1 * tot, j = 0; while (s > L[j] && j < L.length - 1) { s -= L[j]; j++; }
+    var A2 = P[j], B2 = P[(j + 1) % P.length], u = s / L[j]; out.push([(A2[0] + (B2[0] - A2[0]) * u) * R * f, (A2[1] + (B2[1] - A2[1]) * u) * R * f]); }
+  return out;
+}
 function ckClamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 function ckAng(a) { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; }
 /* a new match. roster: [{ id, name, car, col, bot, lv }], cfg: { rounds, map, lv } */
 function ckNew(roster, cfg) {
-  var S = { cfg: { rounds: [1, 3, 5].indexOf(cfg.rounds | 0) >= 0 ? cfg.rounds | 0 : 3, map: ckClamp(cfg.map | 0, 0, CK_MAPS.length - 1), lv: ckClamp(cfg.lv == null ? 1 : cfg.lv | 0, 0, 2), mode: ckClamp(cfg.mode | 0, 0, CK_MODES.length - 1) },
+  var S = { cfg: { rounds: [1, 3, 5, 7].indexOf(cfg.rounds | 0) >= 0 ? cfg.rounds | 0 : 3, map: ckClamp(cfg.map | 0, 0, CK_MAPS.length - 1), lv: ckClamp(cfg.lv == null ? 1 : cfg.lv | 0, 0, 2), mode: ckClamp(cfg.mode | 0, 0, CK_MODES.length - 1), shape: ckClamp(cfg.shape | 0, 0, CK_ARENA_SHAPES.length - 1) },
     cars: [], t: 0, rt: 0, round: 0, phase: 'cd', phaseT: 3, R0: ckR0(roster.length), R: 0, ev: [], eid: 0, tick: 0, winner: -1,
     hill: { x: 0, y: 0, r: 3, next: 0, who: -1 }, bomb: -1, fuse: 0, bombAt: -9, bombNext: -1, wind: { a: 0, on: 0, next: 14, warn: 0 }, crown: { who: -1, x: 0, y: 0, at: -9, back: 0 } };
-  S.R = S.R0; S.feat = ckFeat(S); S.featMap = S.cfg.map; S.hillWin = Math.round(ckClamp(14 - roster.length * 0.5, 9, 13));   // more cars fighting over it, fewer points to win
+  S.shp = ckShape(S.cfg.shape); S.R = S.R0; S.feat = ckFeat(S); S.featMap = S.cfg.map; S.hillWin = Math.round(ckClamp(14 - roster.length * 0.5, 9, 13));   // more cars fighting over it, fewer points to win
   S.crownWin = Math.round(ckClamp(22 - roster.length * 1.6, 8, 19));   // seconds with the crown to win a round: fewer with more cars chasing it
   if (S.cfg.mode === 3) {                                             // teams: from the room, or alternate if the room didn't say
     var any = roster.some(function (r) { return r.team === 1; });
@@ -3926,16 +3979,17 @@ function ckNew(roster, cfg) {
 }
 /* everyone on a circle near the edge, facing the middle */
 function ckSpawn(S) {
-  var n = S.cars.length, off = Math.random() * Math.PI * 2, rr = S.R0 * 0.66;
+  var n = S.cars.length, off = Math.random() * Math.PI * 2, rr = S.R0 * 0.66, act = S.cars.filter(function (c) { return !c.sit; }), spots = ckRing(S.shp || ckShape(0), S.R0, [0.66, 0.66, 0.62, 0.55][S.cfg.shape | 0], act.length, off);   // (in a tiebreaker only the tied cars start)
   S.R = S.R0; S.Rn = -1; S.zi = -1; S.rt = 0; S.phase = 'cd'; S.phaseT = 3;
   S.hill = { x: 0, y: 0, r: 3 + S.R0 * 0.06, next: 14, who: -1 }; S.bomb = -1; S.fuse = 0; S.keep = 0; S.bombNext = 2.5; S.wind = { a: 0, on: 0, next: 12, warn: 0 };
   S.crown = { who: -1, x: 0, y: 0, at: -9, back: 0 };                // the crown waits in the middle
   // teams start on opposite sides
-  var order = S.cars.slice(); if (S.cfg.mode === 3) order.sort(function (p, q) { return p.team - q.team || p.i - q.i; });
+  var order = act.slice(); if (S.cfg.mode === 3) order.sort(function (p, q) { return p.team - q.team || p.i - q.i; });
+  S.cars.forEach(function (c) { if (c.sit) { c.alive = false; c.fall = 0; c.back = 0; c.z = -40; c.x = c.y = 0; c.vx = c.vy = 0; c.score = 0; c.hold = false; c.outAt = 0; } });
   order.forEach(function (c, k) {
     var a = off + k * Math.PI * 2 / n;
     c.score = 0; c.back = 0; c.ghost = 0; c.boom = 0; c.hold = false; c.vent = -1; c.wreckAt = -9; c.gs = ckGs(S);
-    c.x = Math.cos(a) * rr; c.y = Math.sin(a) * rr; c.a = a + Math.PI; c.vx = c.vy = c.w = 0;
+    c.x = spots[k][0]; c.y = spots[k][1]; c.a = Math.atan2(-c.y, -c.x); c.vx = c.vy = c.w = 0;   // evenly round the shape, facing the middle
     c.alive = true; c.fall = 0; c.z = 0; c.jv = 0; c.jumpAt = -99; c.rev = false; c.boostAt = -9; c.boostCd = 0.5; c.hitBy = -1; c.hitAt = -9; c.outAt = 0; c.in = { x: 0, y: 0, b: false, j: false };
   });
 }
@@ -3977,8 +4031,9 @@ function ckDrive(c, inp, dt, grip, t) {
   c.vx = fx * fw - fy * lat; c.vy = fy * fw + fx * lat;
   var cap = (c.rev ? VM * 0.5 : VM) + (t - c.boostAt < CK_BOOST_T ? CK_BOOST_V : 0); speed = Math.hypot(c.vx, c.vy);
   if (speed > cap) { var k = cap / speed; c.vx *= k; c.vy *= k; }
-  if (inp.b && t - c.boostAt > T.bcd) { c.boostAt = t; c.rev = false; c.vx += fx * CK_BOOST_V; c.vy += fy * CK_BOOST_V; out |= 1; }
-  if (inp.j && t - c.jumpAt >= CK_JUMP_CD) { c.jumpAt = t; c.jv = CK_JUMP_V * Math.sqrt(gs); c.z = 0.001; out |= 2; }   // as high on the moon, but slower up and down
+  if (inp.b && (t - c.boostAt > T.bcd || (inp.f && t - c.boostAt > T.bcd - 0.4))) {   // (a press a joined phone already made: its clock may be a step or two off the host's)
+    c.boostAt = t; c.rev = false; c.vx += fx * CK_BOOST_V; c.vy += fy * CK_BOOST_V; out |= 1; }
+  if (inp.j && (t - c.jumpAt >= CK_JUMP_CD || (inp.f && t - c.jumpAt >= CK_JUMP_CD - 0.4))) { c.jumpAt = t; c.jv = CK_JUMP_V * Math.sqrt(gs); c.z = 0.001; out |= 2; }   // as high on the moon, but slower up and down
   c.x += c.vx * dt; c.y += c.vy * dt;
   return out;
 }
@@ -4078,7 +4133,7 @@ function ckCrownSpot(S) {                                             // somewhe
   var best = [0, 0], bs = -1, F = S.feat;
   for (var k = 0; k < 10; k++) {
     var a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * S.R0 * 0.32, x = Math.cos(a) * d, y = Math.sin(a) * d, m = 99;
-    if (F.posts.concat(F.holes, F.vents).some(function (f) { return Math.hypot(f.x - x, f.y - y) < f.r + 1.2; })) continue;
+    if (F.posts.concat(F.holes, F.vents).some(function (f) { return Math.hypot(f.x - x, f.y - y) < f.r + 1.2; }) || ckEdge(S, x, y) < 3) continue;
     S.cars.forEach(function (o) { if (o.alive && !o.fall && !o.back) m = Math.min(m, Math.hypot(o.x - x, o.y - y)); });
     if (m > bs) { bs = m; best = [x, y]; }
   }
@@ -4106,7 +4161,7 @@ function ckVents(S) {
   var F = S.feat; if (!F.vents.length) return;
   for (var k = 0; k < F.vents.length; k++) {
     var V = F.vents[k], st = ckVent(k, S.rt), was = ckVent(k, S.rt - CK_STEP * 1.01);
-    if (Math.hypot(V.x, V.y) > S.R - 1) continue;                      // the edge has taken it
+    if (ckEdge(S, V.x, V.y) < 1) continue;                              // the edge has taken it
     if (st === 2 && was !== 2) ckEv(S, ['vent', k]);
     if (st !== 2) continue;
     var id = k * 1000 + Math.floor((S.rt - 6 - k * 3) / CK_VENT_P);
@@ -4128,9 +4183,16 @@ function ckAdvance(S, dt) {
   if (S.phase === 'end') {                                            // the round is decided: let the last falls finish, then the next round
     S.phaseT -= dt; S.rt += dt; ckPhysics(S, dt, grip);                 // (the round clock runs on, so the wrecking ball keeps swinging)
     if (S.phaseT <= 0) {
+      /* best of N: first to a majority of N wins the match. After N rounds (or if the majority can't be reached any more)
+         a tie at the top is played off: a tiebreaker round with only the tied cars (or teams), again and again until
+         one of them wins a round. Nobody finishes level. */
       var need = Math.floor(S.cfg.rounds / 2) + 1, top = Math.max.apply(null, cs.map(function (q) { return q.wins; }));
-      if (S.round + 1 >= S.cfg.rounds || top >= need) { ckFinish(S); return; }
-      S.round++; ckSpawn(S); ckEv(S, ['round', S.round]);
+      var lead = cs.filter(function (q) { return q.wins === top; }), sides = {}; lead.forEach(function (q) { sides[S.cfg.mode === 3 ? 't' + q.team : 'c' + q.i] = 1; });
+      var alone = Object.keys(sides).length === 1;
+      if (alone && (top >= need || S.round + 1 >= S.cfg.rounds)) { cs.forEach(function (q) { q.sit = false; }); ckFinish(S); return; }
+      S.round++;
+      if (S.round >= S.cfg.rounds) { S.tb = (S.tb || 0) + 1; cs.forEach(function (q) { q.sit = !lead.some(function (l) { return S.cfg.mode === 3 ? l.team === q.team : l === q; }); }); }
+      ckSpawn(S); ckEv(S, ['round', S.round, S.tb || 0]);
     }
     return;
   }
@@ -4155,7 +4217,7 @@ function ckAdvance(S, dt) {
   } else if (mode === 3) {
     var tl = {}; live.forEach(function (q) { tl[q.team] = 1; }); var nt = Object.keys(tl).length;
     if (nt <= 1 || S.rt > 150) { done = true; if (nt === 1) w = live[0]; }
-  } else if ((live.length <= 1 && cs.length > 1) || S.rt > (mode === 2 ? 240 : 150)) { done = true; w = live.length === 1 ? live[0] : null; }
+  } else if ((live.length <= 1 && cs.filter(function (q) { return !q.sit; }).length > 1) || S.rt > (mode === 2 ? 240 : 150)) { done = true; w = live.length === 1 ? live[0] : null; }
   if (done) {
     S.phase = 'end'; S.phaseT = 2.2;
     if (w && mode === 3) { cs.forEach(function (q) { if (q.team === w.team) q.wins++; }); ckEv(S, ['rwin', w.i, S.round, w.team]); }
@@ -4166,7 +4228,7 @@ function ckAdvance(S, dt) {
 function ckHillStep(S, dt) {
   var H = S.hill, inside = [];
   if (S.rt >= H.next) {                                               // move it somewhere new, not too near the edge or where it was
-    var tries = 0, x, y; do { var a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * S.R0 * 0.5; x = Math.cos(a) * d; y = Math.sin(a) * d; } while ((Math.hypot(x - H.x, y - H.y) < S.R0 * 0.35 || S.feat.posts.concat(S.feat.holes).some(function (f) { return Math.hypot(f.x - x, f.y - y) < H.r + f.r + 0.5; })) && ++tries < 40);
+    var tries = 0, x, y; do { var a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * S.R0 * 0.5; x = Math.cos(a) * d; y = Math.sin(a) * d; } while ((Math.hypot(x - H.x, y - H.y) < S.R0 * 0.35 || ckEdgeR(S.shp || ckShape(0), S.R0, x, y) < H.r + 2.5 || S.feat.posts.concat(S.feat.holes).some(function (f) { return Math.hypot(f.x - x, f.y - y) < H.r + f.r + 0.5; })) && ++tries < 40);
     H.x = x; H.y = y; H.next = S.rt + 14; ckEv(S, ['hill', Math.round(x * 10) / 10, Math.round(y * 10) / 10]);
   }
   S.cars.forEach(function (c) { if (c.alive && !c.fall && !c.back && Math.hypot(c.x - H.x, c.y - H.y) < H.r) inside.push(c); });
@@ -4238,8 +4300,8 @@ function ckPhysics(S, dt, grip) {
   if (q) for (i = 0; i < cs.length; i++) { c = cs[i]; if (c.alive && !c.fall && !c.back && Math.abs(c.x - q.x) < 4 && Math.abs(c.y - q.y) < 4) ckWreck(S, c, q); }
   for (i = 0; i < cs.length; i++) {
     c = cs[i]; if (!c.alive || c.fall || c.back || c.z > 0) continue;       // in the air you can be over the drop: you fall when you land
-    var hole = S.rt > CK_ICE_OPEN && S.feat.holes.some(function (h) { return Math.hypot(c.x - h.x, c.y - h.y) < h.r - 0.3 && Math.hypot(h.x, h.y) < S.R; });
-    if (Math.hypot(c.x, c.y) > S.R + 0.25 || hole) {                         // over the edge (the middle of the car has gone past it), or into a hole in the ice
+    var hole = S.rt > CK_ICE_OPEN && S.feat.holes.some(function (h) { return Math.hypot(c.x - h.x, c.y - h.y) < h.r - 0.3 && ckEdge(S, h.x, h.y) > 0; });
+    if (ckEdge(S, c.x, c.y) < -0.25 || hole) {                         // over the edge (the middle of the car has gone past it), or into a hole in the ice
       c.fall = 1e-4; c.w += (Math.random() - 0.5) * 6;
       var by = S.t - c.hitAt < 3.5 ? c.hitBy : -1; if (by >= 0 && by !== c.i) cs[by].kos++;
       ckEv(S, ['ko', c.i, by]);
@@ -4272,7 +4334,7 @@ function ckPosts(S, c) {
   var P = S.feat.posts; if (!P.length) return;
   var ca = Math.cos(c.a), sa = Math.sin(c.a), hl = c.T.L / 2, hw = c.T.W / 2;
   for (var k = 0; k < P.length; k++) {
-    var p = P[k]; if (Math.hypot(p.x, p.y) > S.R - 0.4) continue;      // a post the zone has taken is gone
+    var p = P[k]; if (ckEdge(S, p.x, p.y) < 0.4) continue;             // a post the zone has taken is gone
     var dx = p.x - c.x, dy = p.y - c.y, u = ckClamp(dx * ca + dy * sa, -hl, hl), v = ckClamp(-dx * sa + dy * ca, -hw, hw);
     var qx = c.x + u * ca - v * sa, qy = c.y + u * sa + v * ca, ex = p.x - qx, ey = p.y - qy, d = Math.hypot(ex, ey);
     if (d >= p.r || d < 1e-6) continue;
@@ -4291,7 +4353,7 @@ function ckRespawn(S, c) {
   for (var k = 0; k < 12; k++) {                                      // the open spot furthest from everyone, never on a hazard
     var a = Math.random() * Math.PI * 2, d = S.R0 * (0.3 + Math.random() * 0.3), x = Math.cos(a) * d, y = Math.sin(a) * d, m = 99;
     S.cars.forEach(function (o) { if (o !== c && o.alive && !o.fall && !o.back) m = Math.min(m, Math.hypot(o.x - x, o.y - y)); });
-    if (bad.some(function (b) { return Math.hypot(b[0] - x, b[1] - y) < b[2]; })) m -= 50;
+    if (bad.some(function (b) { return Math.hypot(b[0] - x, b[1] - y) < b[2]; }) || ckEdge(S, x, y) < 4.5) m -= 50;
     if (m > bs) { bs = m; best = [x, y]; }
   }
   c.x = best[0]; c.y = best[1]; c.a = Math.atan2(-c.y, -c.x); c.vx = c.vy = c.w = 0; c.z = 0; c.jv = 0; c.fall = 0; c.back = 0; c.alive = true; c.ghost = 1.2; c.hitBy = -1; c.hold = false;
@@ -4305,14 +4367,14 @@ function ckFinish(S) {
 }
 /* bots: chase someone near the edge, come at them from the inside, boost when lined up, and keep away from the drop */
 function ckBot(S, c, dt) {
-  var A = c.ai, lv = c.lv == null ? S.cfg.lv : c.lv, d0 = Math.hypot(c.x, c.y);
+  var A = c.ai, lv = c.lv == null ? S.cfg.lv : c.lv, d0 = Math.hypot(c.x, c.y), eg = ckEdge(S, c.x, c.y), enx = _ckEN[0], eny = _ckEN[1];   // how far in from the edge, and which way is out
   A.think -= dt;
   if (A.think <= 0) {
     A.think = [0.5, 0.3, 0.16][lv] + Math.random() * 0.15;
     var best = null, bs = 1e9;
     S.cars.forEach(function (o) {
       if (o === c || !o.alive || o.fall || o.back || (c.team >= 0 && o.team === c.team)) return;
-      var dd = Math.hypot(o.x - c.x, o.y - c.y), edge = S.R - Math.hypot(o.x, o.y), sc = dd + edge * 0.9 + (o.i === A.t ? -3 : 0) + Math.random() * 4;
+      var dd = Math.hypot(o.x - c.x, o.y - c.y), edge = ckEdge(S, o.x, o.y), sc = dd + edge * 0.9 + (o.i === A.t ? -3 : 0) + Math.random() * 4;
       if (S.cfg.mode === 1) sc = Math.hypot(o.x - S.hill.x, o.y - S.hill.y) * 1.5 + dd * 0.5;   // hill: go for whoever is on it
       if (sc < bs) { bs = sc; best = o; }
     });
@@ -4320,10 +4382,10 @@ function ckBot(S, c, dt) {
   }
   var tg = A.t >= 0 ? S.cars[A.t] : null, ax = 0, ay = 0;
   if (tg && tg.alive && !tg.fall) {
-    var lead = [0.1, 0.25, 0.35][lv], px = tg.x + tg.vx * lead, py = tg.y + tg.vy * lead, pd = Math.hypot(px, py) || 1;
-    var ox = px / pd, oy = py / pd;                                       // outward from the middle, through the target
-    var mine = c.x * ox + c.y * oy;                                       // how far out along that line I am
-    if (mine > pd - 1.2) { ax = px - ox * 3 - c.x; ay = py - oy * 3 - c.y; }   // I'm outside them: swing round to the inside first
+    var lead = [0.1, 0.25, 0.35][lv], px = tg.x + tg.vx * lead, py = tg.y + tg.vy * lead; ckEdge(S, px, py);
+    var ox = _ckEN[0], oy = _ckEN[1];                                     // out towards the target's nearest edge
+    var mine = (c.x - px) * ox + (c.y - py) * oy;                         // how far out past them along that line I am
+    if (mine > -1.2) { ax = px - ox * 3 - c.x; ay = py - oy * 3 - c.y; }   // I'm outside them: swing round to the inside first
     else { ax = px - c.x; ay = py - c.y; }
   } else { ax = -c.x; ay = -c.y; }
   var mode = S.cfg.mode;
@@ -4346,10 +4408,10 @@ function ckBot(S, c, dt) {
       S.cars.forEach(function (o) { if (o === c || !o.alive || o.fall || o.back) return; var dx = c.x - o.x, dy = c.y - o.y, d2 = dx * dx + dy * dy; A.flee = Math.min(A.flee, Math.sqrt(d2)); if (d2 < 196) { var wq = 1 / Math.max(4, d2); fx2 += dx * wq; fy2 += dy * wq; } });
       var fm2 = Math.hypot(fx2, fy2);
       if (fm2 > 1e-6) {
-        fx2 /= fm2; fy2 /= fm2; var rx = c.x / (d0 || 1), ry = c.y / (d0 || 1);
-        if (fx2 * rx + fy2 * ry > 0 && d0 > S.R * 0.4) {                 // running for the edge: turn along it and back in instead
+        fx2 /= fm2; fy2 /= fm2; var rx = enx, ry = eny, in0 = S.R * (S.shp ? S.shp.hmin : 1);
+        if (fx2 * rx + fy2 * ry > 0 && eg < in0 * 0.6) {                 // running for the edge: turn along it and back in instead
           var tx = -ry, ty = rx; if (tx * fx2 + ty * fy2 < 0) { tx = -tx; ty = -ty; }
-          var kk = ckClamp((d0 - S.R * 0.4) / (S.R * 0.35), 0, 1); fx2 = fx2 * (1 - kk) + (tx * 0.9 - rx * 0.45) * kk; fy2 = fy2 * (1 - kk) + (ty * 0.9 - ry * 0.45) * kk;
+          var kk = ckClamp((in0 * 0.6 - eg) / (in0 * 0.35), 0, 1); fx2 = fx2 * (1 - kk) + (tx * 0.9 - rx * 0.45) * kk; fy2 = fy2 * (1 - kk) + (ty * 0.9 - ry * 0.45) * kk;
         }
         ax = fx2 * 4; ay = fy2 * 4;
       } else { ax = -c.x * 0.3 + Math.cos(S.t * 0.7 + c.i) * 3; ay = -c.y * 0.3 + Math.sin(S.t * 0.7 + c.i) * 3; }
@@ -4369,26 +4431,26 @@ function ckBot(S, c, dt) {
     if (q2.h - q2.r < ckHt(c) + 0.1) { var hx3 = qx - q2.x, hy3 = qy - q2.y, hd3 = Math.hypot(hx3, hy3);
       if (hd3 < q2.r + 3.2) { var sv = Math.hypot(q2.vx, q2.vy) || 1, sx = -q2.vy / sv, sy = q2.vx / sv; if (sx * hx3 + sy * hy3 < 0) { sx = -sx; sy = -sy; } var hp3 = (q2.r + 3.2 - hd3) * 3 * sharp; ax += sx * hp3; ay += sy * hp3; } } }   // step out of its way, across its swing
   // stay on: near the edge and heading out, steer for the middle
-  var vOut = (c.vx * c.x + c.vy * c.y) / (d0 || 1);
+  var vOut = c.vx * enx + c.vy * eny;
   var care = (S.cfg.map === 2 ? 5 : 3.4) + (mode === 4 ? Math.max(0, vOut) * [0.05, 0.2, 0.28][lv] : 0);   // chasing the crown, the faster I am heading out the sooner I turn back
-  if (d0 > S.R - care && vOut > 0.3) { var k = ckClamp((d0 - (S.R - care)) / 2.4, 0, 1) * (lv === 0 ? 0.6 : 1); ax = ax * (1 - k) - c.x * k * 3; ay = ay * (1 - k) - c.y * k * 3; }
+  if (eg < care && vOut > 0.3) { var k = ckClamp((care - eg) / 2.4, 0, 1) * (lv === 0 ? 0.6 : 1); ax = ax * (1 - k) - c.x * k * 3; ay = ay * (1 - k) - c.y * k * 3; }
   var noise = [0.5, 0.25, 0.08][lv], m = Math.hypot(ax, ay) || 1, an = Math.atan2(ay, ax) + (Math.random() - 0.5) * noise;
-  var thr = Math.min(1, m / 2) * (d0 > S.R - 2.5 ? 0.75 : 1) * (S.cfg.map === 2 ? 0.8 : 1);           // ease off near the drop
+  var thr = Math.min(1, m / 2) * (eg < 2.5 ? 0.75 : 1) * (S.cfg.map === 2 ? 0.8 : 1);           // ease off near the drop
   c.in.x = Math.cos(an) * thr; c.in.y = Math.sin(an) * thr;
   // jump: over a car coming hard at me, or over an ice hole I am about to drive into
   c.in.j = false;
   var gs = c.gs || 1, fly = 2 * CK_JUMP_V / Math.sqrt(gs) / CK_G, lx = c.x + c.vx * fly, ly = c.y + c.vy * fly;   // where a jump now would come down
-  if (S.t - c.jumpAt >= CK_JUMP_CD && c.z <= 0 && Math.hypot(lx, ly) < S.R - 2) {
+  if (S.t - c.jumpAt >= CK_JUMP_CD && c.z <= 0 && ckEdge(S, lx, ly) > 2) {
     for (var jk = 0; jk < S.cars.length; jk++) { var o2 = S.cars[jk]; if (o2 === c || !o2.alive || o2.fall || o2.z > 0.1 || (c.team >= 0 && o2.team === c.team)) continue;
       var jx = c.x - o2.x, jy = c.y - o2.y, jd = Math.hypot(jx, jy) || 1, close = ((o2.vx - c.vx) * jx + (o2.vy - c.vy) * jy) / jd;
       if (jd < 4.5 && close > 7 && Math.random() < [0.01, 0.04, 0.09][lv]) { c.in.j = true; break; } }
     if (S.rt > CK_ICE_OPEN) S.feat.holes.forEach(function (ho) { var hx2 = c.x + c.vx * 0.35 - ho.x, hy2 = c.y + c.vy * 0.35 - ho.y; if (Math.hypot(hx2, hy2) < ho.r && Math.hypot(c.vx, c.vy) > 5 && Math.random() < [0.2, 0.5, 0.8][lv]) c.in.j = true; });
   }
   var lined = tg && Math.abs(ckAng(an - c.a)) < 0.3 && Math.hypot(tg.x - c.x, tg.y - c.y) < 6.5;
-  c.in.b = !!lined && d0 < S.R - (S.cfg.map === 2 ? 5 : 3) && Math.random() < [0.02, 0.06, 0.15][lv];
-  if (mode === 4 && S.crown.who === c.i && A.flee < 4.5 && d0 < S.R - 5 && Math.random() < [0.02, 0.05, 0.1][lv]) c.in.b = true;   // a chaser right behind: get away
+  c.in.b = !!lined && eg > (S.cfg.map === 2 ? 5 : 3) && Math.random() < [0.02, 0.06, 0.15][lv];
+  if (mode === 4 && S.crown.who === c.i && A.flee < 4.5 && eg > 5 && Math.random() < [0.02, 0.05, 0.1][lv]) c.in.b = true;   // a chaser right behind: get away
 }
-if (typeof module !== 'undefined') module.exports = { CK_STEP: CK_STEP, CK_CARS: CK_CARS, CK_MAPS: CK_MAPS, CK_R0: CK_R0, CK_SPEC: CK_SPEC, CK_ZONE: CK_ZONE, CK_MODES: CK_MODES, CK_HILL_WIN: CK_HILL_WIN, CK_JUMP_CD: CK_JUMP_CD, CK_ICE_OPEN: CK_ICE_OPEN, ckR0: ckR0, ckNew: ckNew, ckAdvance: ckAdvance, ckDrive: ckDrive, ckAlive: ckAlive, ckSat: ckSat, ckHt: ckHt, CK_HT: CK_HT, ckFeat: ckFeat, ckCrane: ckCrane, ckVent: ckVent, ckSlick: ckSlick, ckOil: ckOil, ckGs: ckGs, ckBackMode: ckBackMode, CK_JUMP_V: CK_JUMP_V };
+if (typeof module !== 'undefined') module.exports = { CK_STEP: CK_STEP, CK_CARS: CK_CARS, CK_MAPS: CK_MAPS, CK_R0: CK_R0, CK_SPEC: CK_SPEC, CK_ZONE: CK_ZONE, CK_MODES: CK_MODES, CK_HILL_WIN: CK_HILL_WIN, CK_JUMP_CD: CK_JUMP_CD, CK_ICE_OPEN: CK_ICE_OPEN, ckR0: ckR0, ckNew: ckNew, ckAdvance: ckAdvance, ckDrive: ckDrive, ckAlive: ckAlive, ckSat: ckSat, ckHt: ckHt, CK_HT: CK_HT, ckFeat: ckFeat, CK_ARENA_SHAPES: CK_ARENA_SHAPES, ckShape: ckShape, ckEdge: ckEdge, ckEdgeR: ckEdgeR, ckRing: ckRing, ckCrane: ckCrane, ckVent: ckVent, ckSlick: ckSlick, ckOil: ckOil, ckGs: ckGs, ckBackMode: ckBackMode, CK_JUMP_V: CK_JUMP_V };
 
 /* ================= CHARACTERS & COLOURS =================
    Original characters built in code, each with a name and a nickname. The body takes
@@ -5101,7 +5163,7 @@ var STR = {
     mGold: 'Gold Rush', mGoldS: 'Golden pearl = 3 points', mFrenzy: 'Frenzy', mFrenzyS: 'Every goal adds a pearl',
     goldIn: 'GOLDEN PEARL!', goldInS: 'Worth 3 points', goldGot: '{n} scored gold!', moreT: '{n} PEARLS!', frenzyN: 'Pearls: {n}',
     otCrown: 'Grab the crown!', otCrownS: 'Whoever grabs the crown wins', heldCol: 'Held',
-        theme: 'Theme', thLight: 'Light', thDark: 'Dark', spTag: 'Two games. One app.', spPresents: 'presents', ckName: 'Car Knockout', ckSlogan: 'Push them off. Stay on.', ckArena: 'Arena', ckRounds: 'Rounds', ckHow: 'Drive into the other cars and shove them off the edge. Last car on the platform wins the round. The platform shrinks after a while.', ckBoost: 'BOOST',
+        theme: 'Theme', thLight: 'Light', thDark: 'Dark', spTag: 'Two games. One app.', spPresents: 'presents', ckName: 'Car Knockout', ckSlogan: 'Push them off. Stay on.', ckArena: 'Arena', ckRounds: 'Best of', ckShape: 'Arena shape', ckTie: 'Tiebreaker', ckTieSub: 'Tied at the top: one more round decides it', ckTieN: 'Tiebreaker {n}', ckBestOf: 'Best of {n}', ckHow: 'Drive into the other cars and shove them off the edge. Last car on the platform wins the round. The platform shrinks after a while.', ckBoost: 'BOOST',
     hubT: 'Pick a game', gamesT: 'Games', hubSmash: 'Block it, bounce it, smash it', hubCars: 'Push the other cars off the edge', ckZone: 'The edge is closing in', ckJump: 'JUMP', ckModeL: 'Mode', ckHillGoal: 'You {a} of {n} points', ckBombYou: 'You have the bomb! {n}', ckBombT: 'Bomb {n}', ckYourTeam: 'Your team wins!', ckTeamWins: 'Team {n} wins', ckYourTeamChamp: 'Your team is the champion', ckTeamChamp: 'Team {n} is the champion', ckHillMove: 'The hill moved', ckGotBomb: 'You have the bomb. Ram someone!', ckWind: 'Sandstorm coming', ckCreak: 'The ice is cracking', ckCrack: 'Holes in the ice!', ckBoom: '{a} blew up', ckBoomMe: 'You blew up', ckZoneLast: 'Final zone', ckHint: 'Put your thumb down anywhere and push the way you want to drive. BOOST to ram, JUMP to fly over.',
     ckCrownStealMe: 'You stole the crown from {b}', ckCrownStealYou: '{a} stole your crown', ckCrownDropMe: 'You dropped the crown', ckKoMe: 'You knocked off {b}', ckKoYou: '{a} knocked you off', ckFellMe: 'You fell off', ckCrownYou: 'Your crown {a} of {n}', ckCrownGo: 'Steal it: you {a} of {n}', ckCrownLoose: 'Grab the crown', ckCrownGot: 'The crown is yours. Keep it!', ckCrownLost: 'Your crown was stolen', ckCrownSteal: '{a} stole the crown from {b}', ckCrownTake: '{a} has the crown', ckCrownDrop: '{a} dropped the crown', ckCrownNew: 'The crown is back', ckCrownMine: 'You', ckFinal: 'Final', ckRoundOf: 'Round {r} of {n}', ckGo: 'GO!', ckKo: '{a} knocked off {b}', ckFell: '{b} fell off', ckOut: 'Knocked off!', ckBy: 'by {a}', ckDraw: 'Nobody left!', ckYouWin: 'You win the round!', ckWins: '{a} wins the round',
     ckWinsH: 'Rounds', ckKosH: 'KOs', ckChamp: 'You are the champion!', ckChampO: '{a} is the champion', fpsT: 'Frame rate (FPS)', tsT: 'Teams', tsShuf: 'Shuffle', tsNoteH: 'Tap a colour to dress a team. Tap the arrows to move a player to another team. Bots fill whichever team is short.', tsNoteG: 'Tap an arrow to switch team. You can pick your own team\'s colour.', tsMove: 'Move to {t}', botTag: 'Bot', lookT: 'Style', lookBlue: 'Blue', lookNight: 'Night', lookClassic: 'Classic',
@@ -5207,7 +5269,7 @@ var STR = {
     mGold: 'حمّى الذهب', mGoldS: 'اللؤلؤة الذهبية = ٣ نقاط', mFrenzy: 'فوضى', mFrenzyS: 'كل هدف يزيد لؤلؤة',
     goldIn: 'لؤلؤة ذهبية!', goldInS: 'تسوى ٣ نقاط', goldGot: '{n} سجّل الذهبية!', moreT: '{n} لؤلؤات!', frenzyN: 'اللؤلؤ: {n}',
     otCrown: 'خذ التاج!', otCrownS: 'اللي ياخذ التاج يفوز', heldCol: 'مدة التاج',
-        theme: 'المظهر', thLight: 'فاتح', thDark: 'داكن', spTag: 'لعبتين في تطبيق واحد', spPresents: 'تقدّم', ckName: 'صدام السيارات', ckSlogan: 'طيّحهم وخلك فوق', ckArena: 'الساحة', ckRounds: 'الجولات', ckHow: 'صدم السيارات الثانية وطيّحها من الحافة. آخر سيارة تبقى فوق تفوز بالجولة. والساحة تصغر مع الوقت.', ckBoost: 'تيربو',
+        theme: 'المظهر', thLight: 'فاتح', thDark: 'داكن', spTag: 'لعبتين في تطبيق واحد', spPresents: 'تقدّم', ckName: 'صدام السيارات', ckSlogan: 'طيّحهم وخلك فوق', ckArena: 'الساحة', ckRounds: 'أفضل من', ckShape: 'شكل الساحة', ckTie: 'جولة الحسم', ckTieSub: 'تعادل في الصدارة: جولة إضافية تحسم', ckTieN: 'جولة الحسم {n}', ckBestOf: 'أفضل من {n}', ckHow: 'صدم السيارات الثانية وطيّحها من الحافة. آخر سيارة تبقى فوق تفوز بالجولة. والساحة تصغر مع الوقت.', ckBoost: 'تيربو',
     hubT: 'اختر لعبة', gamesT: 'الألعاب', hubSmash: 'صدّها، ردّها، واضربها', hubCars: 'طيّح السيارات من الحافة', ckZone: 'الحافة تضيق', ckJump: 'قفز', ckModeL: 'الطور', ckHillGoal: 'نقاطك {a} من {n}', ckBombYou: 'القنبلة معك! {n}', ckBombT: 'القنبلة {n}', ckYourTeam: 'فريقك فاز!', ckTeamWins: 'الفريق {n} فاز', ckYourTeamChamp: 'فريقك هو البطل', ckTeamChamp: 'الفريق {n} هو البطل', ckHillMove: 'التلة تحركت', ckGotBomb: 'القنبلة معك. اصدم أحد!', ckWind: 'عاصفة رملية جاية', ckCreak: 'الجليد يتشقق', ckCrack: 'انفتحت حفر في الجليد!', ckBoom: '{a} انفجر', ckBoomMe: 'انفجرت', ckZoneLast: 'المنطقة الأخيرة', ckHint: 'حط إبهامك في أي مكان واسحب للاتجاه اللي تبي تسوق له. تيربو للصدم، وقفز عشان تطير فوقهم.',
     ckCrownStealMe: 'سرقت التاج من {b}', ckCrownStealYou: '{a} سرق تاجك', ckCrownDropMe: 'طيّحت التاج', ckKoMe: 'طيّحت {b}', ckKoYou: '{a} طيّحك', ckFellMe: 'طحت', ckCrownYou: 'التاج معك {a} من {n}', ckCrownGo: 'اسرقه: عندك {a} من {n}', ckCrownLoose: 'خذ التاج', ckCrownGot: 'التاج صار لك. خلّه معك!', ckCrownLost: 'انسرق تاجك', ckCrownSteal: '{a} سرق التاج من {b}', ckCrownTake: 'التاج مع {a}', ckCrownDrop: '{a} طيّح التاج', ckCrownNew: 'التاج رجع', ckCrownMine: 'أنت', ckFinal: 'النهائي', ckRoundOf: 'الجولة {r} من {n}', ckGo: 'انطلق!', ckKo: '{a} طيّح {b}', ckFell: '{b} طاح', ckOut: 'طحت!', ckBy: 'على يد {a}', ckDraw: 'ما بقى أحد!', ckYouWin: 'فزت بالجولة!', ckWins: '{a} فاز بالجولة',
     ckWinsH: 'جولات', ckKosH: 'إقصاء', ckChamp: 'أنت البطل!', ckChampO: '{a} هو البطل', fpsT: 'معدل الإطارات (FPS)', tsT: 'الفرق', tsShuf: 'خلط', tsNoteH: 'اضغط على لون عشان تلبسه الفريق. واضغط على الأسهم عشان تنقل لاعب لفريق ثاني. البوتات تكمّل الفريق الناقص.', tsNoteG: 'اضغط على سهم عشان تغيّر فريقك. وتقدر تختار لون فريقك.', tsMove: 'انقل إلى {t}', botTag: 'بوت', lookT: 'الستايل', lookBlue: 'أزرق', lookNight: 'ليلي', lookClassic: 'كلاسيك',
@@ -5370,7 +5432,10 @@ function hostSendTo(id, msg) {
   if (hostHasDirect(id)) { try { p.dc.send(JSON.stringify(msg)); return; } catch (e) {} }
   if (NET.mq) NET.mq.publish(NET.base + '/d/' + id, JSON.stringify(msg));
 }
-function hostHasDirect(id) { var p = NET.peers[id]; return !!(p && p.dc && p.dc.readyState === 'open' && performance.now() - p.rx < 3000); }
+/* In a match a direct line that has gone quiet for a moment is not trusted: the stick and the updates go by the relay
+   too until it speaks again (a stalled line used to freeze a player's car, or their screen, for up to 3 seconds) */
+function netFresh() { return typeof UI !== 'undefined' && UI.screen === 'game' ? 400 : 3000; }
+function hostHasDirect(id, ms) { var p = NET.peers[id]; return !!(p && p.dc && p.dc.readyState === 'open' && performance.now() - p.rx < (ms || netFresh())); }
 function hostSnap(direct, relay) {
   if (direct) for (var id in NET.peers) { var p = NET.peers[id]; if (hostHasDirect(id)) { try { if (p.dc.bufferedAmount < 60000) p.dc.send(direct); } catch (e) {} } }
   if (relay && NET.mq && NET.mq.connected) NET.mq.publish(NET.base + '/h', relay);
@@ -5420,12 +5485,13 @@ function netJoin(code) {
 function clientSend(msg) {
   var s = JSON.stringify(msg);
   lagged(function () {
-    if (clientDirect()) { try { NET.hostDc.send(s); return; } catch (e) {} }
+    var dir = clientDirect(), sure = dir && clientDirect(250);
+    if (dir) { try { NET.hostDc.send(s); if (sure || msg[0] !== 'ki' && msg[0] !== 'i') return; } catch (e) {} }   // a line gone quiet for a quarter second: the stick goes by the relay as well
     if (NET.mq && NET.mq.connected) NET.mq.publish(NET.base + '/c', '{"f":"' + NET.id + '","m":' + s + '}');
   });
 }
 function clientRelay(msg) { var s = JSON.stringify(msg); lagged(function () { if (NET.mq && NET.mq.connected) NET.mq.publish(NET.base + '/c', '{"f":"' + NET.id + '","m":' + s + '}'); }); }
-function clientDirect() { return !!(NET.hostDc && NET.hostDc.readyState === 'open' && performance.now() - NET.dcRx < 3000); }
+function clientDirect(ms) { return !!(NET.hostDc && NET.hostDc.readyState === 'open' && performance.now() - NET.dcRx < (ms || netFresh())); }
 function clientRtcStart() {
   if (!window.RTCPeerConnection || NET.rtcTries > 3 || NORTC) return;
   NET.rtcTries++;
@@ -5715,7 +5781,7 @@ function commsStrings() {
    and receives the state about 20-30 times a second, then predicts in between. */
 var SPEEDS = [0.85, 1, 1.22];
 var ME = { id: '', pid: '', name: '', ch: 0, col: 0 };
-var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { game: 0, ckr: 3, ckm: -1, ckmo: 0, vo: 1, mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, crs: 90, ck: 0, balls: 0, gpts: 15, sp: 1, pw: 1, pws: 127, pad: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1, comp: 0, tm: 0, fo: 0, wr: 8 }, tcol: [0, 5, 3, 2, 6], mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
+var ROOM = { role: 'none', code: '', seats: [], waiting: [], cfg: { game: 0, ckr: 3, ckm: -1, ckmo: 0, cks: 0, vo: 1, mode: 0, lives: 5, pts: 10, mins: 3, crn: 45, crs: 90, ck: 0, balls: 0, gpts: 15, sp: 1, pw: 1, pws: 127, pad: 1, bot: 1, map: -1, core: 0, haz: 0, size: 1, comp: 0, tm: 0, fo: 0, wr: 8 }, tcol: [0, 5, 3, 2, 6], mapNow: 0, bots: 3, phase: 'lobby', hostId: '', joined: false, timer: null, helloN: 0 };
 var G = { S: null, role: 'none', me: -1, mid: 0, acc: 0, quiet: false, verdicts: new Map(), seenV: new Map(), early: new Map(), lastEid: 0, vis: {},
   offset: 0, lat: 0, synced: false, pings: [], lastTick: -1, lastHost: 0, stale: false, smashN: 0, inT: 0, snapT: 0, relT: 0, overTimer: null };
 var INPUT = { pt: 0, smashQ: false, left: false, right: false, emoQ: -1 };
@@ -5912,7 +5978,7 @@ function wallFx(b, soft) {
 }
 function lobbyMsg() {
   var c = ROOM.cfg, now = performance.now();
-  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15, c.comp | 0, c.pws == null ? 127 : c.pws | 0, c.pad == null ? 1 : c.pad | 0, c.tm | 0, c.fo ? 1 : 0, c.wr || 8, c.game | 0, c.ckr || 3, c.ckm == null ? -1 : c.ckm, c.ckmo | 0, c.vo === 0 ? 0 : 1, c.game && c.ckm < 0 && typeof ckNextMap === 'function' ? ckNextMap() : -1], tcol: ROOM.tcol.slice(0, 5), map: ROOM.mapNow, bots: ROOM.bots,
+  return ['lobby', { ph: ROOM.phase, hid: ME.id, mid: G.mid, cfg: [c.mode, c.lives, c.pts, c.mins, c.sp, c.pw, c.bot, c.map, c.core, c.haz, c.size, c.crn, c.balls | 0, c.ck ? 1 : 0, c.crs || 90, c.gpts || 15, c.comp | 0, c.pws == null ? 127 : c.pws | 0, c.pad == null ? 1 : c.pad | 0, c.tm | 0, c.fo ? 1 : 0, c.wr || 8, c.game | 0, c.ckr || 3, c.ckm == null ? -1 : c.ckm, c.ckmo | 0, c.vo === 0 ? 0 : 1, c.game && c.ckm < 0 && typeof ckNextMap === 'function' ? ckNextMap() : -1, c.cks | 0], tcol: ROOM.tcol.slice(0, 5), map: ROOM.mapNow, bots: ROOM.bots,
     seats: ROOM.seats.map(function (s) { return [s.id, s.bot ? '' : s.name, s.ch, s.col, s.bot ? 1 : 0, (!s.bot && s.id !== ME.id && (s.gone || now - s.seen > 4000)) ? 1 : 0, s.bot ? 0 : s.lv || 1, s.bot || s.id === ME.id ? 0 : Math.min(999, s.rtt | 0), s.dir ? 1 : 0, s.bot ? '' : s.pid || '', s.bot ? 0 : seatRks(s), 0, s.id === ME.id ? myCos() : s.cos || 0, s.team == null ? -1 : s.team, s.bot || s.pc == null ? -1 : s.pc, s.car | 0]; }),
     wait: ROOM.waiting.map(function (w) { return [w.id, w.name, w.ch, w.col]; }) }];
 }
@@ -6087,7 +6153,7 @@ function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
   ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
-  ROOM.cfg = { mode: ci(q[0], 0, 9), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: ci(q[16], 0, PLAYLISTS.length), pws: q[17] == null ? 127 : ci(q[17], 0, 127), pad: q[18] == null ? 1 : ci(q[18], 0, 2), sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 3), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2), tm: q[19] == null ? 0 : ci(q[19], 0, 5), fo: q[20] ? 1 : 0, wr: q[21] == null ? 8 : ci(q[21], 3, 20), game: q[22] ? 1 : 0, ckr: [1, 3, 5].indexOf(q[23] | 0) >= 0 ? q[23] | 0 : 3, ckm: q[24] == null ? -1 : ci(q[24], -1, CK_MAPS.length - 1), ckmo: q[25] == null ? 0 : ci(q[25], 0, CK_MODES.length - 1), vo: q[26] === 0 ? 0 : 1 };
+  ROOM.cfg = { mode: ci(q[0], 0, 9), gpts: q[15] | 0 || 15, lives: q[1] | 0 || 5, pts: q[2] | 0 || 10, mins: q[3] | 0 || 3, crn: q[11] | 0 || 45, balls: ci(q[12], 0, 10), ck: q[13] ? 1 : 0, crs: q[14] | 0 || 90, comp: ci(q[16], 0, PLAYLISTS.length), pws: q[17] == null ? 127 : ci(q[17], 0, 127), pad: q[18] == null ? 1 : ci(q[18], 0, 2), sp: ci(q[4], 0, 2), pw: q[5] ? 1 : 0, bot: ci(q[6], 0, 3), map: q[7] == null ? -1 : ci(q[7], -1, MAPS.length - 1), core: q[8] ? 1 : 0, haz: q[9] ? 1 : 0, size: q[10] == null ? 1 : ci(q[10], 0, 2), tm: q[19] == null ? 0 : ci(q[19], 0, 5), fo: q[20] ? 1 : 0, wr: q[21] == null ? 8 : ci(q[21], 3, 20), game: q[22] ? 1 : 0, ckr: [1, 3, 5, 7].indexOf(q[23] | 0) >= 0 ? q[23] | 0 : 3, cks: q[28] == null ? 0 : ci(q[28], 0, CK_ARENA_SHAPES.length - 1), ckm: q[24] == null ? -1 : ci(q[24], -1, CK_MAPS.length - 1), ckmo: q[25] == null ? 0 : ci(q[25], 0, CK_MODES.length - 1), vo: q[26] === 0 ? 0 : 1 };
   if (q[27] != null && q[27] >= 0) CK.mapNext = ci(q[27], 0, CK_MAPS.length - 1);   // the host's next random arena, so the room looks the same here
   if (ROOM.cfg.game !== (UI.game === 'cars' ? 1 : 0)) setGame(ROOM.cfg.game ? 'cars' : 'smash', true);   // joined a room of the other game: switch to it
   if (Array.isArray(d.tcol)) ROOM.tcol = d.tcol.map(function (k) { return ci(k, 0, COLORS.length - 1); });
@@ -6431,7 +6497,7 @@ function ckNextMap() {
   return CK.mapNext;
 }
 function ckBegin(role, mid) {
-  var S = ckNew(ckRoster(), { rounds: ROOM.cfg.ckr, map: role === 'client' ? (ROOM.cfg.ckm >= 0 ? ROOM.cfg.ckm : CK.mapNext >= 0 ? CK.mapNext : 0) : CK.mapNow, lv: ckLv(), mode: ROOM.cfg.ckmo | 0 });   // a joined phone starts on the arena the room showed (no second build when the first update comes)
+  var S = ckNew(ckRoster(), { rounds: ROOM.cfg.ckr, map: role === 'client' ? (ROOM.cfg.ckm >= 0 ? ROOM.cfg.ckm : CK.mapNext >= 0 ? CK.mapNext : 0) : CK.mapNow, lv: ckLv(), mode: ROOM.cfg.ckmo | 0, shape: ROOM.cfg.cks | 0 });   // a joined phone starts on the arena the room showed (no second build when the first update comes)
   if (role === 'client') S.noEv = true;
   CK.S = S; CK.role = role; CK.mid = mid; CK.acc = 0; CK.snapT = CK.relT = 0; CK.inp = {}; CK.bqSeen = {}; CK.jqSeen = {}; CK.lastEid = 0; CK.hist = []; CK.seq = 0; CK.sendT = 0; CK.buf = [];
   CK.corr = { x: 0, y: 0 }; CK.overAt = 0; CK.shown = false; CK.bqUsed = CKIN.bq; CK.jqUsed = CKIN.jq; CK.ack = 0;
@@ -6443,11 +6509,24 @@ function ckBegin(role, mid) {
 }
 function ckStop() { if (typeof engine === 'function') engine(false); CK.S = null; CK.role = 'none'; CK.me = -1; if (CKG.ok) ckTags([], false); }
 /* ---------- host ---------- */
+/* A joined phone sends the stick (and BOOST and JUMP) for every step of its own simulation, the last few each time
+   (a lost packet costs nothing). The host plays them back one per step, in order, exactly as the phone did; so where
+   the phone's car went and where the host's went agree, and the phone's view is never pulled back. A small queue soaks
+   up the network's unevenness; if it backs up (a burst after a stall) it skips ahead, never letting the car lag. */
 function ckHostInput(id, m) {
   var S = CK.S; if (!S || CK.role !== 'host') return;
   var c = S.cars.find(function (q) { return q.id === id; }); if (!c) return;
-  var seq = m[1] | 0; if (seq < (c.seq | 0)) return;
-  c.seq = seq; c.in.x = ckClamp(+m[2] || 0, -1, 1); c.in.y = ckClamp(+m[3] || 0, -1, 1);
+  var seq = m[1] | 0, P = m[6];
+  if (Array.isArray(P) && P.length >= 3) {
+    var n = (P.length / 3) | 0, first = seq - n + 1, lastQ = c.qSeq == null ? (c.seq | 0) : c.qSeq; c.q = c.q || [];
+    for (var k = 0; k < n; k++) { var sq = first + k; if (sq <= lastQ) continue; c.q.push([ckClamp(+P[k * 3] || 0, -1, 1), ckClamp(+P[k * 3 + 1] || 0, -1, 1), P[k * 3 + 2] | 0, sq]); lastQ = sq; }
+    c.qSeq = lastQ; c.inAt = performance.now();
+    if (c.q.length > 14) { var drop = c.q.splice(0, c.q.length - 5); drop.forEach(function (e) { if (e[2] & 1) c.qB = 1; if (e[2] & 2) c.qJ = 1; }); }   // far behind: catch up (a skipped press still fires)
+    return;
+  }
+  if (seq < (c.seq | 0)) return;
+  var steps = P === 0;                                                 // a phone that sends steps but has none now is not driving (countdown, out): nothing held
+  c.seq = seq; c.inAt = performance.now(); c.in.x = steps ? 0 : ckClamp(+m[2] || 0, -1, 1); c.in.y = steps ? 0 : ckClamp(+m[3] || 0, -1, 1); if (steps) c.q = [];
   var bq = m[4] | 0; if (CK.bqSeen[id] == null) CK.bqSeen[id] = bq; if (bq > CK.bqSeen[id]) { CK.bqSeen[id] = bq; c.in.b = true; }
   var jq = m[5] | 0; if (CK.jqSeen[id] == null) CK.jqSeen[id] = jq; if (jq > CK.jqSeen[id]) { CK.jqSeen[id] = jq; c.in.j = true; }
 }
@@ -6456,15 +6535,18 @@ function ckPack(S) {
   return JSON.stringify(['k', CK.mid, S.tick, r2(S.t), ['cd', 'play', 'end', 'over'].indexOf(S.phase), r2(S.phaseT), S.round, r2(S.R), S.cfg.map, S.cfg.rounds,
     S.cars.map(function (c) { return [r2(c.x), r2(c.y), r2(c.a), r2(c.vx), r2(c.vy), r2(c.w), r2(c.z), (c.alive ? 1 : 0) | (c.fall ? 2 : 0) | (c.back > 0 ? 4 : 0) | (c.ghost > 0 ? 8 : 0), c.wins, c.kos, r2(Math.min(9, S.t - c.boostAt)), c.seq | 0, c.place | 0, r2(Math.min(9, S.t - (c.knock == null ? -9 : c.knock))), Math.round(c.score * 10) / 10, r2(c.jv || 0), r2(Math.min(99, S.t - c.jumpAt))]; }),
     S.ev.filter(function (e) { return S.t - e[1] < 0.8; }), r2(S.Rn == null ? -1 : S.Rn),
-    [r2(S.hill.x), r2(S.hill.y), r2(S.hill.r), S.hill.n | 0, S.bomb, r2(S.fuse), r2(S.wind.a), S.wind.on > 0 ? 1 : 0, S.hillWin, r2(S.rt), S.crown.who, r2(S.crown.x), r2(S.crown.y), S.crownWin, S.crown.back > 0 ? 1 : 0]]);
+    [r2(S.hill.x), r2(S.hill.y), r2(S.hill.r), S.hill.n | 0, S.bomb, r2(S.fuse), r2(S.wind.a), S.wind.on > 0 ? 1 : 0, S.hillWin, r2(S.rt), S.crown.who, r2(S.crown.x), r2(S.crown.y), S.crownWin, S.crown.back > 0 ? 1 : 0, S.cfg.shape | 0, S.tb | 0]]);
 }
 function ckHostStep(dt) {
   var S = CK.S, n = 0;
   CK.acc += dt;
+  var nowI = performance.now();                                       // a player whose stick has not been heard from for a second (a dead line, the app put away) lets go: the car never runs on by itself
+  S.cars.forEach(function (c) { if (!c.bot && c !== CK.mine && c.inAt && nowI - c.inAt > 1000) { c.in.x = c.in.y = 0; } });
   while (CK.acc >= CK_STEP && n < 10) {
+    for (var qi = 0; qi < S.cars.length; qi++) { var qc = S.cars[qi]; if (qc.q && qc.q.length) { var e = qc.q.shift(); qc.in.x = e[0]; qc.in.y = e[1]; qc.in.b = !!(e[2] & 1) || !!qc.qB; qc.in.j = !!(e[2] & 2) || !!qc.qJ; qc.in.f = qc.in.b || qc.in.j; qc.qB = qc.qJ = 0; qc.seq = e[3]; } }
     if (CK.mine) { CK.mine.in.x = CKIN.x; CK.mine.in.y = CKIN.y; if (CKIN.bq > CK.bqUsed) { CK.bqUsed = CKIN.bq; CK.mine.in.b = true; } if (CKIN.jq > CK.jqUsed) { CK.jqUsed = CKIN.jq; CK.mine.in.j = true; } }
     ckAdvance(S, CK_STEP);
-    S.cars.forEach(function (c) { if (!c.bot) { c.in.b = false; c.in.j = false; } });   // a boost or jump press is used once
+    S.cars.forEach(function (c) { if (!c.bot) { c.in.b = false; c.in.j = false; c.in.f = false; } });   // a boost or jump press is used once
     CK.acc -= CK_STEP; n++;
   }
   if (n === 10) CK.acc = 0;
@@ -6473,7 +6555,7 @@ function ckHostStep(dt) {
   CK.snapT += dt; CK.relT += dt;
   var direct = false, relay = false, id;
   for (id in NET.peers) if (hostHasDirect(id)) direct = true;
-  ROOM.seats.forEach(function (s) { if (!s.bot && s.id !== ME.id && !s.gone && !hostHasDirect(s.id)) relay = true; });
+  ROOM.seats.forEach(function (s) { if (!s.bot && s.id !== ME.id && !s.gone && !hostHasDirect(s.id, 250)) relay = true; });   // anyone whose direct line is quiet gets the relay copy too
   var doD = direct && CK.snapT >= 1 / 40, doR = relay && CK.relT >= 1 / 20;
   if (doD || doR) { var js = ckPack(S); if (doD) CK.snapT = 0; if (doR) CK.relT = 0; hostSnap(doD ? js : null, doR ? js : null); }
 }
@@ -6486,6 +6568,8 @@ function ckApplySnap(m, nowMs) {
   var S = CK.S; if (!S || CK.role !== 'client' || m[1] !== CK.mid) return;
   if (CK.buf.length && m[2] <= CK.buf[CK.buf.length - 1].tick) return;
   S.t = m[3]; S.phase = ['cd', 'play', 'end', 'over'][m[4]] || 'play'; S.phaseT = m[5]; S.round = m[6]; S.R = m[7]; S.Rn = m[12] == null ? -1 : m[12]; S.cfg.map = ckClamp(m[8] | 0, 0, CK_MAPS.length - 1); S.cfg.rounds = m[9] | 0;
+  var X0 = m[13]; if (X0 && X0[15] != null && (X0[15] | 0) !== S.cfg.shape) { S.cfg.shape = ckClamp(X0[15] | 0, 0, CK_ARENA_SHAPES.length - 1); S.shp = ckShape(S.cfg.shape); S.featMap = -1; }   // the arena's shape
+  if (X0 && X0[16] != null) S.tb = X0[16] | 0;
   if (S.featMap !== S.cfg.map) { S.feat = ckFeat(S); S.featMap = S.cfg.map; var gs = ckGs(S); S.cars.forEach(function (q) { q.gs = gs; }); }   // the arena's pillars, holes, vents and oil, and its gravity
   var cars = m[10] || [];
   cars.forEach(function (q, i) { var c = S.cars[i]; if (!c) return; c.wins = q[8]; c.kos = q[9]; c.alive = !!(q[7] & 1); c.fall = q[7] & 2 ? 1 : 0; c.back = q[7] & 4 ? 1 : 0; c.ghost = q[7] & 8 ? 1 : 0; c.place = q[12] | 0; c.score = +q[14] || 0; });
@@ -6496,10 +6580,15 @@ function ckApplySnap(m, nowMs) {
   var me = CK.me >= 0 ? cars[CK.me] : null, c = CK.mine;
   if (me && c) {
     var ox = c.x, oy = c.y; c.x = me[0]; c.y = me[1]; c.a = me[2]; c.vx = me[3]; c.vy = me[4]; c.w = me[5]; c.z = me[6]; c.boostAt = S.t - me[10]; c.knock = S.t - (me[13] == null ? 9 : me[13]); c.jv = +me[15] || 0; c.jumpAt = S.t - (me[16] == null ? 99 : me[16]);
-    var ack = me[11] | 0; CK.hist = CK.hist.filter(function (h) { return h.seq > ack; });
-    if (!c.fall && c.alive && !c.back && S.phase !== 'cd') { var g = ckGrip(S); CK.hist.forEach(function (h) { ckWindPush(S, c, CK_STEP); var z0 = c.z; ckDrive(c, h, CK_STEP, g * ckOil(S, c), h.t); ckMineSolid(S, c, z0); }); }
-    CK.corr.x += ox - c.x; CK.corr.y += oy - c.y;                       // draw the jump away over a few frames
-    if (Math.hypot(CK.corr.x, CK.corr.y) > 4) CK.corr.x = CK.corr.y = 0;
+    var ack = me[11] | 0; CK.hist = CK.hist.filter(function (h) { return h.seq > ack; }); CK.exK = 0; CK.snapT = S.t;
+    /* replay what I pressed since, on my car's own clock: the host's time of this update plus one step per press
+       (the clock the boost, the jump and a knock's loose tyres are timed on, the same as on the host) */
+    if (!c.fall && c.alive && !c.back && S.phase !== 'cd') { var g = ckGrip(S); CK.hist.forEach(function (h) { CK.exK++; var tc = S.t + CK.exK * CK_STEP; ckWindPush(S, c, CK_STEP); var z0 = c.z; ckDrive(c, h, CK_STEP, g * ckOil(S, c), tc); ckMineSolid(S, c, z0, tc); }); }
+    if (DBG) { var nd = 99; cars.forEach(function (q, i) { if (i !== CK.me && (q[7] & 1)) nd = Math.min(nd, Math.hypot(q[0] - me[0], q[1] - me[1])); }); (CK.dbg = CK.dbg || []).push([+Math.hypot(ox - c.x, oy - c.y).toFixed(2), me[13], CK.hist.length, +S.t.toFixed(2), ack, +nd.toFixed(1), me[7], +Math.hypot(me[3], me[4]).toFixed(1), +Math.hypot(c.vx, c.vy).toFixed(1)]); if (CK.dbg.length > 400) CK.dbg.shift(); }
+    if (CK.drove) { CK.corr.x += ox - c.x; CK.corr.y += oy - c.y; } else CK.corr.x = CK.corr.y = 0;   // draw the difference away over a few frames (nothing to smooth when my car was not being driven: out, or just back)
+    var cm = Math.hypot(CK.corr.x, CK.corr.y); if (cm > 6) { CK.corr.x *= 6 / cm; CK.corr.y *= 6 / cm; }   // a big difference still slides over (never a teleport), it just starts nearer
+    CK.rtt = CK.rtt == null ? CK.hist.length * CK_STEP : CK.rtt * 0.9 + CK.hist.length * CK_STEP * 0.1;   // how far ahead of the host's word my car runs
+    CK.drove = !c.fall && c.alive && !c.back && S.phase !== 'cd';
   }
   ckEvents(m[11] || []);
 }
@@ -6507,38 +6596,54 @@ function ckClientStep(dt) {
   var S = CK.S, c = CK.mine;
   CK.acc += dt; var n = 0;
   while (CK.acc >= CK_STEP && n < 10) {
-    var h = { seq: ++CK.seq, x: CKIN.x, y: CKIN.y, b: false, j: false, t: S.t };
+    var h = { seq: ++CK.seq, x: Math.round(CKIN.x * 100) / 100, y: Math.round(CKIN.y * 100) / 100, b: false, j: false };   // rounded as it is sent, so the host drives exactly this
     if (CKIN.bq > CK.bqUsed) { CK.bqUsed = CKIN.bq; h.b = true; }
     if (CKIN.jq > CK.jqUsed) { CK.jqUsed = CKIN.jq; h.j = true; }
-    if (c && c.alive && !c.fall && !c.back && S.phase === 'play') { ckWindPush(S, c, CK_STEP); var z0 = c.z; ckDrive(c, h, CK_STEP, ckGrip(S) * ckOil(S, c), S.t); ckMineSolid(S, c, z0); CK.hist.push(h); if (CK.hist.length > 120) CK.hist.shift(); }
+    var tc = S.t + (CK.exK || 0) * CK_STEP; CK.tc = tc;               // my car's clock (see ckApplySnap)
+    if (c && c.alive && !c.fall && !c.back && S.phase === 'play') { ckWindPush(S, c, CK_STEP); var z0 = c.z, fd = ckDrive(c, h, CK_STEP, ckGrip(S) * ckOil(S, c), tc); if (!(fd & 1)) h.b = false; if (!(fd & 2)) h.j = false; h.f = h.b || h.j; ckMineSolid(S, c, z0, tc); CK.hist.push(h); if (CK.hist.length > 120) CK.hist.shift(); }   // (only a press that really fired here is sent)
     if (S.phase === 'play' || S.phase === 'end') S.rt += CK_STEP;     // the round clock runs on between updates (the swinging ball, the drifting oil)
     S.t += CK_STEP; CK.acc -= CK_STEP; n++;
   }
   if (n === 10) CK.acc = 0;
-  var k = Math.exp(-dt * 10); CK.corr.x *= k; CK.corr.y *= k;
+  var k = Math.exp(-dt * (10 + Math.hypot(CK.corr.x, CK.corr.y) * 4)); CK.corr.x *= k; CK.corr.y *= k;   // bigger differences go away faster
   CK.sendT += dt;
-  if (CK.sendT >= 1 / 30 && CK.me >= 0) { CK.sendT = 0; clientSend(['ki', CK.seq, Math.round(CKIN.x * 100) / 100, Math.round(CKIN.y * 100) / 100, CKIN.bq, CKIN.jq]); }
+  if (CK.sendT >= 1 / 30 && CK.me >= 0) { CK.sendT = 0;
+    var H = CK.hist, P = [], i0 = H.length;                             // the last steps (a run with no gap, ending now), each with its stick and presses
+    while (i0 > 0 && H.length - i0 < 10 && H[i0 - 1].seq === (i0 < H.length ? H[i0].seq - 1 : CK.seq)) i0--;
+    for (var k = i0; k < H.length; k++) P.push(H[k].x, H[k].y, (H[k].b ? 1 : 0) | (H[k].j ? 2 : 0));
+    clientSend(['ki', CK.seq, Math.round(CKIN.x * 100) / 100, Math.round(CKIN.y * 100) / 100, CKIN.bq, CKIN.jq, P.length ? P : 0]); }
 }
-/* A joined phone drives its own car ahead of the host's word. Keep that car out of the others (where the host last
-   put them) so it never drives into one or lands inside one while the update is on its way: it lands on a roof and
-   slides off, or stops against a side with a small bounce. The host still decides the real knock. */
-function ckMineSolid(S, c, z0) {                                    // the other cars, and the arena's pillars, are solid for my own car straight away
-  ckSolidMine(S, c, z0); if (c.z < 1.2 && S.feat.posts.length) ckPosts(S, c);
+/* A joined phone drives its own car ahead of the host's word. The other cars are where the host last put them,
+   carried on at their own speed to the moment my car has reached (so a car coming at me is met where it really is,
+   not where it was a tenth of a second ago), and a knock with one of them is worked out the same way the host does it,
+   both cars' speeds and weights included. So my car is pushed, bounces and spins as it will on the host, and the
+   host's word, when it comes, agrees: no tug back, no stop against a car that has already moved on. */
+function ckMineSolid(S, c, z0, tc) {                                // the other cars, and the arena's pillars, are solid for my own car straight away
+  ckSolidMine(S, c, z0, tc); if (c.z < 1.2 && S.feat.posts.length) { var t0 = S.t; S.t = tc; ckPosts(S, c); S.t = t0; }
 }
-function ckSolidMine(S, c, z0) {
+var _ckO = [], _ckStub = { cfg: { mode: 0 }, noEv: true, ev: [], eid: 0, bomb: -1, crown: { who: -1, at: -9 } };
+function ckSolidMine(S, c, z0, tc) {
   var B = CK.buf; if (!B.length || !c) return;
-  var q = B[B.length - 1].cars, hc = ckHt(c);
+  var q = B[B.length - 1].cars, hc = ckHt(c), ex = ckClamp(tc - (CK.snapT == null ? tc : CK.snapT), 0, 0.15);
+  _ckStub.t = tc;
   for (var i = 0; i < q.length; i++) {
     if (i === CK.me) continue; var r = q[i], oc = S.cars[i]; if (!r || !oc || !(r[7] & 1) || (r[7] & 14)) continue;   // on the platform: not falling, waiting or a ghost
-    var o = { x: r[0], y: r[1], a: r[2], z: r[6] || 0, T: CK_SPEC, car: oc.car }, top = o.z + ckHt(o);
+    var o = _ckO[i] || (_ckO[i] = { T: CK_SPEC, hitBy: -1, hitAt: -9 });
+    o.i = i; o.car = oc.car; o.team = oc.team; o.vx = r[3]; o.vy = r[4]; o.w = r[5]; o.z = r[6] || 0; o.x = r[0] + r[3] * ex; o.y = r[1] + r[4] * ex; o.a = r[2] + r[5] * ex;
+    o.boostAt = CK.snapT - (r[10] == null ? 9 : r[10]); o.knock = -9; o.hE = -9;
+    var top = o.z + ckHt(o);
     if (c.jv < 0 && z0 >= top - 0.05 && c.z < top && ckSat(c, o)) {
       c.z = top; c.jv = CK_BOUNCE * Math.sqrt(c.gs || 1); var dx = c.x - o.x, dy = c.y - o.y, d = Math.hypot(dx, dy);
-      if (d < 0.15) { dx = Math.cos(c.a); dy = Math.sin(c.a); d = 1; } c.vx += dx / d * 3.4; c.vy += dy / d * 3.4; continue;
+      if (d < 0.15) { dx = Math.cos(c.a); dy = Math.sin(c.a); d = 1; } c.vx += dx / d * 3.4; c.vy += dy / d * 3.4; c.knock = tc; continue;
     }
     if (!(c.z < top && o.z < c.z + hc)) continue;
-    var s = ckSat(c, o); if (!s) continue;
-    var k = Math.min(s.pen, 0.3); c.x -= s.nx * k; c.y -= s.ny * k;
-    var vn = c.vx * s.nx + c.vy * s.ny; if (vn > 0) { c.vx -= s.nx * vn * 1.3; c.vy -= s.ny * vn * 1.3; }
+    var sat = ckSat(c, o); if (!sat) continue;
+    if (sat.pen < 0.22) { c.x -= sat.nx * sat.pen * 0.5; c.y -= sat.ny * sat.pen * 0.5; continue; }   // only just touching (the other car may already have turned away on the host): keep out of it, but no knock yet
+    /* a real crash: the same knock as on the host (only my side of it is kept). On a slow line the other car's last known
+       speed is old news, so the knock is only partly trusted: the host's word brings the rest */
+    var tr = ckClamp(1.45 - (CK.rtt || 0) * 2.2, 0.35, 1), v0x = c.vx, v0y = c.vy, w0 = c.w;
+    c.hE = -9; ckCollide(_ckStub, c, o, tc);
+    if (tr < 1) { c.vx = v0x + (c.vx - v0x) * tr; c.vy = v0y + (c.vy - v0y) * tr; c.w = w0 + (c.w - w0) * tr; }
   }
 }
 /* where to draw everyone right now */
@@ -6557,23 +6662,23 @@ function ckView() {
   var S = CK.S, now = performance.now(), list = [];
   if (!S) {                                                           // the room: everyone's car parked round the platform
     var n = ROOM.seats.length; if (!n) return null;
-    var R0 = ckR0(n);
-    ROOM.seats.forEach(function (s, i) { var a = i * Math.PI * 2 / n + Math.PI / 2, rr = R0 * 0.6;
-      list.push({ x: Math.cos(a) * rr, y: Math.sin(a) * rr, a: a + Math.PI, z: 0, steer: 0, speed: 0, out: false, type: s.car | 0, hex: COLORS[s.col], name: s.bot ? chName(s.ch) : s.id === ME.id ? T('you') : s.name, me: s.id === ME.id }); });
+    var R0 = ckR0(n), shR = ckShape(ROOM.cfg.cks | 0), spots = ckRing(shR, R0, [0.6, 0.6, 0.56, 0.5][ROOM.cfg.cks | 0], n, Math.PI / 2);
+    ROOM.seats.forEach(function (s, i) { var a = Math.atan2(spots[i][1], spots[i][0]);
+      list.push({ x: spots[i][0], y: spots[i][1], a: a + Math.PI, z: 0, steer: 0, speed: 0, out: false, type: s.car | 0, hex: COLORS[s.col], name: s.bot ? chName(s.ch) : s.id === ME.id ? T('you') : s.name, me: s.id === ME.id }); });
     var lm = ROOM.cfg.ckm >= 0 ? ROOM.cfg.ckm : ROOM.role === 'client' ? (CK.mapNext >= 0 ? CK.mapNext : 0) : ckNextMap();
-    if (!CKG.roomFeat || CKG.roomFeat.k !== lm + ':' + n) CKG.roomFeat = { k: lm + ':' + n, f: ckFeat({ R0: R0, cfg: { map: lm } }) };   // (made once, not every frame)
-    return { map: lm, R0: R0, feat: CKG.roomFeat.f, mode: ROOM.cfg.ckmo | 0, hill: null, bomb: -1, rt: 0, ft: (performance.now() / 1000) % 600, idle: true, R: R0, Rn: -1, shrinking: false, me: -1, cars: list, crown: null };
+    if (!CKG.roomFeat || CKG.roomFeat.k !== lm + ':' + n + ':' + (ROOM.cfg.cks | 0)) CKG.roomFeat = { k: lm + ':' + n + ':' + (ROOM.cfg.cks | 0), f: ckFeat({ R0: R0, cfg: { map: lm, shape: ROOM.cfg.cks | 0 } }) };   // (made once, not every frame)
+    return { shape: ROOM.cfg.cks | 0, map: lm, R0: R0, feat: CKG.roomFeat.f, mode: ROOM.cfg.ckmo | 0, hill: null, bomb: -1, rt: 0, ft: (performance.now() / 1000) % 600, idle: true, R: R0, Rn: -1, shrinking: false, me: -1, cars: list, crown: null };
   }
   var L = CK.role === 'client' ? ckLerpCars(now) : null;
   S.cars.forEach(function (c, i) {
     var o, mine = i === CK.me;
     if (L && !(mine && c.alive && !c.fall && !c.back)) { var q = L[i] || {}; o = { x: q.x, y: q.y, a: q.a, z: q.z || 0, out: !(q.flags & 1) || !!(q.flags & 4), ghost: !!(q.flags & 8), speed: Math.hypot(q.vx || 0, q.vy || 0), boost: q.boost, vx: q.vx || 0, vy: q.vy || 0 }; }
-    else { o = { x: c.x + (mine && L ? CK.corr.x : 0), y: c.y + (mine && L ? CK.corr.y : 0), a: c.a, z: c.z, out: !c.alive || c.back > 0, ghost: c.ghost > 0, speed: Math.hypot(c.vx, c.vy), boost: S.t - c.boostAt < CK_BOOST_T, vx: c.vx, vy: c.vy }; }
+    else { o = { x: c.x + (mine && L ? CK.corr.x : 0), y: c.y + (mine && L ? CK.corr.y : 0), a: c.a, z: c.z, out: !c.alive || c.back > 0, ghost: c.ghost > 0, speed: Math.hypot(c.vx, c.vy), boost: (mine && L && CK.tc ? CK.tc : S.t) - c.boostAt < CK_BOOST_T, vx: c.vx, vy: c.vy }; }
     o.steer = mine ? c.steer : ckClamp((c.w || 0) * 0.25, -0.6, 0.6); o.type = c.car; o.hex = COLORS[c.col]; o.name = mine ? T('you') : c.name; o.me = mine;
     o.rev = false; o.team = c.team; o.score = c.score; o.bomb = S.bomb === i; o.crown = S.cfg.mode === 4 && S.crown.who === i && S.phase !== 'cd'; list.push(o);
   });
   var ft = S.phase === 'play' || S.phase === 'end' ? Math.max(0, S.rt - (L ? CK_DELAY / 1000 : 0)) : 0;   // the arena's moving parts, in step with the cars drawn
-  return { map: S.cfg.map, R0: S.R0, feat: S.feat, mode: S.cfg.mode, hill: S.cfg.mode === 1 && S.phase === 'play' ? S.hill : null, bomb: S.cfg.mode === 2 && S.phase === 'play' ? S.bomb : -1, fuse: S.fuse, wind: S.cfg.map === 3 ? S.wind : null, rt: S.phase === 'play' ? S.rt : 0, ft: ft, R: S.R, Rn: S.phase === 'play' ? S.Rn : -1, shrinking: S.phase === 'play' && S.Rn > 0 && S.R > S.Rn + 0.05, me: CK.me, cars: list,
+  return { shape: S.cfg.shape | 0, map: S.cfg.map, R0: S.R0, feat: S.feat, mode: S.cfg.mode, hill: S.cfg.mode === 1 && S.phase === 'play' ? S.hill : null, bomb: S.cfg.mode === 2 && S.phase === 'play' ? S.bomb : -1, fuse: S.fuse, wind: S.cfg.map === 3 ? S.wind : null, rt: S.phase === 'play' ? S.rt : 0, ft: ft, R: S.R, Rn: S.phase === 'play' ? S.Rn : -1, shrinking: S.phase === 'play' && S.Rn > 0 && S.R > S.Rn + 0.05, me: CK.me, cars: list,
     crown: S.cfg.mode === 4 && S.phase !== 'cd' && S.phase !== 'over' ? S.crown : null, crownWin: S.crownWin };
 }
 /* one frame of the match */
@@ -10959,10 +11064,9 @@ function ckBuildCar(type, hex, lod) {
    eats the arena. A red dashed line shows where the edge is heading next, and the strip in between glows red. */
 function ckDanger(R, Rn, now) {
   var on = Rn > 0 && Rn < R - 0.05; CKG.next.visible = CKG.danger.visible = on; if (!on) return;
-  CKG.next.scale.set(Rn, 1, Rn); CKG.next.rotation.y = now * 0.15; CKG.next.material.opacity = 0.65 + 0.35 * Math.sin(now * 7);
-  var P = CKG.danger.geometry.attributes.position, N = P.count / 2;
-  for (var i = 0; i < N; i++) { var a = i / (N - 1) * TAU, c = Math.cos(a), s = Math.sin(a); P.setXYZ(i * 2, c * Rn, 0, s * Rn); P.setXYZ(i * 2 + 1, c * R, 0, s * R); }
-  P.needsUpdate = true; CKG.danger.material.opacity = 0.18 + 0.12 * Math.sin(now * 7);
+  var sh = CKG.shp || ckShape(0);
+  CKG.next.scale.set(Rn, 1, Rn); CKG.next.rotation.y = sh.circle ? now * 0.15 : 0; CKG.next.material.opacity = 0.65 + 0.35 * Math.sin(now * 7);
+  ckStripShape(CKG.danger.geometry, sh, Rn, 0, R, 0, 1, 0); CKG.danger.material.opacity = 0.18 + 0.12 * Math.sin(now * 7);
 }
 var _dq = null;
 function ckDebris(x, y, z, vx, vy, vz, s, col) {
@@ -11056,10 +11160,12 @@ function ckCamFit(R, dt, focus) {
   var cam = CKG.cam, asp = VIEW.W / Math.max(1, VIEW.H), vf = cam.fov * Math.PI / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * asp);
   /* while I drive, the camera shows the part of the arena around me (big arenas would make every car tiny),
      sliding with my car but never further than it takes to keep the far edge on screen */
-  var view = focus ? Math.min(R * 1.08, CK_VIEW) : R * 1.08;
-  var el = 0.98, need = view, dW = need / Math.tan(hf / 2), dH = need * 1.05 / Math.tan(vf / 2) * 0.95, d = Math.max(dW, dH);
-  var fx = 0, fz = 0;
-  if (focus) { var lim = Math.max(0, R * 1.08 - view * 0.8), fd = Math.hypot(focus.x, focus.y), fk = fd > lim ? lim / fd : 1; fx = focus.x * fk; fz = focus.y * fk; }
+  /* the shape's own width and height (a rectangle is tall, a triangle sits a little high): fit both, aim at its middle */
+  var ex = (CKG.shp || ckShape(0)).ext, hx = Math.max(-ex[0], ex[1]) * R, hz = (ex[3] - ex[2]) / 2 * R, cz = (ex[2] + ex[3]) / 2 * R;
+  var viewX = focus ? Math.min(hx * 1.08, CK_VIEW) : hx * 1.08, viewZ = focus ? Math.min(hz * 1.08, CK_VIEW) : hz * 1.08, view = Math.max(viewX, viewZ);
+  var el = 0.98, dW = viewX / Math.tan(hf / 2), dH = viewZ * 1.05 / Math.tan(vf / 2) * 0.95, d = Math.max(dW, dH);
+  var fx = 0, fz = focus ? 0 : cz;
+  if (focus) { var lx = Math.max(0, hx * 1.08 - viewX * 0.8), lz = Math.max(0, hz * 1.08 - viewZ * 0.8); fx = ckClamp(focus.x, -lx, lx); fz = ckClamp(focus.y - cz, -lz, lz) + cz; }
   var tx = fx, ty = 0, tz = fz + view * 0.06, px = tx, py = Math.sin(el) * d, pz = tz + Math.cos(el) * d;
   CKG.camP = CKG.camP || new THREE.Vector3(px, py, pz); CKG.camT = CKG.camT || new THREE.Vector3(tx, ty, tz);
   var k = Math.min(1, dt * 3); CKG.camP.x += (px - CKG.camP.x) * k; CKG.camP.y += (py - CKG.camP.y) * k; CKG.camP.z += (pz - CKG.camP.z) * k;
@@ -11192,15 +11298,15 @@ function ckGfxFrame(now, dt) {
     ckTags([], false);
   } else {
     V = ckView(); if (!V) return false;
-    ckSetMap(V.map); L = CK_MAPLOOK[V.map] || CK_MAPLOOK[0];
+    ckSetMap(V.map); ckShapeSet(V.shape | 0); L = CK_MAPLOOK[V.map] || CK_MAPLOOK[0];
     CKG.show.visible = false; CKG.plat.visible = CKG.below.visible = CKG.band.visible = true;
     ckEnvUse(CKG.env); ckLights(L); CKG.scene.background = CKG.bg; CKG.exp = L.exp;
     if (V.map === 1) { CKG.ledM.uniforms.t.value = now * (V.shrinking ? 4 : 1); CKG.ledM.uniforms.c1.value.copy(LC(V.shrinking ? '#ff4040' : '#35e0ff')); }
     if (CKG.water) { var wn = CKG.water.material.normalMap; wn.offset.x = now * 0.004; wn.offset.y = now * 0.0025; }
     R = V.R; CKG.plat.scale.set(R, 1, R); ckFloorFit(R, V.R0 || CK_R0); ckDanger(R, V.Rn, now); ckFeatures(V, now, dt);
-    if (V.shrinking && !REDUCE) { CKG.crT = (CKG.crT || 0) - dt; if (CKG.crT <= 0) { CKG.crT = 0.05; var ca = Math.random() * TAU, cr = R + 0.2;      // the edge breaks off in chunks
-      ckDebris(Math.cos(ca) * cr, -0.2, Math.sin(ca) * cr, Math.cos(ca) * 0.8, 0.5 + Math.random(), Math.sin(ca) * 0.8, 0.25 + Math.random() * 0.4, L.deb);
-      if (Math.random() < 0.3 && V.map !== 2) spark(Math.cos(ca) * cr, 0.1, Math.sin(ca) * cr, '#ff8a4a', 2, 1.5, 0.22, 0.4); } }
+    if (V.shrinking && !REDUCE) { CKG.crT = (CKG.crT || 0) - dt; if (CKG.crT <= 0) { CKG.crT = 0.05; var ep = ckPerimPoint(CKG.shp || ckShape(0), R + 0.2), ca = Math.atan2(ep[1], ep[0]);      // the edge breaks off in chunks
+      ckDebris(ep[0], -0.2, ep[1], Math.cos(ca) * 0.8, 0.5 + Math.random(), Math.sin(ca) * 0.8, 0.25 + Math.random() * 0.4, L.deb);
+      if (Math.random() < 0.3 && V.map !== 2) spark(ep[0], 0.1, ep[1], '#ff8a4a', 2, 1.5, 0.22, 0.4); } }
     if (CKG.air) { var AP = CKG.air.geometry.attributes.position, fall = CKG.air.userData.fall; for (var ai = 0; ai < AP.count; ai++) { var ay = AP.getY(ai) - fall * dt, ax = AP.getX(ai) + Math.sin(now * 0.5 + ai) * dt * 0.6 + (CKG.air.userData.wx || 0) * dt, az = AP.getZ(ai) + (CKG.air.userData.wz || 0) * dt; if (ay < -6) ay = 22; if (ay > 22) ay = -6; if (ax > 35) ax -= 70; if (ax < -35) ax += 70; if (az > 35) az -= 70; if (az < -35) az += 70; AP.setXYZ(ai, ax, ay, az); } AP.needsUpdate = true; }
     if (CKG.showCar) CKG.showCar.grp.visible = false;
     for (i = 0; i < V.cars.length; i++) { var c = V.cars[i], s = ckSlot(i, c.type, c.hex); ckPlace(s, c, now, dt, R); s.pool.visible = !!L.night && !c.out && c.z > -0.5; list.push(c); }
@@ -11261,6 +11367,7 @@ function ckFx(e, V) {
   else if (k === 'wind') { sfx('wind'); ckBanner(T('ckWind'), 'gold'); }
   else if (k === 'creak') { sfx('creak'); ckBanner(T('ckCreak'), 'info'); }
   else if (k === 'crack') { sfx('crack'); ckBanner(T('ckCrack'), 'info'); CKG.holes.forEach(function (h) { if (h.g.visible) for (var q4 = 0; q4 < 8; q4++) ckDebris(h.g.position.x, 0.1, h.g.position.z, (Math.random() - 0.5) * 5, 2 + Math.random() * 3, (Math.random() - 0.5) * 5, 0.15 + Math.random() * 0.2, '#eaf6ff'); }); }
+  else if (k === 'round') { if (e[4]) { ckBanner(T('ckTieSub'), 'gold'); sfx('zone'); } }
   else if (k === 'go') { sfx('go'); ckSkidClear(); var S0 = CK.S; if (S0 && S0.round === 0 && S0.cfg.map > 0) setTimeout(function () { if (CK.S === S0 && S0.phase === 'play') ckBanner(ckMapSub(S0.cfg.map), 'info'); }, 900); }   // the arena's twist, once, as the first round starts
   else if (k === 'wreck') { c = V && V.cars[e[3]]; var nw = V && e[3] === V.me; spark(e[5], 1, e[6], '#ffe27a', 18, 6, 0.3, 0.45); for (var q8 = 0; q8 < 5; q8++) ckDebris(e[5], 0.9, e[6], (Math.random() - 0.5) * 7, 3 + Math.random() * 4, (Math.random() - 0.5) * 7, 0.08 + Math.random() * 0.12, q8 % 2 ? '#2a2c33' : c ? c.hex : '#888');
     sfx('wreck', nw); CKG.shake = Math.max(CKG.shake, nw ? 0.9 : 0.45); if (nw) buzz(60); }
@@ -11767,7 +11874,7 @@ function ckCliffGeo() {
 }
 /* ---------- putting an arena together ---------- */
 function ckSide(k, L) {
-  var SD = L.sideK, deep = SD ? SD.deep : [0.9, 0.9, -L.water || 0.8, 60][k], g = (SD ? SD.cliff : k === 3) ? ckCliffGeo() : new THREE.CylinderGeometry(1, 1, 1, 128, 1, true);
+  var SD = L.sideK, deep = SD ? SD.deep : [0.9, 0.9, -L.water || 0.8, 60][k], g = CKG.shp && !CKG.shp.circle ? ckSideGeo(CKG.shp) : (SD ? SD.cliff : k === 3) ? ckCliffGeo() : new THREE.CylinderGeometry(1, 1, 1, 128, 1, true);
   CKG.side.geometry.dispose(); CKG.side.geometry = g; CKG.side.scale.y = deep; CKG.side.position.y = -deep / 2;
   if (CKG.sideM.map) CKG.sideM.map.dispose(); var t = ckSideTex(k); t.wrapS = t.wrapT = THREE.RepeatWrapping; CKG.sideM.map = t;
   CKG.sideM.roughness = SD ? SD.rough : [0.85, 0.5, 0.25, 0.95][k]; CKG.sideM.metalness = SD ? SD.metal : [0.02, 0.5, 0.05, 0][k]; CKG.sideM.envMap = CKG.env; CKG.sideM.envMapIntensity = SD ? SD.env : [0.3, 0.8, 0.8, 0.1][k];
@@ -11806,17 +11913,18 @@ function ckLights(L) {
 function ckFloorFit(R, R0) {
   var L = CK_MAPLOOK[CKG.map] || CK_MAPLOOK[0];
   if (R0 !== CKG.fitR0) { CKG.fitR0 = R0; CKG.fitR = -1;
-    CKG.zr.forEach(function (zm, i) { var r = CK_ZONE[i][1] * R0; ckStripSet(zm.geometry, r - 0.06, r + 0.06, TAU * r / 1.6, 0.012); zm.userData.r = r; });
+    var sh = CKG.shp || ckShape(0);
+  CKG.zr.forEach(function (zm, i) { var r = CK_ZONE[i][1] * R0; ckStripShape(zm.geometry, sh, r, -0.06, r, 0.06, sh.per * r / 1.6, 0.012); zm.userData.r = r; });
     var SR = L.sideK ? L.sideK.rep : (CKG.map === 3 ? [10, 60 / 14] : [4, 1]);
-    [CKG.sideM.map, CKG.sideM.emissiveMap].forEach(function (t) { if (t) t.repeat.set(Math.round(TAU * R0 / SR[0]), SR[1]); });
+    [CKG.sideM.map, CKG.sideM.emissiveMap].forEach(function (t) { if (t) t.repeat.set(Math.round(sh.per * R0 / SR[0]), SR[1]); });
     if (CKG.tower) { var rt = 0.22 * R0; CKG.tower.scale.x = CKG.tower.scale.z = rt; }
   }
   if (Math.abs(R - CKG.fitR) < 0.004) return; CKG.fitR = R;
-  var f = R / CK_RT; [CKG.topM.map, CKG.topM.emissiveMap].forEach(function (m) { if (m) { m.repeat.set(f, f); m.offset.set((1 - f) / 2, (1 - f) / 2); } });
+  var f = R / CK_RT; [CKG.topM.map, CKG.topM.emissiveMap].forEach(function (m) { if (m) { if (m.wrapS !== THREE.MirroredRepeatWrapping) { m.wrapS = m.wrapT = THREE.MirroredRepeatWrapping; m.needsUpdate = true; } m.repeat.set(f, f); m.offset.set((1 - f) / 2, (1 - f) / 2); } });   // (mirrored past its edge: a square's or triangle's corners reach further out than the circle)
   CKG.skT.repeat.set(f, f); CKG.skT.offset.set((1 - f) / 2, (1 - f) / 2);
-  var ew = Math.min(L.ew, R * 0.12); ckStripSet(CKG.band.geometry, R - ew, R + 0.01, TAU * R / CK_BANDLEN[L.edge], 0.006);
+  var sh2 = CKG.shp || ckShape(0), ew = Math.min(L.ew, R * 0.12); ckStripShape(CKG.band.geometry, sh2, R, -ew, R, 0.01, sh2.per * R / CK_BANDLEN[L.edge], 0.006);
   CKG.zr.forEach(function (zm) { zm.visible = zm.userData.r < R - ew - 0.1; });
-  var sc = CKG.sun.shadow.camera, half = R + 3.5; if (Math.abs(sc.right - half) > 0.4) { sc.left = sc.bottom = -half; sc.right = sc.top = half; sc.updateProjectionMatrix(); }
+  var ex = sh2.ext, sc = CKG.sun.shadow.camera, half = R * Math.max(-ex[0], ex[1], -ex[2], ex[3]) + 3.5; if (Math.abs(sc.right - half) > 0.4) { sc.left = sc.bottom = -half; sc.right = sc.top = half; sc.updateProjectionMatrix(); }
 }
 /* tyre marks: drawn into the see-through layer (sent to the graphics chip a few times a second, not every frame), wiped each round */
 function ckSkid(x, y, a, R0, strength, col) {
@@ -11841,10 +11949,10 @@ function ckGfxInit() {
   sc.fog = new THREE.Fog(0x888888, 90, 420);
   CKG.plat = new THREE.Group(); sc.add(CKG.plat);
   CKG.topM = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0 });
-  var top = new THREE.Mesh(new THREE.CircleGeometry(1, 160), CKG.topM); top.rotation.x = -Math.PI / 2; top.receiveShadow = true; CKG.top = top; CKG.plat.add(top);
+  var top = new THREE.Mesh(ckTopGeo(ckShape(0), 160), CKG.topM); top.rotation.x = -Math.PI / 2; top.receiveShadow = true; CKG.top = top; CKG.plat.add(top);
   CKG.skC = ckCv(512); CKG.skG = CKG.skC.getContext('2d'); CKG.skT = new THREE.CanvasTexture(CKG.skC); CKG.skT.encoding = THREE.sRGBEncoding;
   CKG.skM = new THREE.MeshLambertMaterial({ map: CKG.skT, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
-  var skm = new THREE.Mesh(new THREE.CircleGeometry(1, 96), CKG.skM); skm.rotation.x = -Math.PI / 2; skm.position.y = 0.003; skm.receiveShadow = true; skm.renderOrder = 1; CKG.plat.add(skm);
+  var skm = CKG.skm = new THREE.Mesh(ckTopGeo(ckShape(0), 96), CKG.skM); skm.rotation.x = -Math.PI / 2; skm.position.y = 0.003; skm.receiveShadow = true; skm.renderOrder = 1; CKG.plat.add(skm);
   CKG.bandM = new THREE.MeshStandardMaterial({ roughness: 0.7, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
   CKG.band = new THREE.Mesh(ckStripGeo(200), CKG.bandM); CKG.band.receiveShadow = true; CKG.band.renderOrder = 2; CKG.band.frustumCulled = false; sc.add(CKG.band);
   CKG.zrM = new THREE.MeshBasicMaterial({ map: ckDashTex(), transparent: true, depthWrite: false, opacity: 0.2, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
@@ -11946,10 +12054,11 @@ function ckBombDigits(n) {
 }
 function ckFeatures(V, now, dt) {
   var F = V.feat || { posts: [], holes: [] }, i;
-  CKG.posts.forEach(function (p, k) { var f = F.posts[k]; p.g.visible = !!f && Math.hypot(f.x, f.y) < V.R - 0.4; if (!p.g.visible) return;
+  var vs = ckShape(V.shape | 0);
+  CKG.posts.forEach(function (p, k) { var f = F.posts[k]; p.g.visible = !!f && ckEdgeR(vs, V.R, f.x, f.y) > 0.4; if (!p.g.visible) return;
     p.g.position.set(f.x, 0, f.y); p.hit = Math.max(0, p.hit - dt * 3); var s = 1 + p.hit * 0.15; p.g.scale.set(s, 1, s); var gl = 0.85 + 0.15 * Math.sin(now * 2 + k) + p.hit; p.band.material.color.copy(LC(k % 2 ? '#35e0ff' : '#ff3df0')).multiplyScalar(Math.min(1.8, gl)); });
   var open = (V.rt || 0) > CK_ICE_OPEN, warn = (V.rt || 0) > CK_ICE_OPEN - 3;
-  CKG.holes.forEach(function (h, k) { var f = F.holes[k]; h.g.visible = !!f && Math.hypot(f.x, f.y) < V.R; if (!h.g.visible) return;
+  CKG.holes.forEach(function (h, k) { var f = F.holes[k]; h.g.visible = !!f && ckEdgeR(vs, V.R, f.x, f.y) > 0; if (!h.g.visible) return;
     h.g.position.set(f.x, 0, f.y); h.g.scale.setScalar(f.r); h.water.visible = h.lip.visible = open; h.crack.visible = !open;
     h.crack.material.opacity = warn ? 0.6 + 0.4 * Math.sin(now * 12) : 0.5; });
   var H = V.hill; CKG.hill.visible = !!H;
@@ -11972,6 +12081,78 @@ function ckDust(x, y, z, vx, vz) {                                   // a puff o
   var k = PT.next; PT.next = (PT.next + 1) % PN; var c = CC('#e2bc8a');
   PT.pos[k * 3] = x; PT.pos[k * 3 + 1] = y; PT.pos[k * 3 + 2] = z; PT.vel[k * 3] = vx; PT.vel[k * 3 + 1] = 0; PT.vel[k * 3 + 2] = vz;
   PT.base[k * 4] = c.r * 0.5; PT.base[k * 4 + 1] = c.g * 0.5; PT.base[k * 4 + 2] = c.b * 0.5; PT.base[k * 4 + 3] = 0.9 + Math.random() * 0.8; PT.age[k] = 0; PT.life[k] = 2.2; PT.g[k] = 0;
+}
+
+/* ================= CAR KNOCKOUT: THE ARENA'S SHAPE IN 3D =================
+   The platform can be a circle, square, triangle or rectangle (ck_sim.js: ckShape). Everything that follows its edge
+   is built for the shape: the floor, the painted edge strip, the side wall, the zone's next line and the strip that is
+   about to go, the neon LEDs and the helipad lamps, and the camera frames the shape's own width and height. */
+var _shpPer = {};
+/* n+1 points round the unit shape (the last = the first): position, outward direction (mitred at a corner, so a strip
+   of even width keeps its width round it) and the distance along the edge as a share of the whole */
+function ckPerim(sh, n) {
+  var key = sh.k + ':' + n; if (_shpPer[key]) return _shpPer[key];
+  var out = [], i;
+  if (sh.circle) { for (i = 0; i <= n; i++) { var a = i / n * TAU, c = Math.cos(a), s = Math.sin(a); out.push({ x: c, y: s, nx: c, ny: s, u: i / n }); } return (_shpPer[key] = out); }
+  var P = sh.pts, N = sh.n, m = P.length, L = [], tot = 0;
+  for (i = 0; i < m; i++) { var A = P[i], B = P[(i + 1) % m]; L.push(Math.hypot(B[0] - A[0], B[1] - A[1])); tot += L[i]; }
+  var cnt = L.map(function (l) { return Math.max(1, Math.round(l / tot * (n - m))); }), sum = cnt.reduce(function (a, b) { return a + b; }, 0);
+  while (sum > n) { var j = cnt.indexOf(Math.max.apply(null, cnt)); cnt[j]--; sum--; } while (sum < n) { cnt[cnt.indexOf(Math.min.apply(null, cnt))]++; sum++; }
+  var at = 0;
+  for (i = 0; i < m; i++) {
+    var A2 = P[i], B2 = P[(i + 1) % m], np = N[(i + m - 1) % m], nc = N[i], bx = np[0] + nc[0], by = np[1] + nc[1], bl = Math.hypot(bx, by), cosh = (np[0] * nc[0] + np[1] * nc[1] + 1) / 2;
+    var mk = 1 / Math.sqrt(Math.max(0.2, cosh));                      // the corner's mitre: longer at a sharper turn
+    for (var k = 0; k < cnt[i]; k++) {
+      var f = k / cnt[i], x = A2[0] + (B2[0] - A2[0]) * f, y = A2[1] + (B2[1] - A2[1]) * f;
+      if (k === 0) out.push({ x: x, y: y, nx: bx / bl * mk, ny: by / bl * mk, u: at / tot }); else out.push({ x: x, y: y, nx: nc[0], ny: nc[1], u: (at + L[i] * f) / tot });
+    }
+    at += L[i];
+  }
+  out.push({ x: out[0].x, y: out[0].y, nx: out[0].nx, ny: out[0].ny, u: 1 });
+  return (_shpPer[key] = out);
+}
+/* a strip along the edge: inner line at size Ra moved da along the outward direction, outer at Rb moved db (metres);
+   its picture repeats rep times round */
+function ckStripShape(g, sh, Ra, da, Rb, db, rep, y) {
+  var P = g.attributes.position, U = g.attributes.uv, n = P.count / 2 - 1, pts = ckPerim(sh, n), k = Math.max(1, Math.round(rep));
+  for (var i = 0; i <= n; i++) { var p = pts[i];
+    P.setXYZ(i * 2, p.x * Ra + p.nx * da, y, p.y * Ra + p.ny * da); P.setXYZ(i * 2 + 1, p.x * Rb + p.nx * db, y, p.y * Rb + p.ny * db);
+    if (U) { U.setXY(i * 2, p.u * k, 0); U.setXY(i * 2 + 1, p.u * k, 1); } }
+  P.needsUpdate = true; if (U) U.needsUpdate = true; g.computeBoundingSphere();
+}
+function ckPerimPoint(sh, R) { var pts = ckPerim(sh, 120), p = pts[(Math.random() * 120) | 0]; return [p.x * R, p.y * R]; }   // somewhere on the edge (where a chunk breaks off)
+/* the floor: a flat shape (unit size; the platform group scales it), its picture laid on exactly as on the circle */
+function ckTopGeo(sh, n) {
+  if (sh.circle) return new THREE.CircleGeometry(1, n);
+  var s = new THREE.Shape(); sh.pts.forEach(function (p, i) { if (i) s.lineTo(p[0], -p[1]); else s.moveTo(p[0], -p[1]); }); s.closePath();
+  var g = new THREE.ShapeGeometry(s), P = g.attributes.position, U = g.attributes.uv;
+  for (var i = 0; i < P.count; i++) U.setXY(i, P.getX(i) / 2 + 0.5, P.getY(i) / 2 + 0.5);
+  U.needsUpdate = true; return g;
+}
+/* the side wall: one flat face per edge, unit height (centred, like the cylinder it replaces); u runs round, v down */
+function ckSideGeo(sh) {
+  var P = sh.pts, m = P.length, pos = [], nor = [], uv = [], at = 0, i;
+  for (i = 0; i < m; i++) { var A = P[i], B = P[(i + 1) % m], L = Math.hypot(B[0] - A[0], B[1] - A[1]), n = sh.n[i], u0 = at / sh.per, u1 = (at + L) / sh.per; at += L;
+    var q = [[A[0], 0.5, A[1], u0, 1], [B[0], 0.5, B[1], u1, 1], [B[0], -0.5, B[1], u1, 0], [A[0], -0.5, A[1], u0, 0]];
+    [0, 2, 1, 0, 3, 2].forEach(function (j) { pos.push(q[j][0], q[j][1], q[j][2]); nor.push(n[0], 0, n[1]); uv.push(q[j][3], q[j][4]); }); }
+  var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  return g;
+}
+/* turn the whole platform into shape k (only when it changes) */
+function ckShapeSet(k) {
+  k = k | 0; if (CKG.shapeK === k) return; var first = CKG.shapeK == null; CKG.shapeK = k; var sh = CKG.shp = ckShape(k);
+  if (!first || !sh.circle) {
+    CKG.top.geometry.dispose(); CKG.top.geometry = ckTopGeo(sh, 160); CKG.skm.geometry.dispose(); CKG.skm.geometry = ckTopGeo(sh, 96);
+    var L = CK_MAPLOOK[CKG.map] || CK_MAPLOOK[0]; if (CKG.map != null && CKG.map >= 0) ckSide(CKG.map, L);
+    // the night deck's LEDs and the helipad's lamps, round this edge
+    var pts = ckPerim(sh, 120), led = new Batch(); for (var i = 0; i < 120; i++) { var p = pts[i], q = pts[i + 1], ang = Math.atan2(q.y - p.y, q.x - p.x); led.add(sgBox(), '#ffffff', p.x * 1.004, -0.32, p.y * 1.004, 0.028, 0.07, 0.01, 0, -ang, 0); }
+    CKG.plat.remove(CKG.led); CKG.led.geometry.dispose(); CKG.led = led.build(CKG.ledM); CKG.plat.add(CKG.led);
+    var LA = CKG.lamps.geometry.attributes.position, lps = ckPerim(sh, LA.count); for (i = 0; i < LA.count; i++) LA.setXYZ(i, lps[i].x * 1.002, -0.12, lps[i].y * 1.002); LA.needsUpdate = true; CKG.lamps.geometry.computeBoundingSphere();
+    var db = new Batch(), dp = ckPerim(sh, 90); for (i = 0; i < 90; i++) { var a = dp[i], b = dp[i + 1]; db.add(ckBox(), '#ff3a3a', a.x, 0, a.y, 0.035, 0.02, 0.012, 0, -Math.atan2(b.y - a.y, b.x - a.x) + Math.PI / 2, 0); }
+    var nm = CKG.next.material; CKG.scene.remove(CKG.next); CKG.next.geometry.dispose(); CKG.next = db.build(nm); CKG.next.position.y = 0.06; CKG.next.visible = false; CKG.scene.add(CKG.next);
+    CKG.led.visible = CKG.map === 1; CKG.lamps.visible = CKG.map === 0;
+  }
+  CKG.fitR0 = -1; CKG.fitR = -1;
 }
 
 /* ================= CAR KNOCKOUT: FOUR MORE ARENAS =================
@@ -12437,7 +12618,7 @@ function ckFeatures2(V, now, dt) {
   }
   // the vents
   CKG.vents.forEach(function (v, k) {
-    var f = F.vents && F.vents[k]; v.g.visible = !!f && Math.hypot(f.x, f.y) < V.R - 0.6; if (!v.g.visible) return;
+    var f = F.vents && F.vents[k]; v.g.visible = !!f && ckEdgeR(ckShape(V.shape | 0), V.R, f.x, f.y) > 0.6; if (!v.g.visible) return;
     v.g.position.set(f.x, 0, f.y); v.g.scale.set(f.r / 1.9, 1, f.r / 1.9);
     var st = ckVent(k, ft), warn = st >= 0 && st <= 1 ? st : 0, on = st === 2;
     var pul = 0.5 + 0.5 * Math.sin(now * (4 + warn * 18));
@@ -12456,7 +12637,7 @@ function ckFeatures2(V, now, dt) {
   // the oil
   CKG.slicks.forEach(function (sl, k) {
     var s = F.slicks && F.slicks[k]; if (!s) { sl.visible = false; return; }
-    var p = ckSlick(F, k, ft); sl.visible = Math.hypot(p[0], p[1]) - s.r < V.R; sl.position.set(p[0], 0.012, p[1]); sl.scale.set(s.r, s.r, 1); sl.rotation.z = ft * s.w * 0.6 + k;
+    var p = ckSlick(F, k, ft); sl.visible = ckEdgeR(ckShape(V.shape | 0), V.R, p[0], p[1]) > -s.r; sl.position.set(p[0], 0.012, p[1]); sl.scale.set(s.r, s.r, 1); sl.rotation.z = ft * s.w * 0.6 + k;
   });
   if (V.map === 5) { CKG.topM.emissiveIntensity = 0.82 + 0.18 * Math.sin(now * 1.3); if (CKG.lavaLake) { var lm = CKG.lavaLake.material.map; lm.offset.x = now * 0.003; lm.offset.y = now * 0.0018; } }
   if (CKG.smoke && V.map === 5) CKG.smoke.forEach(function (s) { s.position.y = s.userData.y0 + Math.sin(now * 0.1 + s.userData.k) * 3; s.material.rotation = now * 0.02 + s.userData.k; });
@@ -13768,6 +13949,11 @@ function ckModeIcon(k) {
     '<path d="M4 18h16M5 18 3.5 8l5 4L12 5l3.5 7 5-4L19 18"/><circle cx="12" cy="5" r="1"/>'][k] || '';
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + P + '</svg>';
 }
+function ckShapeName(k) { var s = CK_ARENA_SHAPES[k] || CK_ARENA_SHAPES[0]; return LANG === 'ar' ? s.ar : s.en; }
+function ckShapeIcon(k) {                                               // the four shapes, drawn small
+  var P = ['<circle cx="12" cy="12" r="8"/>', '<rect x="4.5" y="4.5" width="15" height="15" rx="1.5"/>', '<path d="M12 3.5 20.5 19h-17z"/>', '<rect x="7" y="3" width="10" height="18" rx="1.5"/>'][k] || '';
+  return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">' + P + '</svg>';
+}
 function ckMapSub(k) { var m = CK_MAPS[k]; return m ? (LANG === 'ar' ? m.sar : m.sen) : T('mapRandomSub'); }
 /* ---------- which game ---------- */
 /* Car Knockout always wears its own grown-up look (the Night look in amber, see cars.css), whatever look SmashBo wears */
@@ -13842,7 +14028,8 @@ function ckLobby(host) {
   var mb = $('ck-modes');
   if (!mb.children.length) for (var q = 0; q < CK_MODES.length; q++) { var t = document.createElement('button'); t.type = 'button'; t.className = 'ckmode'; t.setAttribute('data-v', q); t.innerHTML = '<i class="ckmi" data-m="' + q + '">' + ckModeIcon(q) + '</i><b></b><small></small>'; mb.appendChild(t); }
   [].forEach.call(mb.children, function (t) { var v = +t.getAttribute('data-v'); t.children[1].textContent = ckModeName(v); t.children[2].textContent = ckModeSub(v); });
-  seg('ck-modes', c.ckmo | 0); seg('ck-maps', c.ckm == null ? -1 : c.ckm); seg('seg-ckr', c.ckr || 3);
+  seg('ck-modes', c.ckmo | 0); seg('ck-maps', c.ckm == null ? -1 : c.ckm); seg('seg-ckr', c.ckr || 3); seg('seg-cks', c.cks | 0);
+  [].forEach.call($('seg-cks').children, function (b) { var v = +b.getAttribute('data-v'), key = LANG + v; if (b._k !== key) { b._k = key; b.innerHTML = ckShapeIcon(v) + '<span></span>'; b.lastChild.textContent = ckShapeName(v); } });
   // the two picture tiles in the room: the mode and the arena picked
   var mo = c.ckmo | 0, mk = c.ckm == null ? -1 : c.ckm, ic = $('b-ckmode').querySelector('.ckmi');
   if (ic.getAttribute('data-m') !== String(mo)) { ic.setAttribute('data-m', mo); ic.innerHTML = ckModeIcon(mo); }
@@ -13853,7 +14040,8 @@ function ckLobby(host) {
     var sum = $('summary'); sum.textContent = '';
     var mp = document.createElement('div'); mp.className = 'ckmodesum'; mp.innerHTML = ckModeIcon(c.ckmo | 0) + '<b></b><small></small>'; mp.children[1].textContent = ckModeName(c.ckmo | 0); mp.children[2].textContent = ckModeSub(c.ckmo | 0); sum.appendChild(mp);
     sum.appendChild(infoRow(ckMapArt(c.ckm == null ? -1 : c.ckm), T('ckArena'), ckMapName(c.ckm == null ? -1 : c.ckm), ckMapSub(c.ckm == null ? -1 : c.ckm)));
-    var p = document.createElement('span'); p.className = 'pill y'; p.textContent = T('ckRounds') + ': ' + (c.ckr || 3); sum.appendChild(p);
+    var p = document.createElement('span'); p.className = 'pill y'; p.textContent = T('ckBestOf', { n: c.ckr || 3 }); sum.appendChild(p);
+    var p2 = document.createElement('span'); p2.className = 'pill y'; p2.innerHTML = ckShapeIcon(c.cks | 0); p2.appendChild(document.createTextNode(' ' + ckShapeName(c.cks | 0))); sum.appendChild(p2);
   }
 }
 /* ---------- in a match ---------- */
@@ -13885,13 +14073,14 @@ function ckHudTick(S) {
   else if (S.phase === 'play' && md === 4) { var cw = S.crown.who, my = mine ? Math.floor(mine.score) : 0; gt = cw >= 0 && cw === CK.me ? T('ckCrownYou', { a: my, n: S.crownWin }) : cw >= 0 ? T('ckCrownGo', { a: my, n: S.crownWin }) : T('ckCrownLoose'); }
   gl.hidden = !gt; if (gl.textContent !== gt) gl.textContent = gt; gl.classList.toggle('hot', md === 2 && S.bomb === CK.me); gl.classList.toggle('gold', md === 4 && S.crown.who >= 0 && S.crown.who === CK.me);
   if (md === 2 && S.phase === 'play' && S.bomb >= 0) { var sec = Math.ceil(S.fuse); if (sec !== CKH.tick && sec >= 0 && sec <= 12) { CKH.tick = sec; sfx('fuse2', sec, S.bomb === CK.me); } }
-  var rt = S.phase === 'over' ? T('ckFinal') : T('ckRoundOf', { r: S.round + 1, n: S.cfg.rounds }); if ($('ck-round').textContent !== rt) $('ck-round').textContent = rt;
-  if (S.phase === 'cd') { var n = Math.ceil(S.phaseT); if (n !== CKH.cd && n >= 1 && n <= 3) { CKH.cd = n; showTitle(String(n), n === 3 ? (S.round > 0 ? T('ckRoundOf', { r: S.round + 1, n: S.cfg.rounds }) : ckModeName(S.cfg.mode)) : n === 2 && S.round === 0 ? ckMapName(S.cfg.map) : '', 'cd', 800); sfx('cd'); } }
+  var rt = S.phase === 'over' ? T('ckFinal') : S.tb ? (S.tb > 1 ? T('ckTieN', { n: S.tb }) : T('ckTie')) : T('ckRoundOf', { r: S.round + 1, n: S.cfg.rounds }); if ($('ck-round').textContent !== rt) $('ck-round').textContent = rt;
+  if (S.phase === 'cd') { var n = Math.ceil(S.phaseT); if (n !== CKH.cd && n >= 1 && n <= 3) { CKH.cd = n; showTitle(String(n), n === 3 ? (S.tb ? T('ckTie') : S.round > 0 ? T('ckRoundOf', { r: S.round + 1, n: S.cfg.rounds }) : ckModeName(S.cfg.mode)) : n === 2 && S.round === 0 ? ckMapName(S.cfg.map) : '', 'cd', 800); sfx('cd'); } }
   else if (S.phase === 'play' && CKH.cd > 0) { CKH.cd = 0; showTitle(T('ckGo'), '', 'cd', 700); }
   // boost button: a ring that fills as it recharges
   var me = CK.mine, bb = $('b-boost');
-  if (me) { var cd = CK_SPEC.bcd, f = ckClamp((S.t - me.boostAt) / cd, 0, 1); bb.style.setProperty('--cd', ((1 - f) * 360).toFixed(0) + 'deg'); bb.classList.toggle('ready', f >= 1);
-    var jb = $('b-jump'), jf = ckClamp((S.t - me.jumpAt) / CK_JUMP_CD, 0, 1), js = Math.ceil(CK_JUMP_CD - (S.t - me.jumpAt)); jb.style.setProperty('--cd', ((1 - jf) * 360).toFixed(0) + 'deg'); jb.classList.toggle('ready', jf >= 1);
+  var tn = CK.role === 'client' && CK.tc ? CK.tc : S.t;                // a joined phone: my car's own clock
+  if (me) { var cd = CK_SPEC.bcd, f = ckClamp((tn - me.boostAt) / cd, 0, 1); bb.style.setProperty('--cd', ((1 - f) * 360).toFixed(0) + 'deg'); bb.classList.toggle('ready', f >= 1);
+    var jb = $('b-jump'), jf = ckClamp((tn - me.jumpAt) / CK_JUMP_CD, 0, 1), js = Math.ceil(CK_JUMP_CD - (tn - me.jumpAt)); jb.style.setProperty('--cd', ((1 - jf) * 360).toFixed(0) + 'deg'); jb.classList.toggle('ready', jf >= 1);
     var jt = jf >= 1 ? '' : String(Math.max(1, js)); if (jb.lastChild.textContent !== jt) jb.lastChild.textContent = jt; }
   var fe = $('ck-fps'); fe.hidden = UI.showFps === false; if (!fe.hidden) fe.textContent = (frame.fps || 0) + ' FPS';
   var now = performance.now(), fe = $('ck-feed');
@@ -13932,12 +14121,13 @@ function ckCrownFeed(key, a, b) {
   el.textContent = T(key, { a: nm(a), b: b >= 0 ? nm(b) : '' }); setC(el, COLORS[S.cars[a].col]);
   $('ck-feed').appendChild(el); CKH.feed.push({ el: el, t: performance.now() });
 }
+function ckRoundLabel(S) { return S.tb ? (S.tb > 1 ? T('ckTieN', { n: S.tb }) : T('ckTie')) : T('ckRoundOf', { r: S.round + 1, n: S.cfg.rounds }); }
 function ckRoundWin(i, V, team) {
   var S = CK.S; if (!S) return; var c = i >= 0 ? S.cars[i] : null;
   if (!c) { showTitle(T('ckDraw'), '', 'win', 1600); return; }
-  if (team >= 0) { var mineT = CK.mine && CK.mine.team === team; sfx(mineT ? 'win' : 'goal'); showTitle(mineT ? T('ckYourTeam') : T('ckTeamWins', { n: team + 1 }), T('ckRoundOf', { r: S.round + 1, n: S.cfg.rounds }), 'win', 1900, COLORS[c.col]); return; }
+  if (team >= 0) { var mineT = CK.mine && CK.mine.team === team; sfx(mineT ? 'win' : 'goal'); showTitle(mineT ? T('ckYourTeam') : T('ckTeamWins', { n: team + 1 }), ckRoundLabel(S), 'win', 1900, COLORS[c.col]); return; }
   var me = i === CK.me; sfx(me ? 'win' : 'goal');
-  showTitle(me ? T('ckYouWin') : T('ckWins', { a: c.bot ? chName(ROOM.seats[i] ? ROOM.seats[i].ch : 0) : c.name }), T('ckRoundOf', { r: S.round + 1, n: S.cfg.rounds }), 'win', 1900, COLORS[c.col]);
+  showTitle(me ? T('ckYouWin') : T('ckWins', { a: c.bot ? chName(ROOM.seats[i] ? ROOM.seats[i].ch : 0) : c.name }), ckRoundLabel(S), 'win', 1900, COLORS[c.col]);
 }
 /* the stick: put a thumb down anywhere and push the way to drive; the boost button sits on the right */
 function ckPadInit() {
@@ -13975,7 +14165,7 @@ function ckShowResults() {
   var nm = function (c) { return c.bot ? chName(ROOM.seats[c.i] ? ROOM.seats[c.i].ch : 0) : c.name; };
   showScreen('results');
   $('s-results').classList.add('ckres');
-  $('res-mode').textContent = ckModeName(S.cfg.mode) + (LANG === 'ar' ? '، ' : ', ') + ckMapName(S.cfg.map) + (LANG === 'ar' ? '، ' : ', ') + T('ckRounds') + ' ' + S.cfg.rounds;
+  $('res-mode').textContent = ckModeName(S.cfg.mode) + (LANG === 'ar' ? '، ' : ', ') + ckMapName(S.cfg.map) + (LANG === 'ar' ? '، ' : ', ') + T('ckBestOf', { n: S.cfg.rounds }) + (S.cfg.shape ? (LANG === 'ar' ? '، ' : ', ') + ckShapeName(S.cfg.shape) : '');
   var pod = $('podium'); pod.textContent = ''; pod.classList.remove('teams');
   [1, 0, 2].forEach(function (k) {
     var c = ps[k], d = document.createElement('div'); d.className = 'pod p' + (k + 1); if (!c) { pod.appendChild(d); return; }
@@ -14011,6 +14201,7 @@ function ckUIInit() {
   $('b-ckmode').addEventListener('click', function () { if (ROOM.role !== 'host' && ROOM.role !== 'solo') return; sfx('click'); openSheet('ckmodesheet'); });
   $('b-ckmap').addEventListener('click', function () { if (ROOM.role !== 'host' && ROOM.role !== 'solo') return; sfx('click'); openSheet('ckmapsheet'); });
   $('seg-ckr').addEventListener('click', hostSet(function (v) { ROOM.cfg.ckr = +v; }));
+  $('seg-cks').addEventListener('click', hostSet(function (v) { ROOM.cfg.cks = +v; }));
   $('hub-a-smash').style.backgroundImage = 'url("' + mapPic(4) + '")';
   $('hub-a-cars').style.backgroundImage = 'url("' + ckMapArt(0) + '")';
   document.documentElement.setAttribute('data-game', UI.game || 'smash'); gameLook();
