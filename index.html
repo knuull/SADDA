@@ -6243,7 +6243,7 @@ if (typeof module !== 'undefined') module.exports = { LS_OPS: LS_OPS, LS_WEAPONS
    player's full set of steps before it locks (a slow line only delays the reveal, it never costs anyone a step), and
    players pass through each other (bumping into someone you cannot see would give them away); they are pushed apart
    before anyone is shown. World: metres, x right, y down the screen. */
-var LS_STEP = 1 / 60, LS_R = 0.42, LS_HIT = 0.46, LS_SPEED = 2.65, LS_SPEED_S = 3.8, LS_AMMO = 2;
+var LS_STEP = 1 / 60, LS_R = 0.42, LS_HIT = 0.46, LS_SPEED = 3.2, LS_SPEED_S = 4.4, LS_AMMO = 2;
 var LS_T = { intro: 2.6, remember: 2.0, vanish: 0.45, lock: 0.75, fire: 1.3, result: 1.0, shrink: 0.9, roundEnd: 3.8, reveal: 0.7, live: 8, collapse: 10 };
 var LS_GRACE = 0.9, LS_VCAP = 14, LS_CYCLES = 5, LS_TBMAX = 4, LS_FINAL = 2.5;
 var LS_PROJ_V = 24, LS_PROJ_R = 0.1, LS_COOL = 0.45, LS_PROJ_LIFE = 1.6;
@@ -6396,7 +6396,8 @@ function lsCanAim(S) { var ph = S.phase; return ph === 'intro' || ph === 'rememb
 function lsSolidPhase(S) { var ph = S.phase; return ph === 'live' || ph === 'collapse'; }    // players bump into each other only where they can see each other
 function lsSteps(S) { return Math.round((S.us || S.cfg.unseen) / LS_STEP); }
 /* who may know where player j is: the player themself, and everyone else only while players can be seen */
-function lsVisible(S, j, viewer) { if (j === viewer) return true; var ph = S.phase; return !(ph === 'unseen' || ph === 'hidden' || ph === 'vanish'); }
+function lsSpecOf(S, viewer) { var v = S.P[viewer]; return !!v && (!v.alive || v.sit); }   // knocked out, or sitting out a tiebreaker: watching only
+function lsVisible(S, j, viewer) { if (j === viewer || lsSpecOf(S, viewer)) return true; var ph = S.phase; return !(ph === 'unseen' || ph === 'hidden' || ph === 'vanish'); }
 
 /* ---------- each player's input for one step ----------
    Phones send their steps in order: [x, y, aim, flags, volley, k] (k = the step's number in this volley's unseen phase,
@@ -6645,7 +6646,7 @@ function lsBotLive(S, p, dt) {
   var clear = lsTrace(S, p, p.aim, foes), lined = clear.hit === tg.i && Math.abs(lsAng(want - p.aim)) < 0.08;
   if (p.ammo > 0 && p.cool <= 0 && lined && d < 18 && Math.random() < [0.012, 0.03, 0.06][lv] * (p.ammo === 1 && foes.length > 1 ? 0.5 : 1)) lsFire(S, p);
 }
-if (typeof module !== 'undefined') module.exports = { lsClamp: lsClamp, lsAng: lsAng, LS_COOL: LS_COOL, LS_PROJ_V: LS_PROJ_V, LS_STEP: LS_STEP, LS_R: LS_R, LS_HIT: LS_HIT, LS_SPEED: LS_SPEED, LS_T: LS_T, LS_GRACE: LS_GRACE, LS_VCAP: LS_VCAP, LS_AMMO: LS_AMMO, LS_UNSEEN: LS_UNSEEN, lsNew: lsNew, lsAdvance: lsAdvance, lsMove: lsMove, lsSolid: lsSolid, lsEdge: lsEdge, lsTrace: lsTrace, lsVisible: lsVisible, lsSteps: lsSteps, lsAlive: lsAlive, lsResolve: lsResolve, lsCanMove: lsCanMove, lsCanAim: lsCanAim, lsRayObs: lsRayObs, lsGeo: lsGeo, lsSeparateAll: lsSeparateAll, lsSolidPhase: lsSolidPhase, lsSeparate: lsSeparate, lsFire: lsFire, lsBox: lsBox };
+if (typeof module !== 'undefined') module.exports = { lsClamp: lsClamp, lsAng: lsAng, LS_COOL: LS_COOL, LS_PROJ_V: LS_PROJ_V, LS_STEP: LS_STEP, LS_R: LS_R, LS_HIT: LS_HIT, LS_SPEED: LS_SPEED, LS_T: LS_T, LS_GRACE: LS_GRACE, LS_VCAP: LS_VCAP, LS_AMMO: LS_AMMO, LS_UNSEEN: LS_UNSEEN, lsNew: lsNew, lsAdvance: lsAdvance, lsMove: lsMove, lsSolid: lsSolid, lsEdge: lsEdge, lsTrace: lsTrace, lsVisible: lsVisible, lsSpecOf: lsSpecOf, lsSteps: lsSteps, lsAlive: lsAlive, lsResolve: lsResolve, lsCanMove: lsCanMove, lsCanAim: lsCanAim, lsRayObs: lsRayObs, lsGeo: lsGeo, lsSeparateAll: lsSeparateAll, lsSolidPhase: lsSolidPhase, lsSeparate: lsSeparate, lsFire: lsFire, lsBox: lsBox };
 
 /* ================= LAST SIGHT: THE REFEREE'S WIRE =================
    The parts of refereeing a match that are the same wherever the referee runs: on the host phone (ls_game.js) or on
@@ -6674,7 +6675,7 @@ function lsRefPack(S, viewer, mid, tick) {
   S.obs.forEach(function (o, i) { if (o.on !== false) mask |= 1 << i; });
   var ps = S.P.map(function (p, j) {
     var fl = (p.alive ? 1 : 0) | (p.sit ? 2 : 0), base = [fl, p.pts, p.kills, p.wins, p.ammo, p.deaths];
-    if (hid && j !== viewer) return base;                                   // somebody this phone may not see right now: no position at all
+    if (hid && j !== viewer && !(viewer >= 0 && lsSpecOf(S, viewer))) return base;   // a spectator (out of this round) watches everyone live; a player still in sees only themself                                   // somebody this phone may not see right now: no position at all
     return base.concat([r2(p.x), r2(p.y), Math.round(p.aim * 1000) / 1000, r2(p.vx), r2(p.vy)]);
   });
   var ev = S.ev.filter(function (e) { var age = S.t - e[1]; return hid ? e[2] === 'ph' && age < 0.8 : age < (e[2] === 'paths' ? 0.4 : 0.9); }).map(function (e) { return e[2] === 'paths' ? [e[0], e[1], 'paths', lsPathsWire(S)] : e; });
@@ -14044,7 +14045,7 @@ function ckSetMap2(k, L) {                                             // the ma
    gun kicks on a shot. The look: real proportions, armour and fabric in the operative's own colours, light strips that
    glow, glass visors that catch the arena's light. */
 var LSG = { ok: false, ops: {}, guns: {}, pl: [], keepG: {}, keepM: [] };
-var LS_VIS = 1.7;                                                    // an operative is drawn a little larger than life, so a hit's ring (the real hit circle) fits the body
+var LS_VIS = 1.85;                                                    // an operative is drawn a little larger than life, so a hit's ring (the real hit circle) fits the body
 var _lq = new THREE.Quaternion(), _lv = new THREE.Vector3(), _lv2 = new THREE.Vector3(), _lv3 = new THREE.Vector3(), _lm = new THREE.Matrix4(), _lsc = new THREE.Vector3(), _lY = new THREE.Vector3(0, -1, 0);
 var LSGEO = {};
 function lsG(key, make) { var g = LSGEO[key]; if (!g) { g = LSGEO[key] = make(); LSG.keepG[g.uuid] = 1; } return g; }
@@ -14947,8 +14948,8 @@ function lsGameRect() {
   LSG.grAt = now; LSG.grW = VIEW.W; LSG.grH = VIEW.H;
   var top = 0, tb = document.querySelector('#ls-hud .lsh-top'), cv = GFX.r.domElement.getBoundingClientRect();
   if (tb) { var r = tb.getBoundingClientRect(); if (r.height) top = r.bottom - cv.top; }
-  var wide = VIEW.W > VIEW.H * 1.15, y0 = Math.max(top, wide ? 40 : 70) + 2;
-  return (LSG.gr = { x: wide ? VIEW.W * 0.06 : 4, y: y0, w: VIEW.W - (wide ? VIEW.W * 0.12 : 8), h: VIEW.H - y0 - (wide ? 6 : 120) });
+  var wide = VIEW.W > VIEW.H * 1.15, y0 = wide ? Math.min(top, 44) : Math.max(top, 70) + 2;   // landscape: the floor may pass under the top bar's corners
+  return (LSG.gr = { x: wide ? VIEW.W * 0.04 : 4, y: y0, w: VIEW.W - (wide ? VIEW.W * 0.08 : 8), h: VIEW.H - y0 - (wide ? 0 : 120) });
 }
 
 /* ---------- players on stage ---------- */
@@ -14978,7 +14979,7 @@ function lsPlace(P, o, now, dt, opt) {
 }
 /* name tags over the players I can see */
 function lsTags(list, show) {
-  var box = $('ls-tags'); if (!box) return; LSG.tags = LSG.tags || [];
+  var box = $('ls-tags'); if (!box) return; LSG.tags = LSG.tags || []; var pos = [];
   for (var i = 0; i < Math.max(list.length, LSG.tags.length); i++) {
     var el = LSG.tags[i]; if (!el) { el = document.createElement('div'); el.className = 'tag ls'; box.appendChild(el); LSG.tags[i] = el; }
     var c = list[i]; if (!show || !c || !c.vis || !c.alive || (LSG.pl[c.i] && LSG.pl[c.i].dead)) { el.hidden = true; continue; }
@@ -14987,8 +14988,13 @@ function lsTags(list, show) {
     if (el._c !== c.col) { el._c = c.col; setC(el, COLORS[c.col]); }
     el.classList.toggle('me', !!c.me);
     var p = lsScr(c.x, 2.9 * LS_VIS / 1.42, c.y); el.hidden = !p.ok;
-    el.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px) translate(-50%,-100%)';
+    if (!el._w || el._wn !== el._n) { el._wn = el._n; el._w = el.offsetWidth || 60; el._h = el.offsetHeight || 22; }
+    pos.push({ el: el, x: p.x, y: p.y, w: el._w, h: el._h, me: !!c.me });
   }
+  // tags that would cover each other stack upwards (mine stays where it is), so every name reads in a crowd
+  pos.sort(function (a, b) { return (b.me - a.me) || (b.y - a.y); });
+  for (var a = 0; a < pos.length; a++) for (var b = 0; b < a; b++) { var A = pos[a], B = pos[b]; if (Math.abs(A.x - B.x) < (A.w + B.w) / 2 + 2 && Math.abs(A.y - B.y) < (A.h + B.h) / 2 + 1) { A.y = B.y - (A.h + B.h) / 2 - 2; b = -1; } }
+  pos.forEach(function (q) { q.el.style.transform = 'translate(' + q.x.toFixed(1) + 'px,' + q.y.toFixed(1) + 'px) translate(-50%,-100%)'; });
 }
 
 /* ---------- effects ---------- */
@@ -15149,7 +15155,7 @@ function lsGfxFrame(now, dt) {
     for (; used < LSG.bolt.length; used++) LSG.bolt[used].visible = false;
     LSG.paths.forEach(function (m) { if (!m.visible) return; m.userData.t += dt; m.material.opacity = Math.max(0, 0.75 - m.userData.t * 0.22); if (m.material.opacity <= 0) m.visible = false; });
     // the camera: the whole arena, always (memory is the game)
-    var ext = mode === 0 ? [src.A0 + 0.6, src.A0 + 0.6] : [src.HW0 + 0.6, src.HH0 + 0.6], R2;
+    var ext = live && scn === 'game' ? (mode === 0 ? [src.A + 0.9, src.A + 0.9] : [src.hw + 0.9, src.hh + 0.9]) : mode === 0 ? [src.A0 + 0.6, src.A0 + 0.6] : [src.HW0 + 0.6, src.HH0 + 0.6], R2;   // in a match: the floor as it is now, so the view closes in with it
     var wo = over && win >= 0 && V.list[win] && V.list[win].vis && V.list[win].alive && !V.list[win].sit ? V.list[win] : null;   // the match is won: the camera comes down to the winner
     if (wo) {
       if (scn === 'game') R2 = lsGameRect(); else { var fw = ckPanelFree(); R2 = fw ? { x: fw.x0, y: fw.y0, w: fw.x1 - fw.x0, h: fw.y1 - fw.y0 } : { x: 0, y: 0, w: VIEW.W, h: VIEW.H }; }
@@ -15160,7 +15166,7 @@ function lsGfxFrame(now, dt) {
       // a new round opens on a high, wide view of the arena and pushes in over Get Ready, reaching the playing view
       // exactly as Remember begins (timed by the phase clock, so it never lags into the moment that matters)
       var iq = intro ? lsClamp(V.phaseT / LS_T.intro, 0, 1) : 0; iq = iq * iq * (3 - 2 * iq);
-      lsCamFit(ext[0] * (0.9 + 0.32 * iq), ext[1] * (0.9 + 0.32 * iq), R2, 0.96 + 0.22 * iq, intro ? dt * 2 : dt, spec || V.phase === 'roundEnd');
+      lsCamFit(ext[0] * (0.86 + 0.32 * iq), ext[1] * (0.86 + 0.32 * iq), R2, 1.02 + 0.2 * iq, intro ? dt * 2 : dt, spec || V.phase === 'roundEnd');
     }
     else { var fr = ckPanelFree(); R2 = fr ? { x: fr.x0, y: fr.y0, w: fr.x1 - fr.x0, h: fr.y1 - fr.y0 } : { x: 0, y: 0, w: VIEW.W, h: VIEW.H }; lsCamFit(ext[0] * (fr && fr.bottom ? 1 : 1.05), ext[1], R2, fr && fr.bottom ? 0.9 : 1.0, scn === 'lobby' ? dt * 0.6 : dt, true, 0, 0, !!(fr && fr.bottom)); }
     lsDust(dt, ext[0], ext[1], false);
