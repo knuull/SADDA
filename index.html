@@ -2781,6 +2781,10 @@ html.rmo .lsbanner.in, html.rmo .lsf { animation: none; }
 /* LAST SIGHT has two buttons in the row: Play gives way so both always fit a phone */
 :root[data-look][data-look][data-look] .home-cta { max-width: 100%; }
 :root[data-look][data-look][data-look][data-game="sight"] .home-cta .btn.play:not([hidden]) { flex: 1 1 auto; min-width: 0; max-width: 300px; }
+
+/* the friend menu button: three dots drawn as an icon, so every theme shows them */
+:root[data-look][data-look][data-look] .frow .btn.dots { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 30px; color: var(--pa-ink2); }
+:root[data-look][data-look][data-look] .frow .btn.dots.armed { width: auto; }
 </style>
 </head>
 <body>
@@ -5415,7 +5419,7 @@ var STR = {
     hl4t: 'Fire together', hl4: 'Every gun fires from that one frozen moment. One hit knocks out, and two players can take each other out. The last one standing scores 3, each knockout scores 1.',
     cato: 'Agents', catw: 'Weapons', catk: 'Finishes', catr: 'Tracers', catp: 'Paint', catx: 'Boost trails', catu: 'Underglow',
     matchDetails: 'Match details', otShort: 'OT', mostWins: 'Most points wins', holdWins: 'Hold the crown at the end', pvTag: 'On your link', addMeMsg: 'Add me on SmashBo! My friend code: {c}', friendsT: 'Friends', ranksT: 'Ranks', myCode: 'Your code, for friends to add you', shareT: 'Share', fcodePh: "Your friend's code", addF: 'Add', reqsT: 'Friend requests', accept: 'Accept', decline: 'Decline',
-    recentT: 'Played with recently', noFriends: 'No friends yet. Share your code, or add the people you play with.', stOnline: 'Online', stRoom: 'In room {c}', stOff: 'Offline', stPending: 'Request sent',
+    recentT: 'Played with recently', noFriends: 'No friends yet. Share your code, or add the people you play with.', stOnline: 'Online', stOnIn: 'Online in {g}', inGame: ' in {g}', stRoom: 'In room {c}', stOff: 'Offline', stPending: 'Request sent',
     inviteB: 'Invite', removeF: 'Remove', wantsFriend: 'wants to be your friend', acceptedYou: 'accepted your friend request', badCode: 'That code is not right. Friend codes have 6 letters and numbers.',
     selfCode: 'That is your own code', already: 'You are already friends', socOff: 'Not connected. Check your internet.', reqSent: 'Friend request sent', invSent: 'Invite sent', invited: 'invited you to play',
     roomN: 'Room {c}', top50: 'Top 50', lbLoading: 'Loading the leaderboard…', lbEmpty: 'Nobody is ranked yet. Finish 5 competitive matches to be the first on the board.', lbOff: 'The leaderboard needs internet.',
@@ -5539,7 +5543,7 @@ var STR = {
     hl4t: 'إطلاق جماعي', hl4: 'كل الأسلحة تطلق من نفس اللحظة المثبّتة. إصابة واحدة تُخرج، ولاعبان ممكن يُخرجون بعض. آخر واحد يبقى ياخذ 3 نقاط، وكل إقصاء بنقطة.',
     cato: 'العملاء', catw: 'الأسلحة', catk: 'التشطيبات', catr: 'المسارات', catp: 'الطلاء', catx: 'أثر التيربو', catu: 'إضاءة سفلية',
     matchDetails: 'تفاصيل المباراة', otShort: 'إضافي', mostWins: 'الأكثر نقاط يفوز', holdWins: 'اللي معه التاج بالنهاية يفوز', pvTag: 'على رابطك', addMeMsg: 'أضفني في سماش بو! رمز الصداقة حقي: {c}', friendsT: 'الأصدقاء', ranksT: 'التصنيف', myCode: 'رمزك، عشان ربعك يضيفونك', shareT: 'شارك', fcodePh: 'اكتب رمز صديقك', addF: 'أضف', reqsT: 'طلبات الصداقة', accept: 'قبول', decline: 'رفض',
-    recentT: 'لعبت معهم مؤخرًا', noFriends: 'ما عندك أصدقاء للحين. شارك رمزك أو أضف اللي تلعب معهم.', stOnline: 'متصل', stRoom: 'في غرفة {c}', stOff: 'غير متصل', stPending: 'تم إرسال الطلب',
+    recentT: 'لعبت معهم مؤخرًا', noFriends: 'ما عندك أصدقاء للحين. شارك رمزك أو أضف اللي تلعب معهم.', stOnline: 'متصل', stOnIn: 'متصل في {g}', inGame: ' في {g}', stRoom: 'في غرفة {c}', stOff: 'غير متصل', stPending: 'تم إرسال الطلب',
     inviteB: 'ادعُه', removeF: 'حذف', wantsFriend: 'يبي يصير صديقك', acceptedYou: 'قبل طلب الصداقة', badCode: 'الرمز مو صحيح. رمز الصداقة ٦ حروف وأرقام.',
     selfCode: 'هذا رمزك أنت', already: 'أنتم أصدقاء من قبل', socOff: 'غير متصل. تأكد من الإنترنت.', reqSent: 'تم إرسال طلب الصداقة', invSent: 'تم إرسال الدعوة', invited: 'يدعوك تلعب معه',
     roomN: 'غرفة {c}', top50: 'أفضل 50', lbLoading: 'نحمّل لوحة المتصدرين…', lbEmpty: 'ما فيه أحد مصنّف للحين. خلّص 5 مباريات تنافسية وكن أول واحد في اللوحة.', lbOff: 'لوحة المتصدرين تحتاج إنترنت.',
@@ -8224,14 +8228,15 @@ var SOC = { cl: [], friends: [], recent: [], out: {}, reqs: {}, pres: {}, inv: {
 function socRelays() { return /[?&]mq=/.test(location.search) ? RELAYS.filter(Boolean) : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt']; }
 function card(o, pid) {                                             // a player's public card, from anything that came in
   o = o && typeof o === 'object' ? o : {};
-  return { pid: pid, n: cleanName(o.n), ch: ci(o.ch, 0, CHARS.length - 1), col: ci(o.col, 0, COLORS.length - 1), lv: ci(o.lv, 1, LV_MAX), sr: clamp(+o.sr || SR0, 0, 5000) | 0, gp: ci(o.gp, 0, 1e6), w: ci(o.w, 0, 1e6), t: +o.t || 0, la: Math.min(+o.la || 0, Date.now()), sk: clamp(+o.sk || 0, -864e5, 864e5), rk: rkClean(o.rk, o.sr, o.gp) };
+  return { pid: pid, n: cleanName(o.n), ch: ci(o.ch, 0, CHARS.length - 1), col: ci(o.col, 0, COLORS.length - 1), lv: ci(o.lv, 1, LV_MAX), sr: clamp(+o.sr || SR0, 0, 5000) | 0, gp: ci(o.gp, 0, 1e6), w: ci(o.w, 0, 1e6), t: +o.t || 0, la: Math.min(+o.la || 0, Date.now()), sk: clamp(+o.sk || 0, -864e5, 864e5), rk: rkClean(o.rk, o.sr, o.gp),
+    g: o.g === 'cars' || o.g === 'sight' ? o.g : o.g === 'smash' ? 'smash' : '', car: ci(o.car, 0, 99), op: ci(o.op, 0, 99) };   // which game they are in, and their look there
 }
 /* the most anyone could have after gp matches (every one a win against stronger players); lines above it are fake */
 function plausible(c) { return c.sr <= SR0 + 75 * Math.min(c.gp, PLACEMENTS) + 37 * Math.max(0, c.gp - PLACEMENTS) && c.w <= c.gp; }
 /* my public card: with a playlist, my line on that leaderboard; without, my status card with both ratings */
 function myCard(k) {
   var R = UI.rks[k || 'l'], c = { n: cleanName(ME.name), ch: ME.ch, col: ME.col, lv: myLevel(), sr: Math.round(R.sr), gp: R.gp, w: R.w, t: Date.now() };
-  if (!k) c.rk = rkWire();
+  if (!k) { c.rk = rkWire(); c.g = UI.game || 'smash'; c.car = ME.car | 0; if (typeof lsMine === 'function') try { c.op = lsMine().op | 0; } catch (e) {} }
   return c;
 }
 function socLoad() {
@@ -8278,6 +8283,7 @@ function socStart() {
     });
   }).catch(function () { SOC.started = false; });
   if (!SOC.tick) SOC.tick = setInterval(function () { if (!document.hidden) socPresence(); }, 45000);
+  if (!SOC.wake) { SOC.wake = function () { if (!document.hidden) socWake(); }; window.addEventListener('online', SOC.wake); window.addEventListener('pageshow', SOC.wake); window.addEventListener('focus', SOC.wake); }
   if (!SOC.look) SOC.look = setInterval(socRefresh, 15000);
 }
 /* time passes even when nothing arrives: a friend whose heartbeats stopped goes offline, 'active 5m ago' becomes 6m.
@@ -8292,10 +8298,18 @@ function socSubs(c) {
   SOC.friends.forEach(function (f) { t.push(SPRE + 'P/' + f.pid, SPRE + 'S/' + f.pid); });
   c.subscribe(t, { qos: 0 });
 }
+/* back from the background (or the network came back): a phone often keeps a dead connection that has not noticed it is
+   dead yet. Any relay not connected is reopened at once, instead of waiting for its retry timer; the ones that are get
+   my status again straight away, so friends see me online within a second or two. */
+function socWake() {
+  SOC.cl.forEach(function (c) { if (!c.connected && !c.reconnecting) { try { c.reconnect(); } catch (e) {} } });
+  socPresence();
+}
 function socEach(fn) { SOC.cl.forEach(function (c) { if (c.connected) { try { fn(c); } catch (e) {} } }); }
 /* my status light: online, which room I am in (so friends can join me) */
 function socPresence(off) {
   if (!SOC.cl.length) return;
+  if (document.hidden) off = true;                                      // a late heartbeat must never put me back online while the app is put away
   var c = myCard(), inRoom = (ROOM.role === 'host' || ROOM.role === 'client') && ROOM.code;
   c.st = off ? 0 : 1; c.rm = inRoom && !off ? ROOM.code : '';
   socPub('P/' + ME.pid, c, true);
@@ -8329,8 +8343,8 @@ function socMsg(tp, payload, retained, ci) {
       P.L[key] = { st: st, rx: rx, t: c.t, rm: st && typeof d.rm === 'string' && /^([A-Z]{4}|[A-Z]{6})$/.test(d.rm) ? d.rm : '' };
       if (rx > P.rx) P.rx = rx; seenAt(pid, rx);
     }
-    if (c.t >= P.t) { P.t = c.t; P.n = c.n; P.ch = c.ch; P.col = c.col; P.lv = c.lv; }
-    var f = friendOf(pid); if (f && c.t >= f.t) { f.n = c.n; f.ch = c.ch; f.col = c.col; f.lv = c.lv; f.sr = c.sr; f.gp = c.gp; f.rk = c.rk; f.t = c.t; }
+    if (c.t >= P.t) { P.t = c.t; P.n = c.n; P.ch = c.ch; P.col = c.col; P.lv = c.lv; P.g = c.g; }
+    var f = friendOf(pid); if (f && c.t >= f.t) { f.n = c.n; f.ch = c.ch; f.col = c.col; f.lv = c.lv; f.sr = c.sr; f.gp = c.gp; f.rk = c.rk; f.t = c.t; if (c.g) { f.g = c.g; f.car = c.car; f.op = c.op; } clearTimeout(SOC.laT); SOC.laT = setTimeout(socSave, 2000); }
     socChanged(); return;
   }
   if (parts[1] !== ME.pid) return;
@@ -19674,7 +19688,7 @@ function initUI() {
   if (window.ResizeObserver) new ResizeObserver(function (en) {                 // the camera keeps the arena under the score row
     var h = Math.round(en[0].contentRect.height); if (UI.screen === 'game' && h && Math.abs(h - (UI.topH || 0)) > 1) { UI.topH = h; gfxResize(); }
   }).observe(document.querySelector('.hud-top'));
-  document.addEventListener('visibilitychange', function () { if (document.hidden) socPresence(true); else setTimeout(function () { socPresence(); }, 400); if (document.hidden) { if (ROOM.role === 'host') hostBroadcast(['away']); else if (ROOM.role === 'client' && ROOM.joined) clientRelay(['away']); return; } setTimeout(remeasure, 200); if (UI.screen === 'game') wakeLock(); G.lastHost = performance.now(); ROOM.tickAt = 0; });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) socPresence(true); else setTimeout(function () { if (typeof socWake === 'function') socWake(); else socPresence(); }, 400); if (document.hidden) { if (ROOM.role === 'host') hostBroadcast(['away']); else if (ROOM.role === 'client' && ROOM.joined) clientRelay(['away']); return; } setTimeout(remeasure, 200); if (UI.screen === 'game') wakeLock(); G.lastHost = performance.now(); ROOM.tickAt = 0; });
   window.addEventListener('pagehide', function () { if (ROOM.role === 'host') hostBroadcast(['away']); else if (ROOM.role === 'client') clientRelay(['away']); });   // not 'bye': the app may come back and rejoin
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { gfxResize(); });
 
@@ -19738,6 +19752,7 @@ function setGame(g, fromRoom) {
   var was = UI.game; UI.game = g; document.documentElement.setAttribute('data-game', g); gameLook();
   if (was !== g) { document.querySelectorAll('#tags .tag, #gates .gb, #emos .emo').forEach(function (el) { el.hidden = true; }); if (typeof ckTags === 'function' && CKG.ok) ckTags([], false); saveProfile(); if (GFX.ok && PT && PT.pts && g === 'smash' && PT.pts.parent !== GFX.scene) GFX.scene.add(PT.pts); }
   refreshPickers(); gfxResize();
+  if (was !== g && !fromRoom && typeof socPresence === 'function') socPresence();   // friends see which game I moved to
 }
 function showHub() {
   $('hub').hidden = false;
@@ -20403,6 +20418,7 @@ function seatPic(s) { if (UI.game === 'cars') return 1000 + (s.car | 0); if (UI.
    when a friend invites you, the menu on a player's seat in a room, and the rank card after a
    competitive match. */
 
+var DOTS_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="5" cy="12" r="2.1" fill="currentColor"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><circle cx="19" cy="12" r="2.1" fill="currentColor"/></svg>';
 function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 function fmtSR(n) { return String(Math.round(n)); }
 function rkIcon(sr, gp, cls) { return rankSVG(rankOf(sr, gp), cls); }
@@ -20433,10 +20449,15 @@ function socTab(t) {
   if (t === 'f') renderFriends(); else ranksPane();
   $('socsheet').firstElementChild.scrollTop = 0;
 }
+/* the game a friend is in (or was last in): SmashBo, Car Knockout or LAST SIGHT */
+function gameName(g) { return g === 'cars' ? T('ckName') : g === 'sight' ? T('lsTitle') : g === 'smash' ? (LANG === 'ar' ? 'سماش بو' : 'SmashBo') : ''; }
 function statusOf(pid) {
-  if (socOnline(pid)) { var rm = socRoom(pid); return rm ? { k: 'room', txt: T('stRoom', { c: rm }), rm: rm } : { k: 'on', txt: T('stOnline') }; }
-  var la = lastSeen(pid); return { k: 'off', txt: la ? agoTxt(la) : T('stOff'), la: la };
+  var f = friendOf(pid), gn = gameName(f && f.g);
+  if (socOnline(pid)) { var rm = socRoom(pid); return rm ? { k: 'room', txt: T('stRoom', { c: rm }) + (gn ? (LANG === 'ar' ? '، ' : ', ') + gn : ''), rm: rm } : { k: 'on', txt: gn ? T('stOnIn', { g: gn }) : T('stOnline') }; }
+  var la = lastSeen(pid); return { k: 'off', txt: la ? agoTxt(la) + (gn ? T('inGame', { g: gn }) : '') : T('stOff'), la: la };
 }
+/* a friend's picture: their look in the game they are in (their character, car or agent) */
+function friendPic(c) { return c.g === 'cars' ? 1000 + (c.car | 0) : c.g === 'sight' ? 2000 + (c.op | 0) : c.ch; }
 /* 'Active 5m ago' / 'آخر ظهور قبل ٥ دقايق' */
 function agoTxt(t) {
   var s = Math.max(0, (Date.now() - t) / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60), d = Math.floor(h / 24), w = Math.floor(d / 7);
@@ -20449,7 +20470,7 @@ function agoTxt(t) {
 /* one person in a list: picture, name, level and rank, what they are doing, and the buttons that fit */
 function personRow(c, kind) {
   var row = el('div', 'frow ' + kind); row.setAttribute('data-pid', c.pid); setC(row, COLORS[c.col]);
-  var im = el('img'); im.alt = ''; setPortrait(im, c.ch, COLORS[c.col]); row.appendChild(im);
+  var im = el('img'); im.alt = ''; setPortrait(im, kind === 'friend' ? friendPic(c) : c.ch, COLORS[c.col]); row.appendChild(im);
   var tx = el('div', 'ftx'), nm = el('b', null, c.n), lv = el('i', 'lvc'); lvChip(lv, c.lv); nm.appendChild(lv);
   var st = el('small'); tx.appendChild(nm); tx.appendChild(st); row.appendChild(tx);
   var rk = el('i', 'frk'); var r = bestRank(c.rk); if (r.tier >= 0) { rk.innerHTML = rankSVG(r); rk.title = rankName(r); } row.appendChild(rk);
@@ -20460,7 +20481,7 @@ function personRow(c, kind) {
     var s = statusOf(c.pid); st.textContent = s.txt; row.classList.add('st-' + s.k);
     if (s.k === 'room' && s.rm !== ROOM.code) btn(T('join'), 'join', 'primary');
     else if (inRoom && s.k !== 'off' && s.rm !== ROOM.code) btn(T('inviteB'), 'invite', 'blue');
-    btn('', 'more', 'soft dots').setAttribute('aria-label', T('removeF'));
+    var mb = btn('', 'more', 'soft dots'); mb.setAttribute('aria-label', T('removeF')); mb.innerHTML = DOTS_SVG;
   } else if (kind === 'req') {
     st.textContent = T('wantsFriend'); btn(T('accept'), 'accept', 'primary'); btn(T('decline'), 'decline', 'soft');
   } else {
@@ -20496,7 +20517,7 @@ function socListClick(e) {
   else if (a === 'join') { var jr = socRoom(pid); if (jr) { closeSheet('socsheet'); if (ROOM.role !== 'none') leaveRoom(); auInit(); joinRoom(jr); } }
   else if (a === 'more') {                                             // remove: the button asks once more before it goes
     if (b.classList.contains('armed')) { socRemove(pid); return; }
-    b.classList.add('armed'); b.textContent = T('removeF'); setTimeout(function () { b.classList.remove('armed'); b.textContent = ''; }, 2600);
+    b.classList.add('armed'); b.textContent = T('removeF'); setTimeout(function () { b.classList.remove('armed'); b.innerHTML = DOTS_SVG; }, 2600);
   }
   renderFriends();
 }
