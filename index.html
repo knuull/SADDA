@@ -2785,6 +2785,169 @@ html.rmo .lsbanner.in, html.rmo .lsf { animation: none; }
 /* the friend menu button: three dots drawn as an icon, so every theme shows them */
 :root[data-look][data-look][data-look] .frow .btn.dots { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 30px; color: var(--pa-ink2); }
 :root[data-look][data-look][data-look] .frow .btn.dots.armed { width: auto; }
+
+/* =====================================================================================================
+   THE ROOM: the players are the picture
+   The room is a full-screen stage (lobby3d.js draws everyone's character, car or agent on it). Over it: a slim top
+   bar with the room code, a tag over each player, and one dock at the bottom with the match card and the buttons.
+   The host's settings live on their own panel, opened from the gear on the match card.
+   ===================================================================================================== */
+:root[data-look][data-look][data-look] #s-lobby { justify-content: stretch; overflow: hidden; }
+:root[data-look][data-look][data-look] #s-lobby .panel { position: absolute; inset: 0; width: auto; max-width: none; max-height: none; margin: 0; border-radius: 0; overflow: visible;
+  display: flex; flex-direction: column; gap: 10px; padding: calc(var(--st) + 66px) calc(var(--sr) + 14px) calc(var(--sb) + 12px) calc(var(--sl) + 14px);
+  background: linear-gradient(180deg, rgba(5, 7, 10, 0.55) 0, rgba(5, 7, 10, 0) 120px, rgba(5, 7, 10, 0) 52%, rgba(5, 7, 10, 0.72) 100%); box-shadow: none; pointer-events: none; }
+:root[data-look][data-look][data-look] #s-lobby .panel > * { pointer-events: auto; }
+:root[data-look][data-look][data-look] #s-lobby.compo .panel { box-shadow: none; }
+/* top: ROOM ABCDEF, share, invite friends, QR; the head count at the end */
+:root[data-look][data-look][data-look] #s-lobby .lobhead, :root[data-look][data-look][data-look] #s-lobby:not(.solo) .lobhead { position: relative; flex: none; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 14px; background: rgba(10, 12, 17, 0.62); box-shadow: inset 0 0 0 1px var(--pa-line2); }
+:root[data-look][data-look][data-look][dir="rtl"] #s-lobby .lobhead { padding: 6px 14px 6px 8px; }
+:root[data-look][data-look][data-look] #s-lobby .lobcode { flex-direction: row; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
+:root[data-look][data-look][data-look] #s-lobby .lobcode .lbl { margin: 0; font-size: 0.62rem; letter-spacing: 0.24em; }
+:root[data-look][data-look][data-look] #s-lobby .lobcode .code { font-size: 1.35rem; letter-spacing: 0.16em; line-height: 1; }
+:root[data-look][data-look][data-look] #s-lobby .lobbtns { display: flex; gap: 6px; margin-inline-start: auto; }
+:root[data-look][data-look][data-look] #s-lobby .lobbtns .btn span { display: none; }
+:root[data-look][data-look][data-look] #s-lobby :is(.lobbtns .btn, .qrt) { width: 38px; height: 38px; min-height: 0; padding: 0; justify-content: center; border-radius: 11px; }
+:root[data-look][data-look][data-look] #s-lobby .qrt.on { color: var(--pa-gold-ink); background: var(--pa-gold); }
+:root[data-look][data-look][data-look] .lob-n { flex: none; min-width: 44px; padding: 0 2px; font-family: var(--pa-fd); font-weight: 700; font-size: 0.9rem; letter-spacing: 0.06em; color: var(--pa-ink2); text-align: center; font-variant-numeric: tabular-nums; }
+:root[data-look][data-look][data-look] #s-lobby.solo .lob-n { display: none; }
+:root[data-look][data-look][data-look] #s-lobby #qrbox { position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 5; padding: 10px 10px 6px; box-shadow: var(--pa-sh3); }
+:root[data-look][data-look][data-look] #s-lobby #qrbox canvas { width: 140px; height: 140px; }
+:root[data-look][data-look][data-look] #s-lobby.solo .lobhead { background: none; box-shadow: none; padding-inline: 2px; }
+/* the old seat grid and summary stay in the page for the room's own logic, out of sight */
+:root[data-look][data-look][data-look] #s-lobby :is(#seats, #summary) { display: none !important; }
+:root[data-look][data-look][data-look] #s-lobby .sec-h { order: 3; flex: none; justify-content: flex-end; }
+:root[data-look][data-look][data-look] #s-lobby .sec-h :is(.lbl, .count) { display: none; }
+:root[data-look][data-look][data-look] #s-lobby .sec-h .btn { margin: 0; background: rgba(10, 12, 17, 0.62); }
+/* the tags over each player's head */
+:root[data-look][data-look][data-look] .lob-tags { position: fixed; inset: 0; pointer-events: none !important; z-index: 1; }
+:root[data-look][data-look][data-look] .ltag { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 10px 6px; border: 0; border-radius: 10px;
+  color: var(--pa-ink); background: rgba(8, 10, 15, 0.7); box-shadow: inset 0 0 0 1px var(--pa-line2), 0 6px 16px rgba(0, 0, 0, 0.35); pointer-events: auto; cursor: pointer; white-space: nowrap; will-change: transform; transition: opacity 0.2s; }
+:root[data-look][data-look][data-look] .ltag::after { content: ""; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px; transform: translateX(-50%) rotate(45deg); background: rgba(8, 10, 15, 0.7); box-shadow: 1px 1px 0 var(--pa-line2); }
+:root[data-look][data-look][data-look] .ltag b { font-family: var(--pa-fd); font-weight: 700; font-size: 0.86rem; letter-spacing: 0.04em; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+:root[data-look][data-look][data-look] .ltag.me { box-shadow: inset 0 0 0 1.5px var(--pa-gold), 0 6px 16px rgba(0, 0, 0, 0.35); }
+:root[data-look][data-look][data-look] .ltag .lt-row { display: flex; align-items: center; gap: 5px; }
+:root[data-look][data-look][data-look] .ltag .lvc { font-size: 0.58rem; }
+:root[data-look][data-look][data-look] .ltag .lt-rk { display: inline-flex; width: 16px; height: 16px; }
+:root[data-look][data-look][data-look] .ltag .lt-rk svg { width: 16px; height: 16px; }
+:root[data-look][data-look][data-look] .ltag em { font-style: normal; font-family: var(--pa-fd); font-weight: 600; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pa-ink3); }
+:root[data-look][data-look][data-look] .ltag.rdy em { color: var(--pa-green); }
+:root[data-look][data-look][data-look] .ltag.rdy em::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-inline-end: 5px; border-radius: 50%; background: var(--pa-green); vertical-align: 1px; box-shadow: 0 0 6px var(--pa-green); }
+:root[data-look][data-look][data-look] .ltag.nrdy em { color: var(--pa-gold2); }
+:root[data-look][data-look][data-look] .ltag.dim { opacity: 0.55; }
+:root[data-look][data-look][data-look] .ltag.bot { background: rgba(8, 10, 15, 0.5); }
+/* the dock: invite, the match card, notes and the buttons */
+:root[data-look][data-look][data-look] .lob-dock { order: 4; margin-top: auto; display: flex; flex-direction: column; gap: 8px; align-items: stretch; width: 100%; max-width: 560px; align-self: center; }
+:root[data-look][data-look][data-look] .lob-invite { align-self: center; display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border: 0; border-radius: 999px; font-family: var(--pa-fd); font-weight: 600; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--pa-ink2); background: rgba(10, 12, 17, 0.55); box-shadow: inset 0 0 0 1px var(--pa-line2); cursor: pointer; }
+:root[data-look][data-look][data-look] .lob-invite small { font-family: var(--pa-ft); text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--pa-ink3); }
+:root[data-look][data-look][data-look] .lob-invite[hidden] { display: none; }
+:root[data-look][data-look][data-look] .lob-match { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 8px; border-radius: 14px; background: rgba(10, 12, 17, 0.72); box-shadow: inset 0 0 0 1px var(--pa-line2); }
+:root[data-look][data-look][data-look] .lob-match.host { cursor: pointer; }
+:root[data-look][data-look][data-look] .lob-match img { flex: none; width: 64px; height: 44px; border-radius: 9px; object-fit: cover; background: var(--pa-bg3); }
+:root[data-look][data-look][data-look] .lob-match .lm-tx { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+:root[data-look][data-look][data-look] .lob-match b { font-family: var(--pa-fd); font-weight: 700; font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--pa-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:root[data-look][data-look][data-look] .lob-match small { font-size: 0.78rem; color: var(--pa-ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:root[data-look][data-look][data-look] .lob-match .ibtn { flex: none; width: 42px; height: 42px; color: var(--pa-gold); background: var(--pa-gold-a); box-shadow: inset 0 0 0 1px var(--pa-gold-b); }
+:root[data-look][data-look][data-look] #s-lobby :is(#tmrow, #vo-note) { order: 5; }
+:root[data-look][data-look][data-look] #s-lobby #lob-note { order: 6; margin: 0; text-align: center; font-size: 0.8rem; color: var(--pa-ink3); min-height: 0; }
+:root[data-look][data-look][data-look] #s-lobby #lob-note:empty { display: none; }
+:root[data-look][data-look][data-look] #s-lobby .actions.foot { order: 7; display: flex; gap: 10px; width: 100%; max-width: 560px; align-self: center; margin: 0; padding: 0; background: none; box-shadow: none; position: static; }
+:root[data-look][data-look][data-look] #s-lobby .actions.foot #b-leave { flex: none; padding-inline: 18px; background: rgba(10, 12, 17, 0.7); }
+:root[data-look][data-look][data-look] #s-lobby .actions.foot :is(#b-start, #b-lsready) { flex: 1 1 auto; }
+:root[data-look][data-look][data-look] #s-lobby .actions.foot #b-lsready.on { color: #04160c; background: var(--pa-green); }
+/* the settings panel: the old setup, roomy, with Done at the foot */
+:root[data-look][data-look][data-look] .setsheet { display: flex; flex-direction: column; }
+:root[data-look][data-look][data-look] .set-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 6px; }
+:root[data-look][data-look][data-look] .set-body #hostctl { display: flex; flex-direction: column; gap: 12px; }
+:root[data-look][data-look][data-look] .setok { flex: none; width: 100%; margin-top: 10px; }
+@media (min-width: 900px) and (min-aspect-ratio: 6/5) {
+  :root[data-look][data-look][data-look] #s-lobby .lobhead { align-self: center; width: min(720px, 100%); }
+}
+:root[data-look][data-look][data-look] #s-lobby.solo #lob-title { font-size: 1.05rem; letter-spacing: 0.16em; }
+:root[data-look][data-look][data-look] #s-lobby .sec-h { order: 1; position: absolute; top: calc(var(--st) + 14px); inset-inline-end: calc(var(--sr) + 14px); }
+/* a crowded room on a phone: each tag is one line, name and a ready light */
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag { flex-direction: row; gap: 6px; padding: 4px 8px; border-radius: 8px; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag b { font-size: 0.74rem; max-width: 76px; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag :is(.lvc, .lt-rk) { display: none; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag em { font-size: 0; letter-spacing: 0; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag.rdy em::before { margin: 0; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag.nrdy em::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--pa-gold2); }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag.me em { font-size: 0.56rem; letter-spacing: 0.1em; }
+
+/* =====================================================================================================
+   HOME, SIMPLER: the game, the hero, the pick, one PLAY. Everything else steps back.
+   ===================================================================================================== */
+/* the wallet: one compact pill, coins and gems side by side */
+:root[data-look][data-look][data-look] .wallet { flex-direction: row; gap: 0; padding: 0; border-radius: 12px; background: rgba(10, 12, 17, 0.62); box-shadow: inset 0 0 0 1px var(--pa-line2); }
+:root[data-look][data-look][data-look] .wallet .wch { min-width: 0; height: 34px; padding: 0 10px; background: none; box-shadow: none; border-radius: 0; }
+:root[data-look][data-look][data-look] .wallet .wch + .wch { box-shadow: inset 1px 0 0 var(--pa-line2); }
+:root[data-look][data-look][data-look][dir="rtl"] .wallet .wch + .wch { box-shadow: inset -1px 0 0 var(--pa-line2); }
+/* the side icons: no captions, a little smaller */
+:root[data-look][data-look][data-look] .rail { gap: 10px; }
+:root[data-look][data-look][data-look] .rail-b { width: 48px; }
+:root[data-look][data-look][data-look] .rail-b > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:root[data-look][data-look][data-look] .ric, :root[data-look][data-look][data-look] :is(.ric.shop, .ric.pass, #b-friends .ric, .ric.rk, .ric.games) { width: 46px; height: 46px; border-radius: 13px; }
+/* the profile: on a phone, the picture and the level are enough */
+@media (max-width: 599px) { :root[data-look][data-look][data-look] .profile .pf-txt small, :root[data-look][data-look][data-look] .profile #pf-name { display: none; } :root[data-look][data-look][data-look] .profile { padding: 4px; gap: 6px; } :root[data-look][data-look][data-look] .profile .pf-row { gap: 0; } }
+/* the logo without its tagline; the role as quiet text, not a box */
+:root[data-look][data-look][data-look] #s-home .home-logo .slogan { display: none; }
+:root[data-look][data-look][data-look] .plate-name span { padding: 0; background: none; box-shadow: none; color: var(--pa-ink3); letter-spacing: 0.18em; }
+/* PLAY's sheet: three clear choices */
+:root[data-look][data-look][data-look] #playsheet .sheet { gap: 10px; }
+:root[data-look][data-look][data-look] #playsheet .opts { display: flex; flex-direction: column; gap: 10px; }
+:root[data-look][data-look][data-look] #playsheet .opt { min-height: 72px; padding: 12px 14px; border-radius: 16px; }
+:root[data-look][data-look][data-look] #playsheet .opt .oic { width: 46px; height: 46px; border-radius: 13px; }
+:root[data-look][data-look][data-look] #playsheet .opt .otx b { font-size: 1.05rem; letter-spacing: 0.06em; }
+:root[data-look][data-look][data-look] #playsheet .opt.join .joinrow { margin-top: 6px; }
+:root[data-look][data-look][data-look] #s-lobby:not(.qr-open) #qrbox { display: none !important; }
+/* chat and microphone in the room: down the right edge, clear of the room code */
+:root[data-look][data-look][data-look] .comms[data-where="lobby"] { top: calc(var(--st) + 150px); inset-inline-start: auto; inset-inline-end: calc(14px + var(--sr)); }
+
+/* ---------- the room, refined: one Invite button, readable tags ---------- */
+:root[data-look][data-look][data-look] #s-lobby .lobbtns, :root[data-look][data-look][data-look] #s-lobby .lobcode > .qrt { display: none; }
+:root[data-look][data-look][data-look] #s-lobby .lobcode { flex: 0 1 auto; }
+:root[data-look][data-look][data-look] #s-lobby .lobhead { gap: 8px; }
+:root[data-look][data-look][data-look] #s-lobby .lob-n { margin-inline-start: auto; }
+:root[data-look][data-look][data-look] #s-lobby .invb { flex: none; height: 38px; min-height: 0; padding: 0 14px 0 10px; gap: 6px; border-radius: 11px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--pa-gold-ink); background: var(--pa-gold); box-shadow: none; }
+:root[data-look][data-look][data-look][dir="rtl"] #s-lobby .invb { padding: 0 10px 0 14px; }
+:root[data-look][data-look][data-look] #s-lobby .invb[hidden] { display: none; }
+:root[data-look][data-look][data-look] .invpop { position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 30; display: none; flex-direction: column; gap: 6px; width: min(260px, calc(100vw - 28px)); padding: 8px; border-radius: 14px; background: #141821; box-shadow: inset 0 0 0 1px var(--pa-line2), var(--pa-sh3); }
+:root[data-look][data-look][data-look] #s-lobby.inv-open .invpop { display: flex; }
+:root[data-look][data-look][data-look] .invpop .btn { display: flex !important; width: 100%; height: 44px; min-height: 0; justify-content: flex-start; gap: 10px; padding: 0 12px; border-radius: 10px; font-size: 0.86rem; color: var(--pa-ink); background: rgba(255, 255, 255, 0.05); box-shadow: none; }
+:root[data-look][data-look][data-look] .invpop .btn[hidden] { display: none !important; }
+:root[data-look][data-look][data-look] .invpop .btn span { display: inline !important; }
+:root[data-look][data-look][data-look] .invpop .btn.on { color: var(--pa-gold-ink); background: var(--pa-gold); }
+:root[data-look][data-look][data-look] #s-lobby .invpop #qrbox { position: static; align-self: center; margin-top: 4px; box-shadow: none; }
+:root[data-look][data-look][data-look] #s-lobby .lob-invite { display: none !important; }
+/* the tags: two clear lines, the status as a coloured word */
+:root[data-look][data-look][data-look] .ltag { gap: 2px; padding: 5px 10px 6px; transition: none; }
+:root[data-look][data-look][data-look] .ltag b { font-size: 0.84rem; line-height: 1.15; max-width: 118px; }
+:root[data-look][data-look][data-look] .ltag .lt-row { gap: 6px; }
+:root[data-look][data-look][data-look] .ltag .lvc { font-size: 0.6rem; }
+:root[data-look][data-look][data-look] .ltag em { display: inline-flex; align-items: center; gap: 3px; font-size: 0.62rem; letter-spacing: 0.1em; font-weight: 700; }
+:root[data-look][data-look][data-look] .ltag em::before { display: none !important; }
+:root[data-look][data-look][data-look] .ltag.st-host em { color: var(--pa-gold2); }
+:root[data-look][data-look][data-look] .ltag.st-rdy em { color: var(--pa-green); }
+:root[data-look][data-look][data-look] .ltag.st-nrdy em { color: #ffb35a; }
+:root[data-look][data-look][data-look] .ltag:is(.st-wait, .st-away) { opacity: 0.6; }
+:root[data-look][data-look][data-look] .ltag.st-bot { background: rgba(8, 10, 15, 0.55); }
+:root[data-look][data-look][data-look] .ltag.st-rdy { box-shadow: inset 0 0 0 1px rgba(53, 208, 127, 0.55), 0 6px 16px rgba(0, 0, 0, 0.35); }
+:root[data-look][data-look][data-look] .ltag.me { box-shadow: inset 0 0 0 1.5px var(--pa-gold), 0 6px 16px rgba(0, 0, 0, 0.35); }
+:root[data-look][data-look][data-look] .ltag.lifted::after { height: var(--lift); width: 1.5px; bottom: calc(-1 * var(--lift)); transform: translateX(-50%); background: rgba(255, 255, 255, 0.28); box-shadow: none; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag { flex-direction: column; padding: 4px 8px 5px; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag b { font-size: 0.76rem; max-width: 92px; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag .lvc, :root[data-look][data-look][data-look] .lob-tags.compact .ltag .lt-rk { display: inline-flex; }
+:root[data-look][data-look][data-look] .lob-tags.compact .ltag em { font-size: 0.56rem; letter-spacing: 0.06em; }
+
+/* a phone on its side: the stage takes the left of the screen, the room code and the controls a column on the right */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-look][data-look][data-look] #s-lobby .panel { padding-top: calc(var(--st) + 10px); align-items: flex-end; }
+  :root[data-look][data-look][data-look] #s-lobby .lobhead { width: min(380px, 44vw); align-self: flex-end; margin-inline-start: auto; }
+  :root[data-look][data-look][data-look] #s-lobby .lob-dock, :root[data-look][data-look][data-look] #s-lobby .actions.foot, :root[data-look][data-look][data-look] #s-lobby #lob-note { width: min(380px, 44vw); align-self: flex-end; margin-inline: auto 0; }
+  :root[data-look][data-look][data-look][dir="rtl"] #s-lobby :is(.lob-dock, .actions.foot, #lob-note) { margin-inline: 0 auto; }
+  :root[data-look][data-look][data-look] #s-lobby .sec-h { top: auto; bottom: calc(var(--sb) + 12px); inset-inline-end: auto; inset-inline-start: calc(var(--sl) + 14px); }
+  :root[data-look][data-look][data-look] #s-lobby.solo #lob-title { font-size: 0.9rem; }
+}
 </style>
 </head>
 <body>
@@ -2987,6 +3150,13 @@ html.rmo .lsbanner.in, html.rmo .lsf { animation: none; }
     </div>
   </div>
 
+  <div id="setsheet" class="sheet-ov" hidden>
+    <div class="sheet tall setsheet" role="dialog" aria-modal="true" aria-labelledby="set-title">
+      <div class="sheet-head"><h2 id="set-title" class="sheet-title" data-t="matchSet"></h2><button class="ibtn sm soft x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div id="set-body" class="set-body"></div>
+      <button id="b-setok" class="btn primary setok" type="button" data-t="done"></button>
+    </div>
+  </div>
   <div id="profsheet" class="sheet-ov" hidden>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pr-title">
       <div class="sheet-head"><h2 id="pr-title" class="sheet-title" data-t="profile"></h2><button class="ibtn sm soft x" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -3067,14 +3237,25 @@ html.rmo .lsbanner.in, html.rmo .lsf { animation: none; }
           <div class="lbl" id="lob-title"></div>
           <div id="lob-code" class="code" dir="ltr"></div>
           <div class="lobbtns">
-          <button id="b-copy" class="btn sm" type="button"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M14 3l7 7-7 7v-4.2c-5 0-8.2 1.6-10.6 5.2 1-5.2 4-10.1 10.6-11V3z"/></svg><span data-t="copy"></span></button>
+          <button id="b-copy" class="btn sm" type="button"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M14 3l7 7-7 7v-4.2c-5 0-8.2 1.6-10.6 5.2 1-5.2 4-10.1 10.6-11V3z"/></svg><span data-t="shareLink"></span></button>
           <button id="b-invfr" class="btn sm soft" type="button"><svg viewBox="0 0 32 32" width="18" height="18" aria-hidden="true"><circle cx="12" cy="11" r="5" fill="currentColor"/><path fill="currentColor" d="M2.5 26c0-5.2 4.3-8.6 9.5-8.6s9.5 3.4 9.5 8.6z"/><circle cx="23" cy="12.5" r="4" fill="currentColor" opacity=".7"/><path fill="currentColor" opacity=".7" d="M23.5 18.6c3.6.2 6 2.8 6 7.4h-6c0-2.9-.8-5.4-2.4-7.1.7-.2 1.5-.3 2.4-.3z"/></svg><span data-t="inviteFr"></span></button>
           </div>
+          <button id="b-qr" class="btn sm soft qrt" type="button"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm8-2h3v3h-3zm5 0h3v3h-3zm-5 5h3v3h-3zm5 0h3v3h-3zm-2.5-2.5h3v3h-3z"/></svg><span data-t="showQR"></span></button>
+          </div>
+          <span id="lob-n" class="lob-n" dir="ltr"></span>
+          <button id="b-invite" class="btn sm invb" type="button"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg><span data-t="inviteB"></span></button>
+          <div id="invpop" class="invpop" role="dialog" aria-label="Invite"></div>
+          <div hidden>
           <input id="in-link" class="field link-in" type="text" readonly hidden aria-label="Room link">
         </div>
         <div id="qrbox" class="qrbox" hidden><canvas id="qr" width="120" height="120"></canvas><span data-t="scan"></span></div>
       </header>
       <div class="sec-h"><span class="lbl" data-t="players"></span><span id="lob-count" class="count"></span><button id="b-mylook" class="btn soft xs" type="button"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M15.2 4.4l4.4 4.4L9 19.4l-5.2.8.8-5.2zM17 2.6a2 2 0 0 1 2.8 0l1.6 1.6a2 2 0 0 1 0 2.8l-1 1L16 3.6z"/></svg><span data-t="mylook"></span></button></div>
+      <div id="lob-tags" class="lob-tags" aria-live="polite"></div>
+      <div id="lob-dock" class="lob-dock">
+        <button id="lob-invite" class="lob-invite" type="button" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg><span data-t="inviteB"></span><small id="lob-inv-n"></small></button>
+        <div id="lob-match" class="lob-match"><img alt=""><span class="lm-tx"><b></b><small></small></span><button id="b-lobset" class="ibtn sm soft" type="button" aria-label="Match settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M13.7 2.3l.5 2.4a7.6 7.6 0 0 1 2 1.1l2.3-.8 1.7 3-1.8 1.6a7.7 7.7 0 0 1 0 2.4l1.8 1.6-1.7 3-2.3-.8a7.6 7.6 0 0 1-2 1.1l-.5 2.4h-3.4l-.5-2.4a7.6 7.6 0 0 1-2-1.1l-2.3.8-1.7-3L5.6 13a7.7 7.7 0 0 1 0-2.4L3.8 9l1.7-3 2.3.8a7.6 7.6 0 0 1 2-1.1l.5-2.4zM12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z"/></svg></button></div>
+      </div>
       <div id="tmrow" class="tmrow" hidden></div>
       <div id="seats" class="seats"></div>
       <div id="summary" class="summary" hidden></div>
@@ -3130,7 +3311,7 @@ html.rmo .lsbanner.in, html.rmo .lsf { animation: none; }
       <p id="lob-note" class="note"></p>
       <div class="actions row foot">
         <button id="b-leave" class="btn soft" type="button" data-t="leave"></button>
-        <button id="b-lsready" class="btn blue grow lsready ls-only" type="button" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span></button>
+        <button id="b-lsready" class="btn blue grow lsready" type="button" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span></button>
         <button id="b-start" class="btn primary grow" type="button"><span data-t="start"></span><svg class="fwd" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8 4.8c0-1.2 1.3-1.9 2.3-1.3l9.4 6.9c.9.7.9 2 0 2.6l-9.4 6.9c-1 .7-2.3-.1-2.3-1.3z"/></svg></button>
       </div>
     </div>
@@ -5405,7 +5586,7 @@ var STR = {
     lsTitle: 'LAST SIGHT', lsRecord: '{w} wins in {m} matches', lsNoRecord: 'Play a match with real players to get on the board', lsBoardSub: '{m} matches, {k} knockouts', lsBestK: 'Most KOs',
     lsSlogan: 'Five seconds unseen. One last sight. One survivor.', hubSight: 'See, vanish, move, fire together', lsLoadout: 'Loadout', lsOps: 'Agents', lsWeapons: 'Weapons', lsFinishes: 'Finishes', lsTracers: 'Tracers',
     lsFair: 'Every weapon fires the same: instant, straight, one hit to knock out. Weapons, finishes and tracers change how a shot looks and sounds, never who wins.',
-    lsRoundsL: 'Rounds', lsUnseenT: 'Unseen time', lsHiddenT: 'Hidden time', lsRotation: 'Rotation', lsRotationSub: 'A new arena every round', lsFirstUp: 'First up: {a}', lsRoundsN: '{n} rounds', lsUnseenN: '{n}s unseen', lsHiddenN: '{n}s hidden',
+    lsRoundsL: 'Rounds', lsUnseenT: 'Unseen time', lsHiddenT: 'Hidden time', lsRotation: 'Rotation', lsRotationSub: 'A new arena every round', lsFirstUp: 'First up: {a}', lsRoundsN: '{n} rounds', lsRound1: '1 round', lsUnseenN: '{n}s unseen', lsHiddenN: '{n}s hidden',
     lsReady: 'Ready', lsReadyOn: 'Ready, tap to cancel', lsNotReady: 'Waiting for {a} to get ready', lsWaitReady: 'Waiting for everyone to get ready', lsTapReady: 'Tap Ready when you are set',
     lsHint: 'Left thumb moves, right thumb aims. Remember where everyone stands: once they vanish, memory is all you have.',
     lsPhIntro: 'Get ready', lsPhRemember: 'Remember', lsPhVanish: 'Vanish', lsPhUnseen: 'Unseen', lsPhLock: 'Locked', lsPhFire: 'Fire', lsPhResult: 'Results', lsPhShrink: 'Closing in', lsPhRound: 'Round over', lsPhHidden: 'Hidden', lsPhReveal: 'Reveal', lsPhLive: 'Live', lsPhCollapse: 'Collapse', lsPhOver: 'Match over', lsPhLocked: 'Locked in', lsPhFinal: 'Final sight',
@@ -5419,7 +5600,7 @@ var STR = {
     hl4t: 'Fire together', hl4: 'Every gun fires from that one frozen moment. One hit knocks out, and two players can take each other out. The last one standing scores 3, each knockout scores 1.',
     cato: 'Agents', catw: 'Weapons', catk: 'Finishes', catr: 'Tracers', catp: 'Paint', catx: 'Boost trails', catu: 'Underglow',
     matchDetails: 'Match details', otShort: 'OT', mostWins: 'Most points wins', holdWins: 'Hold the crown at the end', pvTag: 'On your link', addMeMsg: 'Add me on SmashBo! My friend code: {c}', friendsT: 'Friends', ranksT: 'Ranks', myCode: 'Your code, for friends to add you', shareT: 'Share', fcodePh: "Your friend's code", addF: 'Add', reqsT: 'Friend requests', accept: 'Accept', decline: 'Decline',
-    recentT: 'Played with recently', noFriends: 'No friends yet. Share your code, or add the people you play with.', stOnline: 'Online', stOnIn: 'Online in {g}', inGame: ' in {g}', stRoom: 'In room {c}', stOff: 'Offline', stPending: 'Request sent',
+    recentT: 'Played with recently', noFriends: 'No friends yet. Share your code, or add the people you play with.', matchSet: 'Match settings', showQR: 'QR code', shareLink: 'Share link', inviteFr: 'Invite friends', lsNotReadyS: 'Not ready', lobSeatsFree: '{n} seats free', stOnline: 'Online', stOnIn: 'Online in {g}', inGame: ' in {g}', stRoom: 'In room {c}', stOff: 'Offline', stPending: 'Request sent',
     inviteB: 'Invite', removeF: 'Remove', wantsFriend: 'wants to be your friend', acceptedYou: 'accepted your friend request', badCode: 'That code is not right. Friend codes have 6 letters and numbers.',
     selfCode: 'That is your own code', already: 'You are already friends', socOff: 'Not connected. Check your internet.', reqSent: 'Friend request sent', invSent: 'Invite sent', invited: 'invited you to play',
     roomN: 'Room {c}', top50: 'Top 50', lbLoading: 'Loading the leaderboard…', lbEmpty: 'Nobody is ranked yet. Finish 5 competitive matches to be the first on the board.', lbOff: 'The leaderboard needs internet.',
@@ -5435,7 +5616,7 @@ var STR = {
     addFriend: 'Add friend', isFriend: 'Friends', pendingT: 'Request sent', kickRoom: 'Remove from room', inviteFr: 'Friends', youRank: 'Your rank', compTag: 'Competitive', ranked: 'ranked',
     langTitle: 'Choose your language', settings: 'Settings', language: 'Language', howBtn: 'How to play',
     name: 'Your name', namePh: 'Your name', pickChar: 'Character',
-    joinedT: 'joined', leftT: 'left', kicked: 'The host removed you from the room.', hostAway: 'The host left the app. Waiting for them to come back…', reopening: 'Opening your room again…', reopened: 'Your room is open again', rejoining: 'Taking you back to your room…', kickQ: 'Remove?', leaveHost: 'Tap again: the room closes for everyone', inviteMsg: 'Come play SmashBo with me! Room code: %c', netWait: 'Waiting for the host…', mpT: 'Multiplayer', mpSub: 'Public rooms with players everywhere', mpSoon: 'Multiplayer is coming soon', create: 'Play with friends', createSub: 'Make a room and share the code or QR', join: 'Join', codePh: 'CODE', solo: 'Practice vs bots',
+    joinedT: 'joined', leftT: 'left', kicked: 'The host removed you from the room.', hostAway: 'The host left the app. Waiting for them to come back…', reopening: 'Opening your room again…', reopened: 'Your room is open again', rejoining: 'Taking you back to your room…', kickQ: 'Remove?', leaveHost: 'Tap again: the room closes for everyone', inviteMsg: 'Come play SmashBo with me! Room code: %c', netWait: 'Waiting for the host…', mpT: 'Multiplayer', mpSub: 'Public rooms with players everywhere', mpSoon: 'Multiplayer is coming soon', create: 'Create Room', createSub: 'Host a match and invite your friends', join: 'Join', codePh: 'CODE', solo: 'Practice vs Bots',
     preview: 'Play with friends, Join and Friends work on your game link (GitHub). This preview cannot go online, so here you can play against bots.',
     room: 'Room code', practice: 'Practice match', scan: 'Scan to join', copy: 'Invite', copied: 'Link copied',
     players: 'Players', host: 'Host', bot: 'Bot', you: 'You', open: 'Open seat', away: 'Away',
@@ -5499,7 +5680,7 @@ var STR = {
     h4t: 'Powers', h4: 'Roll a pearl you touched through an orb to get its power.',
     h5t: 'Modes', h5: 'Lives: lose one per goal, last one standing wins. Points: score in other goals to reach the target. Time: most points when the clock runs out. Crown: score on the king to steal the crown. On Points, wearing it earns a point every second and the first to the target wins. On Time, whoever wears the crown when the clock runs out wins. The crown is heavy: the king\'s bumper shrinks the longer they keep it. Bullet: one pearl that gets faster with every touch, white, orange, yellow, red, purple, then black: Unreal. Fortress: a wall of 5 bricks guards your goal; pearls that get past you smash a brick, and only score through a gap. Lose a life and your wall is rebuilt. Bomb: a ticking bomb rolls in with the pearls; when the fuse runs out it blows up on whoever\'s side it is on. Gold Rush: a golden pearl is worth 3 points. Frenzy: every goal adds one more pearl.',
     taunt: 'Taunt',
-    play: 'PLAY', howPlay: 'How do you want to play?', joinT: 'Join with a code', soloSub: 'Warm up against the bots, no internet needed',
+    play: 'PLAY', howPlay: 'Play', joinT: 'Join Room', soloSub: 'Warm up against the bots, no internet needed',
     profile: 'Your player', colour: 'Colour', done: 'Done', editMe: 'Tap to edit', moreSet: 'More settings', loading: 'Loading',
     mCrown: 'Crown', mCrownS: 'Steal it, keep it', tgtCrown: 'Crown points to win', sec: 's', secS: 's', pts: 'pts', crownCol: 'Crown pts',
     crownBy: 'Win by', ckPts: 'Points', ckTime: 'Time', auto: 'Auto', balls: 'Pearls',
@@ -5529,7 +5710,7 @@ var STR = {
     lsTitle: 'آخر نظرة', lsRecord: '{w} فوز في {m} مباراة', lsNoRecord: 'العب مباراة مع لاعبين حقيقيين لتظهر في القائمة', lsBoardSub: '{m} مباراة، {k} إقصاء', lsBestK: 'أكثر إقصاء',
     lsSlogan: 'خمس ثوانٍ مخفي. نظرة أخيرة. ناجٍ واحد.', hubSight: 'شاهد، اختفِ، تحرّك، وأطلق مع الكل', lsLoadout: 'العتاد', lsOps: 'العملاء', lsWeapons: 'الأسلحة', lsFinishes: 'التشطيبات', lsTracers: 'المسارات',
     lsFair: 'كل الأسلحة تطلق بنفس الطريقة: فورية، مستقيمة، وإصابة واحدة تُخرج. السلاح والتشطيب والمسار تغيّر شكل الطلقة وصوتها فقط، ولا تغيّر من يفوز.',
-    lsRoundsL: 'الجولات', lsUnseenT: 'وقت الاختفاء', lsHiddenT: 'وقت التخفي', lsRotation: 'تناوب', lsRotationSub: 'ساحة جديدة كل جولة', lsFirstUp: 'الأولى: {a}', lsRoundsN: '{n} جولات', lsUnseenN: 'اختفاء {n} ث', lsHiddenN: 'تخفٍ {n} ث',
+    lsRoundsL: 'الجولات', lsUnseenT: 'وقت الاختفاء', lsHiddenT: 'وقت التخفي', lsRotation: 'تناوب', lsRotationSub: 'ساحة جديدة كل جولة', lsFirstUp: 'الأولى: {a}', lsRoundsN: '{n} جولات', lsRound1: 'جولة واحدة', lsUnseenN: 'اختفاء {n} ث', lsHiddenN: 'تخفٍ {n} ث',
     lsReady: 'جاهز', lsReadyOn: 'جاهز، اضغط للإلغاء', lsNotReady: 'بانتظار {a} حتى يجهز', lsWaitReady: 'بانتظار جاهزية الجميع', lsTapReady: 'اضغط جاهز إذا كنت مستعداً',
     lsHint: 'الإبهام اليسار للحركة، واليمين للتصويب. تذكّر مكان الكل: إذا اختفوا ما يبقى لك إلا ذاكرتك.',
     lsPhIntro: 'استعد', lsPhRemember: 'تذكّر', lsPhVanish: 'اختفاء', lsPhUnseen: 'مخفي', lsPhLock: 'تثبيت', lsPhFire: 'أطلق', lsPhResult: 'النتيجة', lsPhShrink: 'الساحة تضيق', lsPhRound: 'انتهت الجولة', lsPhHidden: 'متخفٍ', lsPhReveal: 'كشف', lsPhLive: 'مباشر', lsPhCollapse: 'انهيار', lsPhOver: 'انتهت المباراة', lsPhLocked: 'ثبّتّ موقعك', lsPhFinal: 'النظرة الأخيرة',
@@ -5543,7 +5724,7 @@ var STR = {
     hl4t: 'إطلاق جماعي', hl4: 'كل الأسلحة تطلق من نفس اللحظة المثبّتة. إصابة واحدة تُخرج، ولاعبان ممكن يُخرجون بعض. آخر واحد يبقى ياخذ 3 نقاط، وكل إقصاء بنقطة.',
     cato: 'العملاء', catw: 'الأسلحة', catk: 'التشطيبات', catr: 'المسارات', catp: 'الطلاء', catx: 'أثر التيربو', catu: 'إضاءة سفلية',
     matchDetails: 'تفاصيل المباراة', otShort: 'إضافي', mostWins: 'الأكثر نقاط يفوز', holdWins: 'اللي معه التاج بالنهاية يفوز', pvTag: 'على رابطك', addMeMsg: 'أضفني في سماش بو! رمز الصداقة حقي: {c}', friendsT: 'الأصدقاء', ranksT: 'التصنيف', myCode: 'رمزك، عشان ربعك يضيفونك', shareT: 'شارك', fcodePh: 'اكتب رمز صديقك', addF: 'أضف', reqsT: 'طلبات الصداقة', accept: 'قبول', decline: 'رفض',
-    recentT: 'لعبت معهم مؤخرًا', noFriends: 'ما عندك أصدقاء للحين. شارك رمزك أو أضف اللي تلعب معهم.', stOnline: 'متصل', stOnIn: 'متصل في {g}', inGame: ' في {g}', stRoom: 'في غرفة {c}', stOff: 'غير متصل', stPending: 'تم إرسال الطلب',
+    recentT: 'لعبت معهم مؤخرًا', noFriends: 'ما عندك أصدقاء للحين. شارك رمزك أو أضف اللي تلعب معهم.', matchSet: 'إعدادات المباراة', showQR: 'رمز QR', shareLink: 'شارك الرابط', inviteFr: 'ادعُ ربعك', lsNotReadyS: 'غير جاهز', lobSeatsFree: '{n} مقاعد متاحة', stOnline: 'متصل', stOnIn: 'متصل في {g}', inGame: ' في {g}', stRoom: 'في غرفة {c}', stOff: 'غير متصل', stPending: 'تم إرسال الطلب',
     inviteB: 'ادعُه', removeF: 'حذف', wantsFriend: 'يبي يصير صديقك', acceptedYou: 'قبل طلب الصداقة', badCode: 'الرمز مو صحيح. رمز الصداقة ٦ حروف وأرقام.',
     selfCode: 'هذا رمزك أنت', already: 'أنتم أصدقاء من قبل', socOff: 'غير متصل. تأكد من الإنترنت.', reqSent: 'تم إرسال طلب الصداقة', invSent: 'تم إرسال الدعوة', invited: 'يدعوك تلعب معه',
     roomN: 'غرفة {c}', top50: 'أفضل 50', lbLoading: 'نحمّل لوحة المتصدرين…', lbEmpty: 'ما فيه أحد مصنّف للحين. خلّص 5 مباريات تنافسية وكن أول واحد في اللوحة.', lbOff: 'لوحة المتصدرين تحتاج إنترنت.',
@@ -5559,7 +5740,7 @@ var STR = {
     addFriend: 'أضف صديق', isFriend: 'صديقك', pendingT: 'تم إرسال الطلب', kickRoom: 'أخرجه من الغرفة', inviteFr: 'الأصدقاء', youRank: 'تصنيفك', compTag: 'تنافسي', ranked: 'مصنّف',
     langTitle: 'اختر لغتك', settings: 'الإعدادات', language: 'اللغة', howBtn: 'طريقة اللعب',
     name: 'اسمك', namePh: 'اسمك', pickChar: 'الشخصية',
-    joinedT: 'دخل الغرفة', leftT: 'طلع من الغرفة', kicked: 'المضيف أخرجك من الغرفة.', hostAway: 'المضيف طلع من التطبيق، ننتظره يرجع…', reopening: 'نفتح غرفتك من جديد…', reopened: 'رجعت غرفتك', rejoining: 'نرجّعك لغرفتك…', kickQ: 'إخراج؟', leaveHost: 'اضغط ثانية: الغرفة تتقفل للكل', inviteMsg: 'تعال العب معي سماش بو! رمز الغرفة: %c', netWait: 'ننتظر المضيف…', mpT: 'اللعب الجماعي', mpSub: 'غرف عامة مع لاعبين من كل مكان', mpSoon: 'اللعب الجماعي قريبًا', create: 'العب مع ربعك', createSub: 'سوّ غرفة وارسل الرمز أو QR', join: 'انضم', codePh: 'الرمز', solo: 'تدرّب ضد البوتات',
+    joinedT: 'دخل الغرفة', leftT: 'طلع من الغرفة', kicked: 'المضيف أخرجك من الغرفة.', hostAway: 'المضيف طلع من التطبيق، ننتظره يرجع…', reopening: 'نفتح غرفتك من جديد…', reopened: 'رجعت غرفتك', rejoining: 'نرجّعك لغرفتك…', kickQ: 'إخراج؟', leaveHost: 'اضغط ثانية: الغرفة تتقفل للكل', inviteMsg: 'تعال العب معي سماش بو! رمز الغرفة: %c', netWait: 'ننتظر المضيف…', mpT: 'اللعب الجماعي', mpSub: 'غرف عامة مع لاعبين من كل مكان', mpSoon: 'اللعب الجماعي قريبًا', create: 'أنشئ غرفة', createSub: 'استضف مباراة وادعُ ربعك', join: 'انضم', codePh: 'الرمز', solo: 'تدرّب ضد البوتات',
     preview: 'العب مع ربعك والانضمام والأصدقاء تشتغل على رابط لعبتك (GitHub). المعاينة هذي ما تقدر تتصل بالإنترنت، فهنا تقدر تلعب ضد البوتات.',
     room: 'رمز الغرفة', practice: 'جولة تدريب', scan: 'امسح وادخل', copy: 'ادعُ ربعك', copied: 'تم نسخ الرابط',
     players: 'اللاعبون', host: 'المضيف', bot: 'بوت', you: 'أنت', open: 'مقعد فاضي', away: 'غايب',
@@ -5623,7 +5804,7 @@ var STR = {
     h4t: 'القوى', h4: 'وجّه لؤلؤة لمستها على كرة قوة عشان تاخذ قوتها.',
     h5t: 'أنواع اللعب', h5: 'أرواح: كل هدف عليك يخسرك روح، وآخر واحد يبقى يفوز. نقاط: سجّل في مرمى غيرك لين توصل للهدف. وقت: الأكثر نقاط لما يخلص الوقت. التاج: سجّل على الملك عشان تسرق التاج. بالنقاط: كل ثانية والتاج معك تاخذ نقطة، وأول من يوصل للهدف يفوز. بالوقت: اللي التاج معه لما يخلص الوقت هو الفايز. التاج ثقيل: صدّام الملك يصغر كل ما طوّل فيه. رصاصة: لؤلؤة وحدة تسرع مع كل ضربة، بيضا ثم برتقالية ثم صفرا ثم حمرا ثم بنفسجية ثم سودا: خيالية. القلعة: جدار من ٥ طوب يحمي مرماك، اللؤلؤة اللي تعدّيك تكسر طوبة وترجع، وما تسجّل إلا من الفتحات. إذا خسرت روح يرجع جدارك كامل. قنبلة: قنبلة تدخل مع اللؤلؤ، ولما يخلص الفتيل تنفجر على اللي هي في جهته. حمّى الذهب: اللؤلؤة الذهبية تسوى ٣ نقاط. فوضى: كل هدف يزيد لؤلؤة.',
     taunt: 'استفزاز',
-    play: 'العب', howPlay: 'كيف تبي تلعب؟', joinT: 'ادخل بالرمز', soloSub: 'سخّن ضد البوتات، بدون إنترنت',
+    play: 'العب', howPlay: 'العب', joinT: 'ادخل غرفة', soloSub: 'سخّن ضد البوتات، بدون إنترنت',
     profile: 'لاعبك', colour: 'اللون', done: 'تم', editMe: 'اضغط للتعديل', moreSet: 'إعدادات أكثر', loading: 'جاري التحميل',
     mCrown: 'التاج', mCrownS: 'اسرقه واثبت فيه', tgtCrown: 'نقاط التاج للفوز', sec: 'ث', secS: 'ث', pts: 'نقطة', crownCol: 'نقاط التاج',
     crownBy: 'الفوز بـ', ckPts: 'النقاط', ckTime: 'الوقت', auto: 'تلقائي', balls: 'عدد اللؤلؤ',
@@ -7442,6 +7623,7 @@ function joinRoom(code) {
   code = String(code || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, CODE_LEN);
   if ((code.length !== CODE_LEN && code.length !== 4) || relayOf(code) < 0) { toast(T('notFound')); return; }
   if (ROOM.busy) return; ROOM.busy = true;
+  UI.lsReady = /[?&]autoready/.test(location.search);                    // a new room: not ready yet (the automated tests may join ready)
   var l = lastRoom(); if (l && l.r === 'c' && l.c === code && l.id !== ME.id) useId(l.id);   // my old seat in this room
   toast(T(l && l.c === code ? 'rejoining' : 'connecting'), 12000);
   NET.onClient = onClientMsg;
@@ -12040,6 +12222,7 @@ function camUpdate(now, dt) {
 /* ---------- one frame ---------- */
 function gfxFrame(now, dt) {
   if (!GFX.ok || (DBG && DBG.norender)) return;
+  if (UI.screen === 'lobby' && typeof lobFrame === 'function' && lobFrame(now, dt)) return;   // the room: everyone together on one stage
   if (UI.game === 'cars') { if (ckGfxFrame(now, dt)) return; }
   if (UI.game === 'sight') { if (lsGfxFrame(now, dt)) return; }
   if (PT.pts.parent !== GFX.scene) GFX.scene.add(PT.pts);
@@ -13920,9 +14103,9 @@ CK_SIDETEX[7] = function () {                                          // the me
   });
 };
 /* ---------- round about each arena ---------- */
-var _bq = new THREE.Quaternion(), _be = new THREE.Euler(), _bd = new THREE.Vector3(), _bu = new THREE.Vector3(0, 1, 0);
+var _baq = new THREE.Quaternion(), _be = new THREE.Euler(), _bd = new THREE.Vector3(), _bu = new THREE.Vector3(0, 1, 0);
 function ckBeam(B, geo, hex, x0, y0, z0, x1, y1, z1, r) {             // a round beam (a cylinder) from one point to another
-  _bd.set(x1 - x0, y1 - y0, z1 - z0); var len = _bd.length(); _bd.normalize(); _bq.setFromUnitVectors(_bu, _bd); _be.setFromQuaternion(_bq);
+  _bd.set(x1 - x0, y1 - y0, z1 - z0); var len = _bd.length(); _bd.normalize(); _baq.setFromUnitVectors(_bu, _bd); _be.setFromQuaternion(_baq);
   B.add(geo, hex, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, r, len, r, _be.x, _be.y, _be.z);
 }
 function ckSea(gp, L, col, nk, rough, envI) {                         // open water with a moving ripple (the lake's)
@@ -16763,6 +16946,21 @@ function hqKey(name, params) { return name + (params ? ':' + JSON.stringify(para
 function hqDef(name, params) { var k = hqKey(name, params); if (HQ.defs[k]) return HQ.defs[k]; var t0 = performance.now(); HQ.defs[k] = HQDEF[name](params); hqT(t0); return HQ.defs[k]; }
 function hqReady(key) { return !!HQ.mem[key]; }
 function hqOn(cb) { HQ.cbs.push(cb); }
+/* several parts drawn with one material, merged into one geometry: one draw call instead of many (the arena version of
+   a model, where every call counts). Kept and shared, like the parts themselves. */
+function hqMerge(key, geos, tints) {                                    // tints: a colour per part, multiplied into its vertex colours (parts that had their own material colour)
+  HQ.merged = HQ.merged || {}; if (HQ.merged[key]) return HQ.merged[key];
+  if (geos.length === 1 && !tints) return (HQ.merged[key] = geos[0]);
+  var names = ['position', 'normal', 'color', 'uv'].filter(function (a) { return geos.every(function (g) { return !!g.attributes[a]; }); });
+  var n = 0, ni = 0; geos.forEach(function (g) { n += g.attributes.position.count; ni += g.index.count; });
+  var out = new THREE.BufferGeometry(), I = n > 65535 ? new Uint32Array(ni) : new Uint16Array(ni), o = 0, oi = 0;
+  names.forEach(function (a) { var it = geos[0].attributes[a].itemSize, A = new Float32Array(n * it), off = 0; geos.forEach(function (g, gi) { A.set(g.attributes[a].array, off);
+    var t = a === 'color' && tints && tints[gi]; if (t) for (var j = off; j < off + g.attributes[a].count * 3; j += 3) { A[j] *= t[0]; A[j + 1] *= t[1]; A[j + 2] *= t[2]; }
+    off += g.attributes[a].count * it; }); out.setAttribute(a, new THREE.BufferAttribute(A, it)); });
+  geos.forEach(function (g) { var ix = g.index.array; for (var j = 0; j < ix.length; j++) I[oi + j] = ix[j] + o; o += g.attributes.position.count; oi += ix.length; });
+  out.setIndex(new THREE.BufferAttribute(I, 1)); out.computeBoundingSphere(); out.computeBoundingBox(); if (SDF.keep) SDF.keep[out.uuid] = 1;
+  return (HQ.merged[key] = out);
+}
 /* the model if it is ready (geometries by part id, close-up and arena versions), or null while it is being made */
 function hqGet(name, params, urgent) {
   var key = hqKey(name, params); if (HQ.mem[key]) return HQ.mem[key];
@@ -16894,7 +17092,9 @@ function ckHQMats() {
     glowR: new THREE.MeshBasicMaterial({ color: C('#ff2a36'), toneMapped: false }),
     glowA: new THREE.MeshBasicMaterial({ color: C('#ffa21a'), toneMapped: false }), glowB: new THREE.MeshBasicMaterial({ color: C('#2a6cff'), toneMapped: false }), glowY: new THREE.MeshBasicMaterial({ color: C('#ffe48a'), toneMapped: false }),
     paint2: new P({ vertexColors: true, color: C('#ffffff'), roughness: 0.3, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.1 }),   // fixed paintwork (a police car's white doors, a taxi's checks)
-    steel: new THREE.MeshStandardMaterial({ vertexColors: true, color: C('#ffffff'), roughness: 0.45, metalness: 0.7, envMapIntensity: 1.0 })
+    steel: new THREE.MeshStandardMaterial({ vertexColors: true, color: C('#ffffff'), roughness: 0.45, metalness: 0.7, envMapIntensity: 1.0 }),
+    lo: new THREE.MeshStandardMaterial({ vertexColors: true, color: C('#ffffff'), roughness: 0.42, metalness: 0.5, envMapIntensity: 1.1 }),   // a match: every solid trim part in one finish (its colour baked in)
+    loGlow: new THREE.MeshBasicMaterial({ vertexColors: true, color: C('#ffffff'), toneMapped: false })                                // and every lamp in one
   };
   return (CKHQ.mats = M);
 }
@@ -16930,8 +17130,18 @@ function ckBuildHQ(type, hex, lod, fin) {
   var mat = function (k) { return k === 'paint' ? paint : M[k]; };
   var small = { handles: 1, proj: 1, fogs: 1, mirGlass: 1, cabin: 1, chassis: 1, disc: 1, caliper: 1, rails: 1, skid: 1 };
   var siren = null;
+  if (lod) {                                                                    // the arena version: merged by finish, four or five draws a car
+    var B = {};
+    D.parts.forEach(function (q) {
+      if (q.g !== 'body' || small[q.id]) return;
+      var mm = mat(q.mat), cat = q.siren ? null : q.mat === 'paint' || q.mat === 'paint2' || q.mat === 'glass' ? q.mat : /^glow/.test(q.mat) ? 'loGlow' : 'lo';
+      if (!cat) return;
+      (B[cat] = B[cat] || { g: [], t: [] }).g.push(G[q.id]); B[cat].t.push(cat === 'lo' || cat === 'loGlow' ? [mm.color.r, mm.color.g, mm.color.b] : null);
+    });
+    for (var ck in B) { var mg = new THREE.Mesh(hqMerge('car|' + name + '|' + ck + '|' + E.key, B[ck].g, ck === 'lo' || ck === 'loGlow' ? B[ck].t : null), ck === 'paint' ? paint : M[ck]); mg.castShadow = ck === 'paint' || ck === 'lo' || ck === 'paint2'; mg.receiveShadow = false; body.add(mg); }
+  }
   D.parts.forEach(function (q) {
-    if (q.g !== 'body' || (lod && small[q.id])) return;                  // in a match the smallest parts are left out: nobody sees them at that size
+    if (q.g !== 'body' || (lod && small[q.id]) || (lod && !q.siren)) return;                  // in a match the smallest parts are left out: nobody sees them at that size
     var m = new THREE.Mesh(G[q.id], mat(q.mat)); m.castShadow = !/^(glass|lens|lensClear|lensRed|drl|tailGlow|tailLens)$/.test(q.id) && !/^glow/.test(q.mat); m.receiveShadow = false;
     if (q.mat === 'lensClear') m.renderOrder = 4;
     if (q.siren) { if (!siren) { siren = new THREE.Group(); siren.position.set((q.min[0] + q.max[0]) / 2, (q.min[1] + q.max[1]) / 2, 0); body.add(siren); } m.position.set(-siren.position.x, -siren.position.y, 0); siren.add(m); return; }   // the lightbar flashes
@@ -17022,8 +17232,8 @@ function lsRingTex() {
 
 /* ---------- an operative ---------- */
 /* proportions (metres, before LS_VIS): hips at 0.9, shoulders at 1.42, head centre at 1.63 */
-function lsBuildOp(k) {
-  if (typeof LS_HQ !== 'undefined' && LS_HQ[k]) { var hq = lsBuildHQ(k); if (hq) return hq; }   // the rebuilt agent once its parts are ready
+function lsBuildOp(k, lod) {
+  if (typeof LS_HQ !== 'undefined' && LS_HQ[k]) { var hq = lsBuildHQ(k, lod); if (hq) return hq; }   // the rebuilt agent once its parts are ready
   var O = LS_OPS[k] || LS_OPS[0], M = lsMats(), A = O.a, Bc = O.b2, C = O.c, S = O.skin, bk = O.b, sh = bk.sh, bu = bk.bulk;
   var dark = lsShade(Bc, -0.25), boot = '#15171c', glove = lsShade(Bc, -0.1);
   function part(name, build) {
@@ -17182,8 +17392,8 @@ function lsGear(O, B, Cl, G, sh, bu, A, Bc, C, dark) {
   if (g === 'phones' || g === 'monocle') lsPut(B, lsRBox(), dark, 0, 0.33, -0.15, 0.2, 0.22, 0.07);
 }
 /* one player's copy of an operative, with the named joints found once */
-function lsOpInst(k) {
-  var T = LSG.ops[k]; if (!T || (T.userData.hqWant && hqReady(T.userData.hqWant))) T = LSG.ops[k] = lsBuildOp(k);
+function lsOpInst(k, lod) {                                                   // lod: the light arena version (a match), else the close-up
+  var C = lod ? (LSG.opsLo || (LSG.opsLo = {})) : LSG.ops, T = C[k]; if (!T || (T.userData.hqWant && hqReady(T.userData.hqWant))) T = C[k] = lsBuildOp(k, !!lod);
   var r = T.clone(true), J = { root: r };
   ['body', 'hips', 'torso', 'head', 'armL', 'armR', 'foreL', 'foreR', 'legL', 'legR', 'shinL', 'shinR', 'gun'].forEach(function (n) { J[n] = r.getObjectByName(n); });
   r.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; } });
@@ -17367,7 +17577,8 @@ function lsHQMats(O) {
     sole: new THREE.MeshStandardMaterial({ vertexColors: true, color: W(), roughness: 0.9, metalness: 0.0, envMapIntensity: 0.3 }),
     glove: new THREE.MeshStandardMaterial({ vertexColors: true, color: W(), roughness: 0.55, metalness: 0.05, normalMap: grain, normalScale: new THREE.Vector2(0.5, 0.5), envMapIntensity: 0.6 }),
     visor: new P({ vertexColors: true, color: LC('#07080b').clone(), roughness: 0.05, metalness: 0.6, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.8 }),
-    glow: new THREE.MeshBasicMaterial({ color: LC(O.c).clone(), toneMapped: false })
+    glow: new THREE.MeshBasicMaterial({ color: LC(O.c).clone(), toneMapped: false }),
+    lo: new THREE.MeshStandardMaterial({ vertexColors: true, color: W(), roughness: 0.58, metalness: 0.32, envMapIntensity: 0.9 })   // the arena version: one finish for every solid part (the colour is in the model)
   };
   for (var k in M) LSG.keepM.push(M[k]);
   return (LSHQ.m[key] = M);
@@ -17383,8 +17594,11 @@ function lsBuildHQ(k, lod) {
   ['L', 'R'].forEach(function (s) { var sg = s === 'L' ? 1 : -1, leg = grp('leg' + s, hips, sg * 0.095 * bu, -0.02, 0); grp('shin' + s, leg, 0, -0.42, 0); });
   var torso = grp('torso', hips, 0, 0.06, 0); grp('head', torso, 0, 0.62, 0);
   ['L', 'R'].forEach(function (s) { var sg = s === 'L' ? 1 : -1, arm = grp('arm' + s, torso, sg * 0.215 * sh, 0.47, 0); grp('fore' + s, arm, 0, -0.27, 0); });
-  D.parts.forEach(function (q) {
-    if (lod && /^(scopeGlow|wristGlow|chestGlow|knuck|packGlow|packKit|hose)/.test(q.id)) return;
+  if (lod) {                                                                    // in a match: each joint's parts merged by material, a few draws per agent
+    var B = {};
+    D.parts.forEach(function (q) { if (/^(scopeGlow|wristGlow|chestGlow|knuck|packGlow|packKit|hose)/.test(q.id)) return; var mk = q.mat === 'glow' || q.mat === 'visor' ? q.mat : 'lo', b = q.g + '|' + mk; (B[b] = B[b] || { g: q.g, mat: mk, geos: [] }).geos.push(G[q.id]); });
+    for (var bk in B) { var b = B[bk], mm = new THREE.Mesh(hqMerge('agent' + k + '|' + bk + '|' + E.key, b.geos), M[b.mat]); mm.userData.ls = 1; mm.castShadow = b.mat !== 'glow'; J[b.g].add(mm); }
+  } else D.parts.forEach(function (q) {
     var m = new THREE.Mesh(G[q.id], M[q.mat]); m.userData.ls = 1; m.castShadow = q.mat !== 'glow'; J[q.g].add(m);
   });
   var gun = new THREE.Group(); gun.name = 'gun'; torso.add(gun);
@@ -17469,8 +17683,16 @@ function buildChefHQ(ch, hex) {
   var bean = new THREE.Group(); bean.position.y = B0; body.add(bean); R.bean = bean;
   var yc = D.yc, hy = HB.hy, EYES = D.EYES, zB = D.zB, zAt = D.zAt; R.headY = yc; R.zAt = zAt;
   var byG = function (g) { return D.parts.filter(function (q) { return q.g === g; }); };
-  byG('bean').forEach(function (q) { bean.add(chqMesh(G, q.id, MAT[q.mat])); });
-  (D.sways || []).forEach(function (w) { var g = new THREE.Group(); g.position.set(w.pos[0], w.pos[1], w.pos[2]); bean.add(g); byG('sway:' + w.name).forEach(function (q) { g.add(chqMesh(G, q.id, MAT[q.mat])); }); R.sway.push({ g: g, k: w.k, ax: w.ax, base: w.base, amp: w.amp }); });
+  // the close-up: every part its own mesh; in a match, the parts of each joint merged by material (a few draws, not dozens)
+  var put = function (par, list, tag) {
+    if (CLOD) { list.forEach(function (q) { par.add(chqMesh(G, q.id, MAT[q.mat])); }); return; }
+    // the player's colour keeps its own material (it is repainted per player); everything else shares one finish, its colour baked in
+    var B = {}; list.forEach(function (q) { var mm = MAT[q.mat], own = /^(player|playerGloss|jacket)$/.test(q.mat) || mm.transparent, k = own ? q.mat : 'lo'; /* see-through parts (Cosmo's helmet) keep their own material too */ (B[k] = B[k] || { g: [], t: [] }).g.push(G[q.id]); B[k].t.push(own ? null : [mm.color.r, mm.color.g, mm.color.b]); });
+    var LO = CHQ.lo || (CHQ.lo = new THREE.MeshStandardMaterial({ vertexColors: true, color: 0xffffff, roughness: 0.62, metalness: 0.06, toneMapped: false, envMapIntensity: CHAR_LOOK.env })), arm = /^arm/.test(tag);
+    for (var mk in B) { var mt = mk === 'lo' ? LO : MAT[mk], m = new THREE.Mesh(hqMerge(E.key + '|' + tag + '|' + mk, B[mk].g, mk === 'lo' ? B[mk].t : null), mt); m.castShadow = !arm; if (CHQ.env && !mt.envMap) { mt.envMap = CHQ.env; mt.needsUpdate = true; } par.add(m); }
+  };
+  put(bean, byG('bean'), 'bean');
+  (D.sways || []).forEach(function (w) { var g = new THREE.Group(); g.position.set(w.pos[0], w.pos[1], w.pos[2]); bean.add(g); put(g, byG('sway:' + w.name), 'sway' + w.name); R.sway.push({ g: g, k: w.k, ax: w.ax, base: w.base, amp: w.amp }); });
   // ---- the eyes, brows and mouths: the same rig as everyone else ----
   var wh = new THREE.Group(); bean.add(wh);
   EYES.forEach(function (q) { var x = q[0], y = yc + q[1], r = q[2]; pt(wh, gSphH(), 'w', x, y, zB(x, y) - r * 0.42, r, r * 1.12, r * 0.85); }); bakeVC(wh, hex, 0, true, eyeMat());
@@ -17499,16 +17721,17 @@ function buildChefHQ(ch, hex) {
   // ---- arms and legs on the usual joints ----
   R.arms = [-1, 1].map(function (side) {
     var ay = (D.TH || T.H) * 0.8, a = new THREE.Group(); hips.add(a); var arm = new THREE.Group(); a.add(arm);
-    byG('arm').concat(byG(side < 0 ? 'armL' : 'armR')).forEach(function (q) { arm.add(chqMesh(G, q.id, MAT[q.mat])); });
+    put(arm, byG('arm').concat(byG(side < 0 ? 'armL' : 'armR')), 'arm' + side);
     return { g: a, side: side, ay: B0 + ay, ax: D.armX || humR(T, ay) * 0.98 };
   });
   R.legs = [-1, 1].map(function (side) {
     var l = new THREE.Group(); l.position.set(side * (D.legX || T.W * 0.42), R.hipY, 0); R.grp.add(l);
-    byG('leg').forEach(function (q) { l.add(chqMesh(G, q.id, MAT[q.mat])); });
+    put(l, byG('leg'), 'leg');
     return { g: l, side: side };
   });
   R.tail = new THREE.Group();
   R.hqPaint = function (h) { var m = nm === 'chefo' ? chqJacket(h) : chqPlayer(h), g2 = chqPlayer(h, true); R.grp.traverse(function (o) { if (o.isMesh && o.material && o.material.userData.chq) { var kk = chqKey(o.material); if (/^j/.test(kk) && o.material !== m) o.material = m; else if (/^g/.test(kk) && o.material !== g2) o.material = g2; } }); };
+  if (!CLOD) [wh, face, smG, om].forEach(function (g) { g.traverse(function (o) { if (o.isMesh) o.castShadow = false; }); });   // the face sits inside the head's own shadow: no shadow draws for it in a match
   R.grp.updateMatrixWorld(true); R.capY = new THREE.Box3().setFromObject(bean).max.y - R.hipY;
   R.faceY = R.hipY + B0 + yc; R.topY = R.hipY + B0 + yc + hy;
   R.look = 0; R.lean = 0; R.blinkAt = Math.random() * 3; R.jump = 0;
@@ -18064,12 +18287,12 @@ function lsGameRect() {
 
 /* ---------- players on stage ---------- */
 function lsSlot(i, op) {
-  var P = LSG.pl[i];
-  if (!P || P.op !== op || (P.J.root.userData.hqWant && hqReady(P.J.root.userData.hqWant))) {
+  var P = LSG.pl[i], lod = UI.screen !== 'home';                              // the home stage shows the close-up model; everywhere else, the light one
+  if (!P || P.op !== op || P.lod !== lod || (P.J.root.userData.hqWant && hqReady(P.J.root.userData.hqWant))) {
     if (P) { LSG.scene.remove(P.J.root); LSG.scene.remove(P.ring); }
-    var J = lsOpInst(op); LSG.scene.add(J.root);
+    var J = lsOpInst(op, lod); LSG.scene.add(J.root);
     var ring = new THREE.Mesh(lsG('ringq', function () { var g = new THREE.PlaneGeometry(1, 1); g.rotateX(-Math.PI / 2); return g; }), lsMats().ring.clone()); ring.renderOrder = 7; ring.material.depthTest = false; LSG.scene.add(ring);
-    P = LSG.pl[i] = { J: J, ring: ring, op: op, dead: 0, col: -1, seen: false, lx: 0, lz: 0, vis: false };
+    P = LSG.pl[i] = { J: J, ring: ring, op: op, lod: lod, dead: 0, col: -1, seen: false, lx: 0, lz: 0, vis: false };
   }
   return P;
 }
@@ -19001,8 +19224,8 @@ function renderLobby() {
     seg('seg-tgt', cfgTarget(c)); seg('maps', c.map);
     seg('seg-speed', c.sp); seg('seg-level', c.bot); pwChips(); seg('seg-core', c.core ? 1 : 0); seg('seg-haz', c.haz ? 1 : 0); seg('seg-size', c.size | 0); seg('seg-pad', c.pad == null ? 1 : c.pad | 0);
     var ok = ROOM.seats.length >= 2, P2 = plOf(ROOM.cfg.comp), rdy = compReady() && lsAllReady(); $('b-start').disabled = !ok || !rdy;
-    $('lob-note').textContent = !ok ? T('need2') : !rdy && P2 && P2.need ? T('comp4') : !lsAllReady() ? T('lsWaitReady') : ROOM.role === 'host' ? T('keepOpen') : '';
-  } else $('lob-note').textContent = UI.game === 'sight' && !UI.lsReady ? T('lsTapReady') : T('waitHost');
+    $('lob-note').textContent = !ok ? T('need2') : !rdy && P2 && P2.need ? T('comp4') : !lsAllReady() ? T('lsNotReady', { a: (function (l) { return l.slice(0, 3).map(function (s) { return s.name; }).join(LANG === 'ar' ? '، ' : ', ') + (l.length > 3 ? ' +' + (l.length - 3) : ''); })(notReady()) }) : ROOM.role === 'host' ? T('keepOpen') : '';
+  } else $('lob-note').textContent = ROOM.role === 'client' && !UI.lsReady ? T('lsTapReady') : T('waitHost');
   var ml = $('b-mylook').querySelector('span'); ml.textContent = UI.game === 'cars' ? T('ckYourCar') : UI.game === 'sight' ? T('lsLoadout') : T('mylook');
   refreshPickers(); gfxResize();
 }
@@ -20070,7 +20293,8 @@ function lsBotLoad(taken) {
   var op = 0, n = 0; do { op = (Math.random() * LS_BASE_OPS) | 0; } while (used[op] && ++n < 30);
   return [op, (Math.random() * LS_WEAPONS.length) | 0, Math.random() < 0.3 ? 1 + ((Math.random() * (LS_FINISH.length - 1)) | 0) : 0, 0];
 }
-function lsAllReady() { if (ROOM.cfg.game !== 2 || ROOM.role !== 'host') return true; return humans().every(function (s) { return s.id === ME.id || s.rdy || s.gone; }); }
+function lsAllReady() { if (ROOM.role !== 'host') return true; return humans().every(function (s) { return s.id === ME.id || s.rdy || s.gone || s.away; }); }   // every game: the host starts when every guest is ready (someone who stepped away does not hold the room up)
+function notReady() { return ROOM.role !== 'host' ? [] : humans().filter(function (s) { return s.id !== ME.id && !s.rdy && !s.gone && !s.away; }); }
 function lsName(k) { var O = LS_OPS[k] || LS_OPS[0]; return LANG === 'ar' ? O.ar : O.en; }
 function lsRole(k) { var O = LS_OPS[k] || LS_OPS[0]; return LANG === 'ar' ? O.sar : O.sen; }
 function lsWpName(w) { var W = LS_WEAPONS[w] || LS_WEAPONS[0]; return LANG === 'ar' ? W.ar : W.en; }
@@ -20149,7 +20373,7 @@ function lsLobby(host) {
     var sum = $('summary'); sum.textContent = '';
     var mp = el('div', 'ckmodesum'); mp.innerHTML = lsModeIcon(c.lsmo | 0) + '<b></b><small></small>'; mp.children[1].textContent = lsModeName(c.lsmo | 0); mp.children[2].textContent = lsModeSub(c.lsmo | 0); sum.appendChild(mp);
     sum.appendChild(infoRow(lsMapArt(mk >= 0 ? mk : (LS.next >= 0 ? LS.next : 7)), T('ckArena'), lsMapName(mk), mk >= 0 ? lsMapSub(mk) : T('lsRotationSub')));
-    [T('lsRoundsN', { n: c.lsr || 3 }), T((c.lsmo | 0) === 1 ? 'lsHiddenN' : 'lsUnseenN', { n: c.lsu || 5 })].forEach(function (tx, i) { sum.appendChild(el('span', 'pill' + (i ? '' : ' y'), tx)); });
+    [(c.lsr || 3) === 1 ? T('lsRound1') : T('lsRoundsN', { n: c.lsr || 3 }), T((c.lsmo | 0) === 1 ? 'lsHiddenN' : 'lsUnseenN', { n: c.lsu || 5 })].forEach(function (tx, i) { sum.appendChild(el('span', 'pill' + (i ? '' : ' y'), tx)); });
   }
 }
 function lsNextMap() { if (!(LS.next >= 0)) { var m; do { m = (Math.random() * LS_MAPS.length) | 0; } while (m === LS.last); LS.next = m; } return LS.next; }
@@ -20304,7 +20528,7 @@ function lsShowResults() {
   var nm = function (p) { return p.i === LS.me ? T('you') : p.name || lsName(p.op); };
   lsPay(S);
   showScreen('results'); $('s-results').classList.add('lsres');
-  $('res-mode').textContent = lsModeName(S.cfg.mode) + (LANG === 'ar' ? '، ' : ', ') + T('lsRoundsN', { n: S.cfg.rounds });
+  $('res-mode').textContent = lsModeName(S.cfg.mode) + (LANG === 'ar' ? '، ' : ', ') + (S.cfg.rounds === 1 ? T('lsRound1') : T('lsRoundsN', { n: S.cfg.rounds }));
   var pod = $('podium'); pod.textContent = ''; pod.classList.remove('teams');
   [1, 0, 2].forEach(function (k) {
     var p = ps[k], d = el('div', 'pod p' + (k + 1)); if (!p) { pod.appendChild(d); return; }
@@ -21128,6 +21352,288 @@ function shopUIInit() {
   walletUI();
   if (!store('sadda.ecoHi')) { store('sadda.ecoHi', 1); setTimeout(function () { if (UI.screen === 'home') toast(T('welcomeGift'), 3200); }, 2600); }
 }
+
+/* ================= THE ROOM: everyone who joined, standing together =================
+   The waiting room of all three games is one stage: the players' own characters (SmashBo), cars (Car Knockout) or
+   agents (LAST SIGHT) side by side under studio light, each with a small tag above it (name, level, rank, ready).
+   It replaces the arena preview in the room, so the room is also much lighter to draw: a handful of models, soft
+   painted shadows, no shadow maps, no arena. The match settings live on their own panel (host only); the room shows
+   one compact card with the mode, the map and the format. */
+var LOB = { ok: false, ents: {}, order: [], fitK: '', fit: null, tags: {}, setShown: {} };
+
+function lobOn() { return UI.screen === 'lobby' && GFX.ok && !(DBG && DBG.norender); }
+function lobInit() {
+  if (LOB.scene) return true; if (!GFX.ok) return false;
+  var sc = LOB.scene = new THREE.Scene();
+  LOB.hemi = new THREE.HemisphereLight(0xffffff, 0x272c38, 0.7); sc.add(LOB.hemi);
+  LOB.amb = new THREE.AmbientLight(0xffffff, 0.12); sc.add(LOB.amb);
+  LOB.key = new THREE.DirectionalLight(0xfff2e2, 1.55); LOB.key.position.set(-5, 10, 9); sc.add(LOB.key);
+  LOB.rim = new THREE.DirectionalLight(0xa8e4ff, 1.0); LOB.rim.position.set(6, 6, -8); sc.add(LOB.rim);
+  LOB.cam = new THREE.PerspectiveCamera(30, 1, 0.3, 200);
+  LOB.shadowT = canvasTex(128, 128, function (g, w) { var r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); r.addColorStop(0, 'rgba(0,0,0,0.62)'); r.addColorStop(0.55, 'rgba(0,0,0,0.3)'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, w, w); });
+  LOB.shadowM = new THREE.MeshBasicMaterial({ map: LOB.shadowT, transparent: true, depthWrite: false, toneMapped: false });
+  LOB.floors = {};
+  return true;
+}
+/* ---------- each game's floor: built once, at unit size, scaled to the line-up ---------- */
+function lobFloor(game) {
+  if (LOB.floors[game]) return LOB.floors[game];
+  var g = new THREE.Group(), acc = game === 'sight' ? '#58e1ff' : '#f4b630';
+  var slab = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.02, 0.16, 96), new THREE.MeshStandardMaterial({ color: LC(game === 'cars' ? '#20252c' : game === 'sight' ? '#0f141a' : '#1b1f28'), roughness: game === 'sight' ? 0.28 : 0.42, metalness: 0.55, envMapIntensity: 0.9 }));
+  slab.position.y = -0.08; g.add(slab);
+  var ring = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.006, 6, 160), new THREE.MeshBasicMaterial({ color: LC(acc), toneMapped: false })); ring.rotation.x = Math.PI / 2; ring.position.y = 0.002; g.add(ring);
+  var glow = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), new THREE.MeshBasicMaterial({ map: glowTex(), color: LC(acc), transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); glow.rotation.x = -Math.PI / 2; glow.position.y = 0.004; g.add(glow);
+  if (game === 'sight') {                                                        // a fine hex grid lit from inside
+    var hexT = canvasTex(512, 512, function (c, w) { var m = w / 2, r = 12, hx = r * Math.sqrt(3); c.strokeStyle = 'rgba(255,255,255,0.9)'; c.lineWidth = 1.3;
+      for (var yy = -1; yy < 26; yy++) for (var xx = -1; xx < 26; xx++) { var px = xx * hx + (yy % 2 ? hx / 2 : 0), py = yy * r * 1.5, dd = Math.hypot(px - m, py - m); if (dd > m - 10) continue; c.globalAlpha = 0.2 + 0.8 * (1 - dd / m); c.beginPath(); for (var k = 0; k < 6; k++) { var a = Math.PI / 6 + k * Math.PI / 3; c[k ? 'lineTo' : 'moveTo'](px + Math.cos(a) * r * 0.92, py + Math.sin(a) * r * 0.92); } c.closePath(); c.stroke(); } });
+    var hex = new THREE.Mesh(new THREE.CircleGeometry(0.98, 64), new THREE.MeshBasicMaterial({ map: hexT, color: LC(acc), transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); hex.rotation.x = -Math.PI / 2; hex.position.y = 0.003; g.add(hex);
+  }
+  if (game === 'cars') {                                                         // painted bay lines between the cars
+    LOB.bayM = new THREE.MeshBasicMaterial({ color: LC('#f4b630'), transparent: true, opacity: 0.55, toneMapped: false });
+  }
+  g.userData.glow = glow;
+  LOB.scene.add(g); LOB.floors[game] = g; return g;
+}
+/* ---------- the models ---------- */
+function lobLook(s) {                                                           // what this seat shows, as a key (a change rebuilds it)
+  var g = UI.game, lod = lobSeats().length > 4 ? 'L' : 'H';
+  if (g === 'cars') return 'c' + (s.car | 0) + COLORS[s.col] + (s.ckc ? JSON.stringify(s.ckc) : '');
+  if (g === 'sight') { var L = s.id === ME.id ? lsMine() : lsLoad(s); return 's' + L.op + ':' + L.wp + ':' + L.sk + lod; }
+  return 'h' + s.ch + COLORS[s.col] + lod;
+}
+function lobBuild(s) {
+  var g = UI.game, e = { root: new THREE.Group(), id: s.id, look: lobLook(s), game: g, joined: performance.now() / 1000, ph: Math.random() * 6 };
+  if (g === 'cars') {
+    var fin = s.id === ME.id && typeof ckEq === 'function' ? ckEq('p') : 0, C = ckBuildCar(s.car | 0, COLORS[s.col], true, fin);
+    C.wheels.forEach(function (w) {                                              // the arena draws wheels in one batch; here each car carries its own
+      if (w.hide) return; var geo = null, mat = null;
+      try { if (/^hq:/.test(w.kind)) { geo = ckHQWheelOne(w.kind.slice(3)); mat = ckHQWheelMat(); } else { geo = ckWheelGeo(w.kind); mat = ckMats().chrome; } } catch (x) {}
+      if (geo && mat) w.m.add(new THREE.Mesh(geo, mat));
+    });
+    C.grp.rotation.y = -Math.PI / 2 + 0.62; e.car = C; e.root.add(C.grp); e.w = 3.3; e.h = (C.top || 1.5) + 0.1;
+  } else if (g === 'sight') {
+    var L = s.id === ME.id ? lsMine() : lsLoad(s), J = lsOpInst(L.op, lobSeats().length > 4); lsGunInst(J, L.wp, L.sk); e.J = J; e.root.add(J.root); e.w = 1.25; e.h = 3.25;
+  } else {
+    var R = buildRider(s.ch, COLORS[s.col], lobSeats().length <= 4); /* a few players: the close-up model; a full room: the light one */ if (R.hqPaint) R.hqPaint(COLORS[s.col]); e.R = R; R.grp.scale.setScalar(1.45); e.root.add(R.grp);
+    R.grp.updateMatrixWorld(true); var bb = new THREE.Box3().setFromObject(R.grp); e.w = Math.max(1.3, bb.max.x - bb.min.x); e.h = Math.max(2.2, bb.max.y + 0.05, (R.topY || 0) * 1.45 + 0.1);
+  }
+  var sh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), LOB.shadowM); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.006; sh.scale.set(g === 'cars' ? 4.2 : 1.7, g === 'cars' ? 2.4 : 1.7, 1); e.root.add(sh);
+  e.root.traverse(function (o) { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
+  e.want = (e.R && e.R.hqWant) || (e.J && e.J.root.userData.hqWant) || (e.car && e.car.hqWant) || '';   // still the simple stand-in: which model to wait for
+  LOB.scene.add(e.root);
+  return e;
+}
+function lobFree(e) { LOB.scene.remove(e.root); }                              // the builders cache their geometry and materials: nothing to dispose here
+/* who is in the room, in the order the room lists them (and the people still waiting at the door) */
+function lobSeats() { var s = ROOM.seats.slice(); if (typeof tmOn === 'function' && tmOn()) s = s.map(function (x, i) { return [x, i]; }).sort(function (a, b) { return ((a[0].team | 0) - (b[0].team | 0)) || a[1] - b[1]; }).map(function (x) { return x[0]; }); return s.concat(ROOM.waiting || []); }   // teams stand together
+function lobSync() {
+  var list = lobSeats(), seen = {}, i;
+  for (i = 0; i < list.length; i++) {
+    var s = list[i], e = LOB.ents[s.id];
+    var stale = e && e.want && hqReady(e.want), j0 = e && e.joined;                // its finished model just arrived: swap it in, no second entrance
+    if (e && (e.game !== UI.game || e.look !== lobLook(s) || stale)) { lobFree(e); e = null; }
+    if (!e) { e = LOB.ents[s.id] = lobBuild(s); if (stale) e.joined = j0; }
+    e.seat = s; e.wait = i >= ROOM.seats.length; seen[s.id] = 1;
+  }
+  for (var k in LOB.ents) if (!seen[k]) { lobFree(LOB.ents[k]); delete LOB.ents[k]; }
+  LOB.order = list.map(function (s) { return LOB.ents[s.id]; });
+}
+/* where each one stands. Every arrangement from one row to four is tried, and the one that lets the players stand
+   largest in the free part of the screen wins: two people side by side, four in a staggered pair of rows, ten in a
+   tiered group. Rows further back stand between the shoulders of the row in front, and the camera looks down a
+   little more for each row, so every face stays visible. */
+function lobElev(rows, portrait) { var b = UI.game === 'cars' ? 0.3 : 0.13; return rows <= 1 ? b : b + Math.min(0.5, (portrait ? 0.18 : 0.08) + rows * (portrait ? 0.11 : 0.05)); }
+function lobLayout(R) {
+  var n = LOB.order.length, portrait = R.h > R.w * 1.05, g = UI.game, w = 0, wa = 0, hm = 0, i;
+  for (i = 0; i < n; i++) { w = Math.max(w, LOB.order[i].w); wa += LOB.order[i].w / Math.max(1, n); hm = Math.max(hm, LOB.order[i].h); }
+  var sp = g === 'cars' ? w * 1.1 : Math.max(wa * 1.12, w * 0.95), dz = g === 'cars' ? 2.8 : Math.max(2.0, hm * 0.85), best = null;
+  var c0 = n <= 1 || (g === 'cars' && n <= 2) ? 1 : n <= 4 ? 2 : Math.ceil(n / 4), c1 = Math.min(n, g === 'cars' ? (portrait ? 3 : 5) : (portrait ? 4 : 6));
+  for (var cols = c0; cols <= Math.max(c0, c1); cols++) {
+    var rows = Math.ceil(n / cols), el = lobElev(rows, portrait);
+    var W = (cols - 1) * sp + w + (rows > 1 ? sp * (cols <= 3 ? 0.44 : 0.5) : 0), Hs = hm * Math.cos(el) + (rows - 1) * dz * Math.sin(el) + 0.9;
+    var k = Math.min(R.w * 0.94 / W, R.h * 0.9 / Hs);
+    if (!best || k > best.k * 1.03) best = { k: k, cols: cols, rows: rows, el: el };
+  }
+  var out = [];
+  for (i = 0; i < n; i++) {
+    var r = Math.floor(i / best.cols), inRow = Math.min(best.cols, n - r * best.cols), c = i - r * best.cols;
+    out.push({ x: (c - (inRow - 1) / 2) * sp + (best.rows > 1 && best.cols === 1 ? (r % 2 ? 0.3 : -0.3) * sp : best.rows > 1 && best.cols <= 3 ? (r % 2 ? 0.22 : -0.22) * sp : best.rows > 1 ? (r % 2 ? 0.5 : 0) * sp : 0), z: -r * dz, r: r });
+  }
+  var half = 0; out.forEach(function (q) { half = Math.max(half, Math.abs(q.x)); });
+  return { pos: out, half: half + w * 0.6, depth: (best.rows - 1) * dz, rows: best.rows, el: best.el, w: w, hm: hm };
+}
+/* the part of the screen the stage may use: between the top bar and the dock at the bottom */
+function lobRect() {
+  var top = 0, bot = VIEW.H, hd = document.querySelector('#s-lobby .lobhead'), dk = $('lob-dock');
+  var dr = dk && dk.getBoundingClientRect(); if (dr && dr.width && dr.left > VIEW.W * 0.4) return { x: 0, y: 60, w: dr.left - 8, h: VIEW.H - 66 };   // a phone on its side: the stage on the left, the controls in a column on the right
+  if (hd && hd.getBoundingClientRect().height) top = hd.getBoundingClientRect().bottom + 56;   // room for the tags above the back row
+  if (dk && dk.getBoundingClientRect().height) bot = dk.getBoundingClientRect().top - 4;
+  if (bot - top < 140) { top = 60; bot = VIEW.H * 0.62; }
+  return { x: 0, y: top, w: VIEW.W, h: bot - top };
+}
+var _lobV = null, _lobB = null;
+/* how far back the camera stands: the whole group (every body, feet to the top of the head) as large as the free area
+   allows, then centred in it */
+function lobFit(L, R, el) {
+  _lobV = _lobV || new THREE.Vector3();
+  var pts = []; LOB.order.forEach(function (e, i) { var p = L.pos[i], hw = e.w * 0.5; pts.push([p.x - hw, 0, p.z + 0.5], [p.x + hw, 0, p.z + 0.5], [p.x - hw * 0.8, e.h, p.z], [p.x + hw * 0.8, e.h, p.z]); });
+  var C = LOB.cam, asp = VIEW.W / Math.max(1, VIEW.H), fx = R.w / VIEW.W * 0.94, fy = R.h / VIEW.H * 0.94, cy = L.hm * 0.45, cz = -L.depth / 2, box = null;
+  C.fov = 30; C.aspect = asp; C.clearViewOffset(); C.updateProjectionMatrix();
+  function ext(d) { C.position.set(0, cy + Math.sin(el) * d, cz + Math.cos(el) * d); C.lookAt(0, cy, cz); C.updateMatrixWorld(true);
+    var b = [9, 9, -9, -9]; pts.forEach(function (p) { _lobV.set(p[0], p[1], p[2]).project(C); b[0] = Math.min(b[0], _lobV.x); b[1] = Math.min(b[1], _lobV.y); b[2] = Math.max(b[2], _lobV.x); b[3] = Math.max(b[3], _lobV.y); }); return b; }
+  var lo = 2, hi = 140;
+  for (var it = 0; it < 28; it++) { var d = (lo + hi) / 2, b = ext(d); if ((b[2] - b[0]) / 2 <= fx && (b[3] - b[1]) / 2 <= fy) { hi = d; box = b; } else lo = d; }
+  if (!box) box = ext(hi);
+  return { d: hi, cy: cy, cz: cz, ox: (box[0] + box[2]) / 4 * VIEW.W, oy: -(box[1] + box[3]) / 4 * VIEW.H };   // where the group's centre lands, so it can be moved to the middle of the free area
+}
+/* ---------- one frame of the room ---------- */
+function lobFrame(now, dt) {
+  if (!lobOn() || !lobInit()) return false;
+  lobSync();
+  var g = UI.game, R = lobRect(), L = lobLayout(R), r = GFX.r, C = LOB.cam;
+  var env = g === 'sight' ? LSG.studio : g === 'cars' ? (CKG.scene && CKG.scene.environment) : (GFX.pScene && GFX.pScene.environment);
+  LOB.scene.environment = env || null;
+  LOB.key.color.set(g === 'sight' ? 0xe8f2ff : g === 'cars' ? 0xf4f6ff : 0xfff0dc); LOB.rim.color.copy(LC(g === 'sight' ? '#58e1ff' : g === 'cars' ? '#9fc8ff' : '#ffd9a0')); LOB.rim.intensity = g === 'sight' ? 1.6 : 1.0;
+  for (var fk in LOB.floors) LOB.floors[fk].visible = fk === g;
+  var fl = lobFloor(g); fl.visible = true; fl.scale.set(L.half + 0.9, 1, Math.max(2.2, L.depth / 2 + 2)); fl.position.set(0, 0, -L.depth / 2);
+  fl.userData.glow.material.opacity = 0.09 + Math.sin(now * 1.3) * 0.02;
+  LOB.order.forEach(function (e, i) {
+    var p = L.pos[i]; e.root.position.set(p.x, 0, p.z);
+    var age = performance.now() / 1000 - e.joined, pop = Math.max(0, Math.min(1, age / 0.45)), k = pop < 1 ? 1 - Math.pow(1 - pop, 3) : 1;   // a new arrival rises in
+    e.root.scale.setScalar(0.6 + 0.4 * k); e.root.position.y = (1 - k) * -0.4;
+    var face = -p.x * 0.05;                                                      // everyone turns a little toward the middle
+    if (e.R) { e.R.grp.rotation.y = face + Math.sin(now * 0.4 + e.ph) * 0.12; animRider(e.R, { mood: age < 1.6 ? 'cheer' : (Math.sin(now * 0.5 + e.ph) > 0.97 ? 'happy' : ''), look: Math.sin(now * 0.5 + e.ph) * 0.3, vel: 0, hit: 0, ph: e.ph }, now, dt); }
+    else if (e.J) { lsPose(e.J, { aim: Math.PI / 2 + face + Math.sin(now * 0.35 + e.ph) * 0.18, speed: 0 }, now, dt); }
+    else if (e.car) { e.car.grp.rotation.y = -Math.PI / 2 + 0.62 + face + Math.sin(now * 0.3 + e.ph) * 0.05; }
+  });
+  // the camera: low, a slow breath of movement; fitted to the free area and centred in it
+  var el = L.el, key = g + ':' + L.rows + ':' + LOB.order.reduce(function (a, e) { return a + e.h + e.w; }, 0).toFixed(1) + ':' + LOB.order.length + ':' + Math.round(R.y) + ':' + Math.round(R.h) + ':' + Math.round(R.w) + ':' + VIEW.W + 'x' + VIEW.H;
+  if (LOB.fitK !== key) { LOB.fitK = key; LOB.fit = lobFit(L, R, el); }
+  var f = LOB.fit, az = REDUCE ? 0 : Math.sin(now * 0.18) * 0.05, d = f.d;
+  C.position.set(Math.sin(az) * d * Math.cos(el), f.cy + Math.sin(el) * d, f.cz + Math.cos(az) * Math.cos(el) * d); C.lookAt(0, f.cy, f.cz);
+  C.setViewOffset(VIEW.W, VIEW.H, f.ox + VIEW.W / 2 - (R.x + R.w / 2), f.oy + VIEW.H / 2 - (R.y + R.h / 2), VIEW.W, VIEW.H); C.updateProjectionMatrix(); C.updateMatrixWorld(true);
+  var exp0 = r.toneMappingExposure;
+  r.setRenderTarget(null); r.setScissorTest(false); r.setViewport(0, 0, VIEW.W, VIEW.H); r.setClearColor(0x000000, 0); r.toneMappingExposure = g === 'sight' ? 1.1 : 1.05;
+  r.render(LOB.scene, C); r.toneMappingExposure = exp0;
+  lobTagsPlace();
+  return true;
+}
+/* ---------- the tags over everyone's head ----------
+   Two short lines: the name, then the rank, the level and one status (Host, Ready, Not ready, Bot). Tags never sit on
+   top of each other: the nearest player's tag keeps its place and the ones behind step up out of its way. */
+var LOB_CROWN = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M3 8l4.5 3.5L12 5l4.5 6.5L21 8l-2 11H5z"/></svg>';
+var LOB_TICK = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function lobTagsSync() {
+  var box = $('lob-tags'); if (!box) return;
+  var list = lobSeats(), online = ROOM.role !== 'solo', seen = {};
+  box.classList.toggle('compact', VIEW.W < 380 && list.length > 4);                       // a narrow phone and a full room: a little smaller
+  list.forEach(function (s, i) {
+    var t = LOB.tags[s.id];
+    if (!t) { t = LOB.tags[s.id] = document.createElement('button'); t.type = 'button'; t.className = 'ltag'; t.innerHTML = '<b></b><span class="lt-row"><i class="lt-rk"></i><i class="lvc"></i><em></em></span>'; box.appendChild(t); }
+    seen[s.id] = 1; t.setAttribute('data-id', s.id);
+    var wait = i >= ROOM.seats.length, me = s.id === ME.id, host = !s.bot && s.id === ROOM.hostId && online, rdy = !s.bot && !wait && (me ? (ROOM.role === 'host' || !!UI.lsReady) : (s.rdy || host));
+    var st = wait ? 'wait' : s.bot ? 'bot' : s.away && !me ? 'away' : host ? 'host' : !online ? 'you' : rdy ? 'rdy' : 'nrdy';
+    t.className = 'ltag st-' + st + (me ? ' me' : '');
+    setC(t, COLORS[s.col]);
+    var nm = s.bot ? (UI.game === 'sight' ? lsName(lsLoad(s).op) : UI.game === 'cars' ? ckName(s.car | 0) : chName(s.ch)) : s.name;
+    if (t.children[0].textContent !== nm) t.children[0].textContent = nm;
+    var row = t.children[1], rr = s.bot ? null : bestRank(seatRks(s)), rk = rr && rr.tier >= 0 ? rankSVG(rr) : '';
+    if (row.children[0]._k !== rk) { row.children[0]._k = rk; row.children[0].innerHTML = rk; } row.children[0].hidden = !rk;
+    lvChip(row.children[1], s.bot ? 0 : (me ? myLevel() : s.lv || 1)); row.children[1].hidden = !!s.bot;
+    var lab = st === 'wait' ? T('waiting') : st === 'bot' ? T('bot') : st === 'away' ? T('away') : st === 'host' ? LOB_CROWN + '<span>' + T('host') + '</span>' : st === 'you' ? T('you') : st === 'rdy' ? LOB_TICK + '<span>' + T('lsReady') + '</span>' : T('lsNotReadyS');
+    if (row.children[2]._k !== lab) { row.children[2]._k = lab; if (/</.test(lab)) row.children[2].innerHTML = lab; else row.children[2].textContent = lab; }
+    t.setAttribute('aria-label', nm + ', ' + (row.children[2].textContent || ''));
+    t._w = 0;                                                                     // measured again on the next frame
+  });
+  for (var k in LOB.tags) if (!seen[k]) { var o = LOB.tags[k]; if (o.parentNode) o.parentNode.removeChild(o); delete LOB.tags[k]; }
+}
+function lobTagsPlace() {
+  _lobB = _lobB || new THREE.Vector3();
+  var want = [];
+  LOB.order.forEach(function (e) {
+    var t = LOB.tags[e.id]; if (!t) return;
+    if (!t._w) { t._w = t.offsetWidth || 100; t._h = t.offsetHeight || 40; }
+    e.root.updateMatrixWorld(true); _lobB.set(0, e.h * e.root.scale.y + 0.18, 0).applyMatrix4(e.root.matrixWorld).project(LOB.cam);
+    want.push({ t: t, x: (_lobB.x + 1) / 2 * VIEW.W, y: (1 - _lobB.y) / 2 * VIEW.H, z: e.root.position.z });
+  });
+  want.sort(function (a, b) { return b.z - a.z || a.x - b.x; });                  // nearest first: they keep their place
+  var placed = [], top = 8;
+  want.forEach(function (q) {
+    var w = q.t._w + 6, h = q.t._h + 4, x = Math.max(w / 2 + 4, Math.min(VIEW.W - w / 2 - 4, q.x)), y = q.y;
+    for (var it = 0; it < 12; it++) {
+      var hit = null; for (var j = 0; j < placed.length; j++) { var p = placed[j]; if (Math.abs(p.x - x) < (p.w + w) / 2 && y > p.y - p.h && y - h < p.y) { hit = p; break; } }
+      if (!hit) break; y = hit.y - hit.h - 2;                                     // step up above the one in the way
+    }
+    y = Math.max(top + h, y); placed.push({ x: x, y: y, w: w, h: h });
+    var X = Math.round(x), Y = Math.round(y), lift = Math.round(q.y - y);
+    if (q.t._x !== X || q.t._y !== Y) { q.t._x = X; q.t._y = Y; q.t.style.transform = 'translate(' + X + 'px,' + Y + 'px) translate(-50%,-100%)'; q.t.classList.toggle('lifted', lift > 6); q.t.style.setProperty('--lift', lift + 'px'); }
+    q.t.style.zIndex = String(20 + Math.round(q.z));
+  });
+}
+/* ---------- the match card: what everyone will play, in one line ---------- */
+function lobMatchCard() {
+  var box = $('lob-match'); if (!box) return;
+  var c = ROOM.cfg, g = UI.game, img = '', name = '', sub = '', host = ROOM.role === 'host' || ROOM.role === 'solo';
+  if (g === 'cars') { var mk = c.ckm == null ? -1 : c.ckm; img = ckMapArt(mk); name = ckModeName(c.ckmo | 0); sub = ckMapName(mk) + ' · ' + T('ckBestOf', { n: c.ckr || 3 }); }
+  else if (g === 'sight') { var lm = c.lsm == null ? -1 : c.lsm; img = lsMapArt(lm >= 0 ? lm : (LS.next >= 0 ? LS.next : 7)); name = lsModeName(c.lsmo | 0); sub = lsMapName(lm) + ' · ' + ((c.lsr || 3) === 1 ? T('lsRound1') : T('lsRoundsN', { n: c.lsr || 3 })); }
+  else {
+    var P = plOf(c.comp), gc = P ? Object.assign({}, c, P.rules) : c, mode = gc.mode | 0;
+    img = mapPic(c.map); name = (P ? T('compTag') + ' · ' : '') + T(MODE_NAMES[mode]); sub = mapName(c.map) + ' · ' + T(MODE_NAMES[mode]) + ': ' + targetText(mode, cfgTarget(gc), gc.ck);
+    sub = mapName(c.map) + ' · ' + targetText(mode, cfgTarget(gc), gc.ck) + (tmOn() ? ' · ' + ((c.tm | 0) === 2 && c.fo ? T('foFace') : T('teamsT') + ' ' + (c.tm | 0)) : '');
+  }
+  sub = sub.replace(/ · /g, LANG === 'ar' ? '، ' : ', ');
+  var im = box.querySelector('img'); if (img && im.getAttribute('src') !== img) im.src = img;
+  box.querySelector('b').textContent = name; box.querySelector('small').textContent = sub;
+  $('b-lobset').hidden = !host; box.classList.toggle('host', host);
+}
+/* ---------- the room screen around the stage ---------- */
+function lobRender() {
+  if (UI.screen !== 'lobby') return;
+  lobMatchCard(); lobTagsSync();
+  var online = ROOM.role !== 'solo', rb = $('b-lsready');
+  rb.hidden = ROOM.role !== 'client'; rb.classList.toggle('on', !!UI.lsReady); rb.querySelector('span').textContent = T(UI.lsReady ? 'lsReadyOn' : 'lsReady');
+  $('lob-n').textContent = ROOM.seats.length + '/' + maxP();
+  $('b-invite').hidden = !online; if (!online) UI.invOpen = false;
+  $('s-lobby').classList.toggle('inv-open', online && !!UI.invOpen); $('s-lobby').classList.toggle('qr-open', online && !!UI.invOpen && !!UI.qrOpen);   // the QR code only when asked for
+  $('b-qr').classList.toggle('on', !!UI.qrOpen);
+}
+function lobInitUI() {
+  if (LOB.ui) return; LOB.ui = true;
+  if (DBG) DBG.LOB = LOB;
+  SHEETS.push('setsheet');
+  $('set-body').appendChild($('hostctl'));                                     // the host's settings live on their own panel
+  $('b-lobset').addEventListener('click', function () { sfx('click'); openSheet('setsheet'); });
+  $('lob-match').addEventListener('click', function (e) { if (e.target.closest('#b-lobset')) return; if (ROOM.role === 'host' || ROOM.role === 'solo') { sfx('click'); openSheet('setsheet'); } });
+  $('b-setok').addEventListener('click', function () { sfx('click'); UI.setBack = null; closeSheet('setsheet'); });
+  // one Invite button: share the link, invite friends, or show the QR code, on a small card under it
+  var pop = $('invpop'); pop.appendChild($('b-copy')); pop.appendChild($('b-invfr')); pop.appendChild($('b-qr')); pop.appendChild($('qrbox'));
+  $('b-invite').addEventListener('click', function (e) { e.stopPropagation(); sfx('click'); UI.invOpen = !UI.invOpen; if (!UI.invOpen) UI.qrOpen = false; lobRender(); });
+  $('b-qr').addEventListener('click', function (e) { e.stopPropagation(); sfx('click'); UI.qrOpen = !UI.qrOpen; if (UI.qrOpen) drawQR(); lobRender(); });
+  ['b-copy', 'b-invfr'].forEach(function (id) { $(id).addEventListener('click', function () { setTimeout(function () { UI.invOpen = false; UI.qrOpen = false; lobRender(); }, 150); }); });
+  document.addEventListener('click', function (e) { if (UI.invOpen && !e.target.closest('#invpop') && !e.target.closest('#b-invite')) { UI.invOpen = false; UI.qrOpen = false; lobRender(); } });
+  $('lob-tags').addEventListener('click', function (e) {
+    var t = e.target.closest('.ltag'), id = t && t.getAttribute('data-id');
+    if (!id || id === ME.id || ROOM.role === 'solo' || ROOM.role === 'none') return;
+    if (!ROOM.seats.some(function (s) { return s.id === id && !s.bot; })) return;
+    sfx('click'); openSeatMenu(id);
+  });
+  // a picker opened from the settings panel comes back to it when it closes
+  var open0 = openSheet, close0 = closeSheet;
+  openSheet = function (id) { if (UI.sheet === 'setsheet' && id !== 'setsheet') UI.setBack = 'setsheet'; return open0(id); };
+  closeSheet = function (id, now) { var r = close0(id, now); if (UI.setBack && id !== 'setsheet' && UI.screen === 'lobby' && (ROOM.role === 'host' || ROOM.role === 'solo')) { UI.setBack = null; setTimeout(function () { if (!UI.sheet) open0('setsheet'); }, REDUCE ? 0 : 250); } return r; };
+  // a room just made (from home, not back from a match): its host starts on the settings
+  var ss0 = showScreen;
+  showScreen = function (id) { var from = UI.screen; if (id === 'lobby' && from !== 'lobby' && from !== 'game' && from !== 'results') LOB.fresh = true; else if (id !== 'lobby') { LOB.fresh = false; UI.setBack = null; if (UI.sheet === 'setsheet') closeSheet('setsheet', true); } return ss0.apply(this, arguments); };
+  // every redraw of the room redraws its frame too; a host's new room starts on its settings
+  var rl0 = renderLobby;
+  renderLobby = function () {
+    var r = rl0.apply(this, arguments); lobRender();
+    var host = ROOM.role === 'host' || ROOM.role === 'solo';
+    if (host && LOB.fresh && UI.screen === 'lobby' && !(DBG && DBG.norender)) { LOB.fresh = false; setTimeout(function () { if (UI.screen === 'lobby' && !UI.sheet) openSheet('setsheet'); }, 350); }
+    return r;
+  };
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lobInitUI); else lobInitUI();
 
 initUI();
 })();
