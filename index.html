@@ -7360,7 +7360,7 @@ var CM = {
 };
 function applyLobby(d) {
   if (!d || !Array.isArray(d.seats)) return;
-  if ((d.ep | 0) < (ROOM.ep | 0)) return;                                  // an old host that has been replaced: ignore it
+  if (ROOM.joined && (d.ep | 0) < (ROOM.ep | 0)) return;                   // an old host that has been replaced: ignore it (a phone still joining takes the room as it finds it)
   if (ROOM.hostId && d.hid !== ROOM.hostId && ROOM.joined) hostChanged(d.hid);
   ROOM.ep = d.ep | 0; ROOM.hostId = d.hid; ROOM.bots = d.bots | 0;
   var q = d.cfg || [];
@@ -7544,7 +7544,7 @@ function openHost(r) {
   netHost(r ? r.c : null).then(function (code) {
     ROOM.busy = false; hideToast();
     var now = performance.now();
-    ROOM.role = 'host'; ROOM.code = code; ROOM.phase = 'lobby'; ROOM.bots = 0; ROOM.hostId = ME.id; ROOM.waiting = [];
+    ROOM.role = 'host'; ROOM.code = code; ROOM.phase = 'lobby'; ROOM.bots = 0; ROOM.hostId = ME.id; ROOM.waiting = []; ROOM.ep = 0;
     ROOM.cfg.game = gameNo(UI.game); lsHostKeys(); LSK.peers = {};
     ROOM.seats = [mySeat({ seen: now, joinedAt: now / 1000 })];
     if (r) {
@@ -7628,7 +7628,7 @@ function joinRoom(code) {
   toast(T(l && l.c === code ? 'rejoining' : 'connecting'), 12000);
   NET.onClient = onClientMsg;
   NET.onDirect = function () { G.pings = []; };
-  ROOM.role = 'client'; ROOM.code = code; ROOM.joined = false; ROOM.helloN = 0; G.lastHost = performance.now(); G.pings = []; G.synced = false; G.mid = 0;
+  ROOM.role = 'client'; ROOM.code = code; ROOM.joined = false; ROOM.helloN = 0; ROOM.ep = 0; ROOM.hostId = '';   /* nothing carried over from the last room */ G.lastHost = performance.now(); G.pings = []; G.synced = false; G.mid = 0;
   netJoin(code).then(function () {
     ROOM.busy = false;
     stopTimers(); clientRelay(['hello', prof()]); ROOM.timer = setInterval(clientTimer, 1000);
@@ -7643,7 +7643,7 @@ function soloRoom() {
 function teardown() {
   stopTimers(); ROOM.busy = false;
   forgetLast(); ROOM.hostAway = false;
-  var role = ROOM.role; ROOM.role = 'none'; ROOM.joined = false; ROOM.code = ''; ROOM.seats = []; ROOM.waiting = []; ROOM.phase = 'lobby';
+  var role = ROOM.role; ROOM.role = 'none'; ROOM.joined = false; ROOM.ep = 0; ROOM.hostId = ''; ROOM.code = ''; ROOM.seats = []; ROOM.waiting = []; ROOM.phase = 'lobby';
   voiceClose(); chatReset();
   if (role === 'host' || role === 'client') setTimeout(netClose, 200);
   musicStop(); ckStop(); lsStop(); startDemo(); showScreen('home');
@@ -21629,6 +21629,7 @@ function lobInitUI() {
   renderLobby = function () {
     var r = rl0.apply(this, arguments); lobRender();
     var host = ROOM.role === 'host' || ROOM.role === 'solo';
+    if (!host) { LOB.fresh = false; if (UI.sheet === 'setsheet') closeSheet('setsheet', true); }   /* only the host has settings: a phone that stopped being host loses the panel */
     if (host && LOB.fresh && UI.screen === 'lobby' && !(DBG && DBG.norender)) { LOB.fresh = false; setTimeout(function () { if (UI.screen === 'lobby' && !UI.sheet) openSheet('setsheet'); }, 350); }
     return r;
   };
